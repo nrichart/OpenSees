@@ -2191,10 +2191,7 @@ Domain::Print(OPS_Stream &s, int flag)
     OPS_printUniaxialMaterial(s, flag);
     s << ",\n";   
     OPS_printNDMaterial(s, flag);
-    s << ",\n";
-    OPS_printSectionForceDeformation(s, flag);
     s << ",\n";   
-    OPS_printCrdTransf(s, flag);      
 
     s << "\n\t},\n";
 	s << "\t\"geometry\": {\n";

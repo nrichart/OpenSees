@@ -120,6 +120,9 @@
     <Filter Include="absorbentBoundaries">
       <UniqueIdentifier>{1b806f65-5bd2-4429-9294-d36935d459e3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="macroelement3d">
+      <UniqueIdentifier>{a742d935-c8f6-4e08-bf42-4230f38eb25d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\SRC\element\Element.cpp">
