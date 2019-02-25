@@ -87,6 +87,9 @@
 
 //#include <McftSection2dfiber.h>
 
+// added by Francesco Vanin
+#include <OrthotropicMembraneSection.h>
+
 #include <string.h>
 #include <fstream>
 using std::ifstream;
@@ -1862,6 +1865,60 @@ TclModelBuilderSectionCommand (ClientData clientData, Tcl_Interp *interp, int ar
 	  theSection = new Isolator2spring(tag, tol, k1, Fy, kb, kvo, hb, Pe, Po);
 	}
     		
+		// added by Francesco Vanin: elastic orthotropic membrane section for plates
+
+		else if ((strcmp(argv[1], "OrthotropicMembraneSection") == 0) || (strcmp(argv[1], "OrthotropicMembrane") == 0)) {
+			if (argc < 8) {
+				opserr << "WARNING insufficient arguments\n";
+				opserr << "Want: section OrthotropicMembraneSection tag? E1? E2? ni? G? h? <rho?>\n";
+				return TCL_ERROR;
+			}
+
+			int tag;
+			double E1, E2, ni, G, h;
+			double rho = 0.0;
+
+			if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
+				opserr << "WARNING OrthotropicMembraneSection: invalid tag" << endln;
+				return TCL_ERROR;
+			}
+
+			if (Tcl_GetDouble(interp, argv[3], &E1) != TCL_OK) {
+				opserr << "WARNING OrthotropicMembraneSection (tag " << tag << "): invalid stiffness in direction '1' E1\n";
+				return TCL_ERROR;
+			}
+
+			if (Tcl_GetDouble(interp, argv[4], &E2) != TCL_OK) {
+				opserr << "WARNING OrthotropicMembraneSection (tag " << tag << "): invalid stiffness in direction '2' E2\n";
+				return TCL_ERROR;
+			}
+
+			if (Tcl_GetDouble(interp, argv[5], &ni) != TCL_OK) {
+				opserr << "WARNING OrthotropicMembraneSection (tag " << tag << "): invalid Poisson's ratio ni\n";
+				return TCL_ERROR;
+			}
+
+			if (Tcl_GetDouble(interp, argv[6], &G) != TCL_OK) {
+				opserr << "WARNING OrthotropicMembraneSection (tag " << tag << "): invalid shear modulus G\n";
+				return TCL_ERROR;
+			}
+
+			if (Tcl_GetDouble(interp, argv[7], &h) != TCL_OK) {
+				opserr << "WARNING OrthotropicMembraneSection (tag " << tag << "): invalid membrane height h\n";
+				return TCL_ERROR;
+			}
+
+			if (argc > 8) {
+				if (Tcl_GetDouble(interp, argv[8], &rho) != TCL_OK) {
+					opserr << "WARNING OrthotropicMembraneSection (tag " << tag << "): invalid density rho\n";
+					return TCL_ERROR;
+				}
+			}
+
+			theSection = new OrthotropicMembraneSection(tag, E1, E2, ni, G, h, rho);
+		}
+		// end addition Francesco Vanin
+
     else {
       theSection = TclModelBuilderYS_SectionCommand(clientData, interp, argc, 
 						    argv, theTclBuilder);
