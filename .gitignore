@@ -62,3 +62,15 @@ Faria1998PlaneStress2d.cpp
 Faria1998PlaneStress2d.h
 Faria1998ThreeDimensional.cpp
 Faria1998ThreeDimensional.h
+*.exp
+*.ilk
+*.iobj
+*.ipdb
+Win64/bin/OpenSeesTk.exe
+Win64/bin/OpenSees_downloaded.exe
+Win64/bin/OpenSees_built.exe
+*.tlog
+*.vcxproj
+*.vcxproj
+*.log
+*.idb
