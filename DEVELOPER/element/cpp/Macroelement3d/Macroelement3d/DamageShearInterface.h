@@ -17,36 +17,33 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.1 $
-// $Date: 2008/12/09 20:00:16 $
-// $Source: /usr/local/cvs/OpenSees/PACKAGES/NewMaterial/cpp/DamageShearInterface.h,v $
+
+/*
+Source: /DEVELOPER/element/cpp/Macroelement3d/Macroelement3d/DamageShearInterface.h
+Written by Francesco Vanin (francesco.vanin@epfl.ch)
+Ecole Polytechnique Federale de Lausanne, Switzerland,
+Earthquake Engineering and Structural Dynamics laboratory, 2019
+
+Reference: Vanin F., Penna A., Beyer K.;"A three dimensional macro-element
+for modelling of the in-plane and out-of-plane response of masonry walls",
+submitted to Earthquake Engineering and Structural Dynamics (2019)
+
+Last edit: 27 Feb 2019
+*/
+
                                                                         
 #ifndef DamageShearInterface_h
 #define DamageShearInterface_h
-
-// Written: Francesco Vanin
-//
-// Description: This file contains the class definition for 
-// AxialShearCombinedMaterial. AxialShearCombinedMaterial provides the abstraction
-// of an elastic perfectly plastic uniaxial material, 
-//
-// What: "@(#) DamageShearInterface.h, revA"
 
 #include <NDMaterial.h>
 #include <Matrix.h>
 #include <Vector.h>
 #include "CohesiveSurface.h"
 
-//additional includes that I wrote here
-//...
-
 class Information;
 class Response;
 class Channel;
 class NDMaterial;
-//class CohesiveSurface;
-
 
 class DamageShearInterface : public NDMaterial
 {
@@ -97,16 +94,14 @@ class DamageShearInterface : public NDMaterial
 //--------------------------------------------------------------------------------
   private:	
 
-	  CohesiveSurface* cohesiveSurface;
-	  Vector CommittedStrain;   // committed strain, to avoid useless iterations and wrong "elastic" updates
-	  Vector epsTrial;
+	  CohesiveSurface* cohesiveSurface;         // cohesive surface. Can be updated using a set of cohesive surfaces with different orientations
+	  Vector CommittedStrain;                   // committed strain, to avoid useless iterations
+	  Vector epsTrial;                          // trial strain
 
-	  Vector sigma;
-	  Matrix K;
-	  bool elasticSolution;
-	
+	  Vector sigma;                             // trial stress
+	  Matrix K;                                 // trial stiffness matrix
+	  bool elasticSolution;                     // option: provide a linar elastic solution (default: false)	
 };
-
 
 #endif
 

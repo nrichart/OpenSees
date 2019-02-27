@@ -17,22 +17,29 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.1 $
-// $Date: 2008/12/09 20:00:16 $
-// $Source: /usr/local/cvs/OpenSees/PACKAGES/NewMaterial/cpp/WrappedMaterial.h,v $
+
+/*
+Source: /DEVELOPER/element/cpp/Macroelement3d/Macroelement3d/WrappedMaterial.h
+Written by Francesco Vanin (francesco.vanin@epfl.ch)
+Ecole Polytechnique Federale de Lausanne, Switzerland,
+Earthquake Engineering and Structural Dynamics laboratory, 2019
+
+Builds a wrapped nDMaterial (dim: 2) that uses a linear elastic model for the
+first (axial) response and a generic material model for the second (shear) response.
+No coupling between the two directions.
+Scope: defining the shear response of the macroelement through a uniaxial material
+model, and apply it to a nDMaterial to be attached to the macroelement.
+
+Last edit: 27 Feb 2019
+*/
                                                                         
 #ifndef WrappedMaterial_h
 #define WrappedMaterial_h
-
-// Written: Francesco Vanin
 
 #include <NDMaterial.h>
 #include <Matrix.h>
 #include <Vector.h>
 
-//additional includes that I wrote here
-//...
 
 class Information;
 class Response;
@@ -45,7 +52,7 @@ class WrappedMaterial : public NDMaterial
 {
   public:
 	// full constructor
-    WrappedMaterial(int tag, double E,  UniaxialMaterial* shearMat, double alpha=0.0);
+    WrappedMaterial(int tag, double E,  UniaxialMaterial* shearMat);
 
 	//null constructor
     WrappedMaterial();    
@@ -84,17 +91,14 @@ class WrappedMaterial : public NDMaterial
 //--------------------------------------------------------------------------------
   private:	
 
-    Matrix Kpen;
+    Matrix Kpen;                        // elastic stiffness matrix
+	double E;                           // stiffness in axial direction
+	UniaxialMaterial*  theShearMat;     // uniaxial material model defining the shear response
 
-	double E;
+	Vector stress, stressCommitted;     // stress vector (trial, committed)
+	Vector u, uCommitted;               // deformation (trial, committed)
+	Matrix K, KCommitted;		        // stiffness matrix (trial, committed)
 
-	UniaxialMaterial*  theShearMat;
-
-	Vector stress, stressCommitted;
-	Vector u, uCommitted;
-	Matrix K, KCommitted;		
-
-	double alpha;
 };
 
 

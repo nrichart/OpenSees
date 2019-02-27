@@ -17,17 +17,22 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.7 $
-// $Date: 2009/03/23 23:17:04 $
-// $Source: /usr/local/cvs/OpenSees/PACKAGES/NewMaterial/cpp/WrappedMaterial.cpp,v $
-                                                                        
-// Written: Francesco Vanin
-//
-// Description: This file contains the class implementation for 
-// ElasticMaterial. 
-//
-// What: "@(#) WrappedMaterial.C, revA"
+
+/*
+Source: /DEVELOPER/element/cpp/Macroelement3d/Macroelement3d/WrappedMaterial.cpp
+Written by Francesco Vanin (francesco.vanin@epfl.ch)
+Ecole Polytechnique Federale de Lausanne, Switzerland,
+Earthquake Engineering and Structural Dynamics laboratory, 2019
+
+Builds a wrapped nDMaterial (dim: 2) that uses a linear elastic model for the 
+first (axial) response and a generic material model for the second (shear) response.
+No coupling between the two directions.
+Scope: defining the shear response of the macroelement through a uniaxial material
+model, and apply it to a nDMaterial to be attached to the macroelement.
+
+Last edit: 27 Feb 2019
+*/
+
 
 #include <elementAPI.h>
 #include "WrappedMaterial.h"
@@ -43,7 +48,6 @@
 #include <MaterialResponse.h>
 
 
-
 #ifdef _USRDLL
 #define OPS_Export extern "C" _declspec(dllexport)
 #elif _MACOSX
@@ -53,23 +57,19 @@
 #endif
 
 static int numWrappedMaterial = 0;
-static double tol = 1e-7;
 
 OPS_Export void *
 OPS_WrappedMaterial()
 {
   // print out some KUDO's
   if (numWrappedMaterial == 0) {
-    opserr << "WrappedMaterial - Loaded from external library\n";
+    opserr << "WrappedMaterial - Loaded from external library. Written by Francesco Vanin, EPFL, 2019.\n";
     numWrappedMaterial =1;
   }
 
   // Pointer to the nD material that will be returned
   NDMaterial *theMaterial = 0;
 
-  //
-  // parse the input line for the material parameters
-  //
   int    iData[2];
   double dData[1];
   int numData;
@@ -100,21 +100,20 @@ OPS_WrappedMaterial()
     opserr << "WARNING could not create NDMaterial of type WrappedMaterial\n";
     return 0;
   }
-
-
+  
   // return the material
   return theMaterial;
 }
 
 // full constructor
-WrappedMaterial::WrappedMaterial(int tag, double _E, UniaxialMaterial* PassedShearModel, double alpha)
-	:NDMaterial(tag, 0), stress(2), stressCommitted(2), u(2), uCommitted(2), Kpen(2,2), K(2,2), KCommitted(2,2), E(_E), theShearMat(0), alpha(alpha)
+WrappedMaterial::WrappedMaterial(int tag, double _E, UniaxialMaterial* PassedShearModel)
+	:NDMaterial(tag, 0), stress(2), stressCommitted(2), u(2), uCommitted(2), Kpen(2,2), K(2,2), KCommitted(2,2), E(_E), theShearMat(0)
 { 
 	// create a copy of the shear model
 	theShearMat = PassedShearModel->getCopy();
 
    Kpen(0,0) = _E;
-   Kpen(1,1) = theShearMat->getInitialTangent() +alpha;
+   Kpen(1, 1) = theShearMat->getInitialTangent();
 
    K = Kpen;
    KCommitted = Kpen;
@@ -122,7 +121,7 @@ WrappedMaterial::WrappedMaterial(int tag, double _E, UniaxialMaterial* PassedShe
 }
 
 WrappedMaterial::WrappedMaterial()
-:NDMaterial(0, 0), stress(2), stressCommitted(2), u(2), uCommitted(2), Kpen(2,2), K(2,2), KCommitted(2,2), E(0.0), theShearMat(0), alpha(0.0)
+:NDMaterial(0, 0), stress(2), stressCommitted(2), u(2), uCommitted(2), Kpen(2,2), K(2,2), KCommitted(2,2), E(0.0), theShearMat(0)
 { 
 }
 
@@ -138,8 +137,6 @@ WrappedMaterial::setTrialStrain(const Vector &strain, const Vector &rate) {
 
 int
 WrappedMaterial::setTrialStrain(const Vector &strain) { 
-
-	//opserr << "set displ: " << strain(1) << endln;
 		u = strain;
 		theShearMat->setTrialStrain( u(1) );
 
@@ -176,12 +173,11 @@ WrappedMaterial::getTangent( )
 	double stiff = theShearMat->getTangent();
 	double stiff0 = theShearMat->getInitialTangent();
 
+	// use a fake small stiffness if zero stiffness
 	if (abs(stiff/stiff0)>0.001)
 		K(1,1) = stiff;
 	else
 		K(1,1) = 0.001*stiff0;
-
-	K(1,1)+=alpha;
 
 	return K;
 }
@@ -192,8 +188,6 @@ WrappedMaterial::getInitialTangent (void)
 	Kpen.Zero();
 	Kpen(0,0) = E;
 	Kpen(1,1) = theShearMat->getInitialTangent();
-	
-	K(1,1)+=alpha;
 
 	return Kpen;
 }
@@ -201,7 +195,7 @@ WrappedMaterial::getInitialTangent (void)
 const Vector&
 WrappedMaterial::getStress (void)
 {
-	stress(1) = theShearMat->getStress() +alpha*u(1);
+	stress(1) = theShearMat->getStress();
 	return stress;
 }
 
@@ -220,8 +214,6 @@ WrappedMaterial::commitState (void)
 	uCommitted = u;
 	stressCommitted = this->getStress();
 
-	//opserr << "committedTangent = " << theShearMat->getTangent() << endln;
-
 	return 0;
 }
 
@@ -233,6 +225,7 @@ WrappedMaterial::revertToLastCommit (void)
 	K = KCommitted;
 	u = uCommitted;
 	stress = stressCommitted;
+
   return 0;
 }
 
@@ -251,13 +244,14 @@ WrappedMaterial::revertToStart (void)
 
 	u.Zero();
 	stress.Zero();
+
   return 0;
 }
 
 NDMaterial*
 WrappedMaterial::getCopy (void)
 {
-	WrappedMaterial *theCopy = new WrappedMaterial(this->getTag(), E, theShearMat, alpha);
+	WrappedMaterial *theCopy = new WrappedMaterial(this->getTag(), E, theShearMat);
   return theCopy;
 }
 
@@ -346,7 +340,6 @@ WrappedMaterial::setResponse (const char **argv, int argc, OPS_Stream &output) {
 
   return theResponse;
 }
-
 
 int 
 WrappedMaterial::getResponse (int responseID, Information &matInfo)

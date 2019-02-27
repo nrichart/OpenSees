@@ -18,9 +18,18 @@
 **                                                                    **
 ** ****************************************************************** */
                                                                         
-// $Revision: 1.10 $
-// $Date: 2008-08-26 16:46:59 $
-// $Source: /usr/local/cvs/OpenSees/SRC/material/section/ElasticSection3d.h,v $
+/*
+Source: /DEVELOPER/element/cpp/Macroelement3d/Macroelement3d/NoTensionSection3d.h
+Written by Francesco Vanin (francesco.vanin@epfl.ch)
+Ecole Polytechnique Federale de Lausanne, Switzerland,
+Earthquake Engineering and Structural Dynamics laboratory, 2019
+
+Reference: Vanin F., Penna A., Beyer K.;"A three dimensional macro-element
+for modelling of the in-plane and out-of-plane response of masonry walls",
+submitted to Earthquake Engineering and Structural Dynamics (2019)
+
+Last edit: 26 Feb 2019
+*/
 
 #ifndef NoTensionSection3d_h
 #define NoTensionSection3d_h
@@ -37,7 +46,8 @@ class Parameter;
 class NoTensionSection3d : public SectionForceDeformation
 {
  public:
-  NoTensionSection3d(int tag, double _k, double _kg, double _L, double _t, double _J, double _fc, int _nSections, bool stronger=false, bool elastic=false, bool crushing=true, bool spandrel=false);
+  NoTensionSection3d(int tag, double _k, double _kg, double _L, double _t, double _J, double _fc, int _nSections, 
+	                  bool stronger=false, bool elastic=false, bool crushing=true, bool spandrel=false);
   NoTensionSection3d(void);
   ~NoTensionSection3d(void);
   
@@ -67,9 +77,6 @@ class NoTensionSection3d : public SectionForceDeformation
   int setParameter(const char **argv, int argc, Parameter &param);
   int updateParameter(int parameterID, Information &info);
   int activateParameter(int parameterID);
-  const Vector& getStressResultantSensitivity(int gradIndex,
-					      bool conditional);
-  const Matrix& getInitialTangentSensitivity(int gradIndex);
 
   Response *setResponse(const char **argv, int argc, OPS_Stream &s);
   int getResponse(int responseID, Information &info);
@@ -82,34 +89,29 @@ class NoTensionSection3d : public SectionForceDeformation
   double k, kg, L, t, J, fc;
   
   int nSections;
-  double  OOPfactor;
-  Matrix muX, muY;         // ductility demands for all section discretisations 
-  Matrix zetaX, zetaY;     // damaged portions for all section discretisations 
-  Matrix muXt, muYt;       // ductility demands for all section discretisations (trial)
-  Matrix zetaXt, zetaYt;   // damaged portions for all section discretisations  (trial)
+  double  IPfactor;        // factor defining the ratio between in-plane and out-of-plane deformation
+  Matrix muZ, muY;         // ductility demands for all section discretisations (converged)
+  Matrix zetaZ, zetaY;     // damaged portions for all section discretisations (converged)
+  Matrix muZt, muYt;       // ductility demands for all section discretisations (trial)
+  Matrix zetaZt, zetaYt;   // damaged portions for all section discretisations  (trial)
 
-  Vector pos;              // positions of the sections
+  Vector pos;              // position of the sections
   Vector weight;           // weight of the sections
   
   Vector eCommitted, e, sCommitted, s;     // strain and stress vectors (committed and trial) 
-  Matrix D, Dcommitted, Dtrial;   // stiffness matrix
+  Matrix D, Dcommitted, Dtrial;            // stiffness matrix (elastic, committed, trial)
 
-  //Vector e, eTrial;			// section trial deformations
-  
-  //static Vector s, sTrial;
-  //static Matrix ks;
-  //static Matrix kCommitted;
   static ID code;
 
-  bool stronger;
-  bool elastic;
-  bool crushing;
-  bool spandrel;
-  double factorStronger;
-
+  bool stronger;           // option for adding a small linear elastic contribution for helping convergence
+  double factorStronger;   // factor defining the amount of the added elastic contribution, when used
+  bool elastic;            // option for a linear elastic formulation
+  bool crushing;           // option for accounting or not for crushing in compression
+  bool spandrel;           // option for impleting a different behaviour for spandrels (not used now) 
+ 
   int parameterID;
   int sliceOutput;
-  double torsionalStiffnessFactor;
+  double torsionalStiffnessFactor;  // torsional stiffness modifier, if applied
 };
 
 #endif

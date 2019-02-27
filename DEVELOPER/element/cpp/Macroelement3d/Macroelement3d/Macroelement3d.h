@@ -17,24 +17,22 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 6049 $
-// $Date: 2015-07-17 06:56:36 +0200 (Fri, 17 Jul 2015) $
-// $URL: svn://peera.berkeley.edu/usr/local/svn/OpenSees/trunk/SRC/element/dispBeamColumn/DispBeamColumn3d.h $
 
-// Written: MHS
-// Created: Feb 2001
-//
-// Description: This file contains the class definition for DispBeamColumn3d.
-// The element displacement field gives rise to constant axial strain,
-// linear curvature, and constant twist angle.
+/*
+Source: /DEVELOPER/element/cpp/Macroelement3d/Macroelement3d/Macroelement3d.h
+Written by Francesco Vanin (francesco.vanin@epfl.ch)
+Ecole Polytechnique Federale de Lausanne, Switzerland,
+Earthquake Engineering and Structural Dynamics laboratory, 2019
+
+Reference: Vanin F., Penna A., Beyer K.;"A three dimensional macro-element
+for modelling of the in-plane and out-of-plane response of masonry walls",
+submitted to Earthquake Engineering and Structural Dynamics (2019)
+
+Last edit: 27 Feb 2019
+*/
 
 #ifndef Macroelement3d_h
 #define Macroelement3d_h
-
-//#ifndef _bool_h
-//#include "bool.h"
-//#endif
 
 #include <Element.h>
 #include <Matrix.h>
@@ -55,7 +53,7 @@ class Macroelement3d : public Element
   public:
     Macroelement3d(int tag, int nd1, int nd2, int ndE, SectionForceDeformation *sI, SectionForceDeformation *sE, SectionForceDeformation *sJ, NDMaterial* shearModel, NDMaterial* shearModelOOP, 
 		double h, double E_, 
-		Vector driftF, Vector driftF_ALR, Vector driftS, Vector driftS_ALR, double Ltfc, double alphaNC_SD, double betaShearSpanF, double betaShearSpanS, double failureFactorF, double failureFactorS,
+		Vector driftF, Vector driftF_ALR, Vector driftS, Vector driftS_ALR, double Ltfc, double alphaAC_HC, double betaShearSpanF, double betaShearSpanS, double failureFactorF, double failureFactorS,
 		Vector axis, Vector oop, Vector intLength, Vector intLengthMasses, Vector massDir, 
 		int PDelta=0, double rho=0.0, int cm=0.0, double isGable=false);
     Macroelement3d();
@@ -92,7 +90,6 @@ class Macroelement3d : public Element
     // public methods for element output
     int sendSelf(int commitTag, Channel &theChannel);
     int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    //int displaySelf(Renderer &theViewer, int displayMode, float fact, const char **displayModes=0, int numModes=0);
     void Print(OPS_Stream &s, int flag =0);
 
     Response *setResponse(const char **argv, int argc, OPS_Stream &s);
@@ -101,87 +98,82 @@ class Macroelement3d : public Element
 	//drift model
 	void driftModel(double currentDriftF, double currentDriftS, double axialLoadRatio, double H0overL=1.0);
 
-	// override standard damping methods
-	//const Matrix &getTangentStiffDamping(void);
-	//const Matrix &getSecantStiffDamping(void);
-    //const Matrix &getInitialStiffDamping(void);
- 
-	//const Vector& getRayleighDampingForces(void); 
-	//const Vector& getDampingForces(void); 
-	//const Matrix &getDamp(void);
-
 
   protected:
     
   private:
+    // builds initial basic stiffness. Zero stiffness if the element failed for excessive drift demand 
     const Matrix &getInitialBasicStiff(void);
+
+	// incremental compatibility matrix (derivative of P-delta compatibility equations)
+	// its transpose is used as incremental equilibrium matrix
     const Matrix &getIncrementalCompatibilityMatrix(bool flagIncremental=true);
-	int trasformMatrixToGlobal(Matrix& A);
 
-    const int numSections;
-	const int numShearModels;
+	// explicit matrix operations to transform from local to global accounting for node offset(s)
+	int trasformMatrixToGlobal(Matrix& A);                                           
 
-    SectionForceDeformation **theSections; // pointer to the ND material objects
-	NDMaterial **theShearModel;
-	//UniaxialMaterial **theDampingModel;
+    const int numSections;                      // number of sections = 3
+	const int numShearModels;                   // number of shear models = 2
 
-    ID connectedExternalNodes; // Tags of quad nodes
+    SectionForceDeformation **theSections;      // pointers to sectional models
+	NDMaterial **theShearModel;                 // pointers to shear models
 
-    Node *theNodes[3];
+    ID connectedExternalNodes;                  // Tags of elements nodes (i,j,e)
+    Node *theNodes[3];                          // pointers to element nodes (i,j,e)
 
-    static Matrix K;		// Element stiffness, damping, and mass Matrix.
-	Matrix GammaC;	        // Compatibility matrix, including or not P-Delta effects
-    static Vector P;		// Element resisting force vector
-    Matrix Tgl, Tgl6;       // Rotation 3d matrix from global to local coordinates. Full version and 6x6 version to rotate only one node dofs
-    double R[3][3];
+    static Matrix K;		                    // stores element stiffness, damping, or mass Matrix.
+	Matrix GammaC;	                            // Compatibility matrix, including or not P-Delta effects
+    static Vector P;		                    // Element resisting force vector
+    Matrix Tgl, Tgl6;                           // Rotation 3d matrix from global to local coordinates. Full version and 6x6 version to rotate only one node dofs
+    double R[3][3];                            
 
-    Vector Q;                       // Applied nodal loads
-    Vector q;                       // Basic force
-	Vector uBasic, uBasicCommitted; // Basic displcaments
+    Vector Q;                                   // Applied nodal loadsalphaNC_SD
+    Vector q;                                   // Basic force
+	Vector uBasic, uBasicCommitted;             // Basic displcaments
 
-    double q0[12];  // Fixed end forces. Ordering can be improved. Used only for element loads (self weight, distributed)
-    double p0[12];  // Reactions in basic system. Used only for element loads (self weight, distributed)
+    double q0[12];                              // Element forces producing a p-delta effect
+    double p0[12];                              // Reactions in basic system of distributed loads
 
-    double rho;    // Mass density per unit length
-    int cMass;     // consistent mass flag
-	Vector massglobalDir;
-    int PDelta;
-    double deltaW1, deltaV1, deltaW3, deltaV3; // relative displacements used to define the compatibility matrix with P-Delta transformation
+    double rho;                                 // Mass density per unit length
+    int cMass;                                  // consistent mass flag
+	Vector massglobalDir;                       // participation factors for masses (in the global system)
+    int PDelta;                                 // flag for p-delta formulation (default: false)
+    double deltaW1, deltaV1, deltaW3, deltaV3;  // relative displacements used to define the compatibility matrix with P-Delta transformation
 
 	int parameterID;
+    enum {maxNumSections = 20}; // not used 
 
-    enum {maxNumSections = 20};
+    static double workArea[];  // not used here
 
-    static double workArea[];  // I think it is not used, not by me
+    double* nodeIInitialDisp;                    // initial displacements of the end nodes 
+    double* nodeJInitialDisp; 
 
-    double* nodeIInitialDisp;
-    double* nodeJInitialDisp;
-
-    double* nodeIOffset;
+    double* nodeIOffset;                         // node offsets of the end nodes
     double* nodeJOffset;
 
-    Vector xAxis, yAxis, zAxis;  // local orientation axes expressed in global coordinates
-	Vector intLength, intLengthMasses;  
-    double L;
-	double E;
+    Vector xAxis, yAxis, zAxis;                  // local orientation axes expressed in global coordinates
+	Vector intLength, intLengthMasses;           // integration lengths for sectional responses and lumped masses
+    double L;                                    // half-element length
+	double E;                                    // elastic modulus
 
-	double driftF, driftS;
-	double Ltfc, betaShearSpanF, betaShearSpanS;
-	Vector limitDriftF, limitDriftS, limitDriftF_ALR, limitDriftS_ALR;
-	double alphaNC_SD;
+	// drift model parameters
+	double driftF, driftS;                       // current flexural and shear drift                         
+	double Ltfc;                                 // product L*t*fc, maximum axial load (used for axial load ratio, only for the drift model)
+	double betaShearSpanF, betaShearSpanS;       // exponent beta applied to the shear span ratio in the drift model
+	Vector limitDriftF, limitDriftS;             // given points of the drift/axial load ratio relationship
+	Vector limitDriftF_ALR, limitDriftS_ALR;     // corresponding axial load ratios
+	double alphaAC_HC;                           // factor defining axial collapse drift as a function of lateral load collapse drift
 
-	bool failedF, failedS;
+	bool failedF, failedS;                       // flags for loss of lateral force capacity (current and committed) 
 	bool failedFcommitted, failedScommitted;
-
-	double failureFactorF,failureFactorS;
-
-	bool collapsedF, collapsedS;
+	bool collapsedF, collapsedS;                 // flag for loss of axial force capacity (current and committed)
 	bool collapsedFcommitted, collapsedScommitted;
 
-	bool isGable;
-	double wx, wy, wz;
-
-	double committedTime;
+	double failureFactorF,failureFactorS;        // factor defining the loss of force capacity
+	
+	bool isGable;                                // flag: gable element (used for mass matrix) 
+	double wx, wy, wz;                           // applied distributed element loads
+               
 
 };
 

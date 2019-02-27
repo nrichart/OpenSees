@@ -17,17 +17,19 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.7 $
-// $Date: 2009/03/23 23:17:04 $
-// $Source: /usr/local/cvs/OpenSees/PACKAGES/NewMaterial/cpp/DamageShearInterface.cpp,v $
-                                                                        
-// Written: Francesco Vanin
-//
-// Description: This file contains the class implementation for 
-// ElasticMaterial. 
-//
-// What: "@(#) DamageShearInterface.C, revA"
+
+/*
+Source: /DEVELOPER/element/cpp/Macroelement3d/Macroelement3d/DamageShearInterface.cpp
+Written by Francesco Vanin (francesco.vanin@epfl.ch)
+Ecole Polytechnique Federale de Lausanne, Switzerland,
+Earthquake Engineering and Structural Dynamics laboratory, 2019
+
+Reference: Vanin F., Penna A., Beyer K.;"A three dimensional macro-element
+for modelling of the in-plane and out-of-plane response of masonry walls",
+submitted to Earthquake Engineering and Structural Dynamics (2019)
+
+Last edit: 27 Feb 2019
+*/
 
 #include <elementAPI.h>
 #include "DamageShearInterface.h"
@@ -58,18 +60,13 @@ static int numDamageShearInterface = 0;
 OPS_Export void *
 OPS_DamageShearInterface()
 {
-  // print out some KUDO's
   if (numDamageShearInterface == 0) {
-    opserr << "DamageShearInterface - Loaded from external library\n";
+    opserr << "DamageShearInterface - Loaded from external library. Written by Francesco Vanin, EPFL, 2019.\n";
     numDamageShearInterface =1;
   }
 
-  // Pointer to a uniaxial material that will be returned
   NDMaterial *theMaterial = 0;
 
-  //
-  // parse the input line for the material parameters
-  //
   int    iData[1];
   double dData[13];
   int numData;
@@ -96,21 +93,13 @@ OPS_DamageShearInterface()
   }
 
   bool linearUnloading = false;
-  bool explicitFormulation = false;
   while (OPS_GetNumRemainingInputArgs() > 0) {
 	  const char* type = OPS_GetString();
 	  if (strcmp(type, "-linearUnloading") == 0 || strcmp(type, "-linearUnloading") == 0) {
 		  linearUnloading = true;
 	  }
-
-	  if (strcmp(type, "-expl") == 0 || strcmp(type, "-explicit")==0 || strcmp(type, "-Explicit") == 0) {
-		  explicitFormulation = true;
-	  }
   }
-  
-  // create a new material
-  //theMaterial = new DamageShearInterface(iData[0], dData[0], dData[1], dData[2], dData[3], dData[4], dData[5], dData[6], dData[7], dData[8], dData[9], dData[10], dData[11], dData[12], optData[0], optData[1], linearUnloading, explicitFormulation);
-
+    
   if (theMaterial == 0) {
     opserr << "WARNING could not create NDMaterial of type DamageShearInterface\n";
     return 0;
@@ -120,9 +109,8 @@ OPS_DamageShearInterface()
   return theMaterial;
 }
 
-
 // full constructor
-DamageShearInterface::DamageShearInterface(int tag, double _E, double _G, double c, double mu, double muR, double beta, double dropDrift, bool elasticSolution)
+DamageShearInterface::DamageShearInterface(int tag, double _E, double _G, double c, double mu0, double muR, double beta, double dropDrift, bool elasticSolution)
 		             :NDMaterial(tag, 0), CommittedStrain(2), epsTrial(2), elasticSolution(elasticSolution)
 { 
 	Matrix Kpen(2, 2);
@@ -130,11 +118,7 @@ DamageShearInterface::DamageShearInterface(int tag, double _E, double _G, double
 	Kpen(1, 1) = _G;
 
 	K = Kpen;
-
-	if (mu==muR)
-	     cohesiveSurface = new CohesiveSurface(Kpen, c, mu, muR, beta, dropDrift, elasticSolution); 
-	else
-		cohesiveSurface = new CohesiveSurface(Kpen, c, mu, muR, beta, dropDrift, elasticSolution); 
+	cohesiveSurface = new CohesiveSurface(Kpen, c, mu0, muR, beta, dropDrift, elasticSolution); 
 }
 
 // Constructor for copies
@@ -147,7 +131,6 @@ DamageShearInterface::DamageShearInterface(int tag, CohesiveSurface* _copyCohesi
 DamageShearInterface::DamageShearInterface()
 :NDMaterial(0, 0), CommittedStrain(2), epsTrial(2)
 {
-	// check if it is necessary to initialise the other members
 }
 
 DamageShearInterface::~DamageShearInterface() {
@@ -160,8 +143,6 @@ DamageShearInterface::setTrialStrain(const Vector &strain, const Vector &rate) {
 
 int
 DamageShearInterface::setTrialStrain(const Vector &strain) { 
-	//opserr << "setTrialDispl = " << strain;
-
 	Vector increment = strain - epsTrial;
 	if (increment.Norm() > DBL_EPSILON) {
 		epsTrial = strain;
@@ -190,12 +171,12 @@ DamageShearInterface::getCommittedTangent( )  {
 	return K;
 }
 	
-
 const Matrix& 
 DamageShearInterface::getTangent( ) 
 {
 	K = cohesiveSurface->getAlgorithmicTangent();
 
+	// provide a (fake) small stiffness if the zero tangent 
 	if (abs(K(1,1))<DBL_EPSILON) {
 		Matrix el(2,2);
 		el = this->getInitialTangent();
@@ -231,7 +212,6 @@ DamageShearInterface::commitState (void)
 	cohesiveSurface->commit();
 	return 0;
 }
-
 
 int
 DamageShearInterface::revertToLastCommit (void)     
@@ -276,10 +256,6 @@ DamageShearInterface::getMode() {
 		return cohesiveSurface->getMode(epsTrial);
 }
 
-
-
-
-//print out material data
 void 
 DamageShearInterface::Print( OPS_Stream &s, int flag )
 {
@@ -291,11 +267,17 @@ DamageShearInterface::Print( OPS_Stream &s, int flag )
 
 int 
 DamageShearInterface::sendSelf(int commitTag, Channel &theChannel) 
-{  return -1;  }
+{  
+	opserr << "WARNING: DamageShearInterface has no method sendSelf implemented" << endln;
+	return -1;  
+}
 
 int 
 DamageShearInterface::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{  return -1;  }
+{
+	opserr << "WARNING: DamageShearInterface has no method recvSelf implemented" << endln;
+	return -1;
+}
 
 
 // methods to overwrite the standard implementation in NDMaterial for asking outputs
@@ -339,13 +321,10 @@ DamageShearInterface::setResponse (const char **argv, int argc, OPS_Stream &outp
 	  theResponse = new MaterialResponse(this, 4, this->getMode());
   }
   
-   
-
   output.endTag(); // NdMaterialOutput
 
   return theResponse;
 }
-
 
 int 
 DamageShearInterface::getResponse (int responseID, Information &matInfo)
