@@ -17,28 +17,31 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.1 $
-// $Date: 2008/12/09 20:00:16 $
-// $Source: /usr/local/cvs/OpenSees/PACKAGES/NewMaterial/cpp/GambarottaLagomarsinoModel.h,v $
+
+/*
+Source: /DEVELOPER/element/cpp/Macroelement3d/Macroelement3d/GambarottaLagomarsinoModel.h
+Written by Francesco Vanin (francesco.vanin@epfl.ch)
+Ecole Polytechnique Federale de Lausanne, Switzerland,
+Earthquake Engineering and Structural Dynamics laboratory, 2019
+
+Reference: Vanin F., Penna A., Beyer K.;"A three dimensional macro-element
+for modelling of the in-plane and out-of-plane response of masonry walls",
+submitted to Earthquake Engineering and Structural Dynamics (2019)
+
+Last edit: 27 Feb 2019
+*/
                                                                         
 #ifndef GambarottaLagomarsinoModel_h
 #define GambarottaLagomarsinoModel_h
-
-// Written: Francesco Vanin
 
 #include <NDMaterial.h>
 #include <Matrix.h>
 #include <Vector.h>
 
-//additional includes that I wrote here
-//...
-
 class Information;
 class Response;
 class Channel;
 class NDMaterial;
-
 
 class GambarottaLagomarsinoModel : public NDMaterial
 {
@@ -91,30 +94,28 @@ class GambarottaLagomarsinoModel : public NDMaterial
 //--------------------------------------------------------------------------------
   private:	
 
-    Matrix Kpen;
+    Matrix Kpen;                           // initial stiffness matrix
 
-	double L,t,h;
+	double L,t,h;                          // dimension of the rectangular section and height of the panel
 
-	double mu;
-	double c;
-	double ct;
-	double beta;
+	double mu;                             // friction coefficient
+	double c;                              // cohesion
+	double ct;                             // parameter defining the pre-peak response
+	double beta;                           // parameter defining the post-peak response
 
-	double alpha, alphaCommitted;
-	double s, sCommitted;
-	double deltaLambda;
-	double deltaAlpha;
+	double alpha, alphaCommitted;          // damage variable (trial and committed)
+	double s, sCommitted;                  // section inelastic slip (trial and committed)
+	double deltaLambda;                    // increase of the plastic multiplier
+	double deltaAlpha;                     // increase of the damage variable alpha
 
 
-	Vector stress, stressCommitted;
-	Vector u, uCommitted;
-	Matrix K, KCommitted;
+	Vector stress, stressCommitted;        // section forces (trial, committed)
+	Vector u, uCommitted;                  // section displacements (trial, committed)
+	Matrix K, KCommitted;                  // stiffness matrix (trial, committed)
 
-	bool elasticSolution;
-
-		
+	bool elasticSolution;                  // option: linear elastic response (default: false)
+	
 };
-
 
 #endif
 

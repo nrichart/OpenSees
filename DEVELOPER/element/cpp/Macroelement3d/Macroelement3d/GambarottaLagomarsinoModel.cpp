@@ -17,17 +17,19 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.7 $
-// $Date: 2009/03/23 23:17:04 $
-// $Source: /usr/local/cvs/OpenSees/PACKAGES/NewMaterial/cpp/GambarottaLagomarsinoModel.cpp,v $
-                                                                        
-// Written: Francesco Vanin
-//
-// Description: This file contains the class implementation for 
-// ElasticMaterial. 
-//
-// What: "@(#) GambarottaLagomarsinoModel.C, revA"
+
+/*
+Source: /DEVELOPER/element/cpp/Macroelement3d/Macroelement3d/GambarottaLagomarsinoModel.cpp
+Written by Francesco Vanin (francesco.vanin@epfl.ch)
+Ecole Polytechnique Federale de Lausanne, Switzerland,
+Earthquake Engineering and Structural Dynamics laboratory, 2019
+
+Reference: Vanin F., Penna A., Beyer K.;"A three dimensional macro-element
+for modelling of the in-plane and out-of-plane response of masonry walls",
+submitted to Earthquake Engineering and Structural Dynamics (2019)
+
+Last edit: 27 Feb 2019
+*/
 
 #include <elementAPI.h>
 #include "GambarottaLagomarsinoModel.h"
@@ -61,7 +63,7 @@ OPS_GambarottaLagomarsinoModel()
 {
   // print out some KUDO's
   if (numGambarottaLagomarsinoModel == 0) {
-    opserr << "GambarottaLagomarsinoModel - Loaded from external library\n";
+    opserr << "GambarottaLagomarsinoModel loaded from external library. Written by Francesco Vanin - EPFL - 2019.\n";
     numGambarottaLagomarsinoModel =1;
   }
 
@@ -106,12 +108,10 @@ OPS_GambarottaLagomarsinoModel()
   return theMaterial;
 }
 
-//0.000001
 // full constructor
-
 GambarottaLagomarsinoModel::GambarottaLagomarsinoModel(int tag, double _E, double _G, double _c, double _mu, double _ct, double _beta,  double _L, double _t, double _h, bool _elasticSolution)
 						  :NDMaterial(tag, 0), stress(2), stressCommitted(2), u(2), uCommitted(2), Kpen(2,2), K(2,2), KCommitted(2,2), elasticSolution(_elasticSolution),
-						  c(_c), mu(_mu), ct(_ct), beta(_beta), alpha(0.0000000), alphaCommitted(0.0000000), deltaLambda(0.0), deltaAlpha(0.0), s(0.0), sCommitted(0.0),
+						  c(_c), mu(_mu), ct(_ct), beta(_beta), alpha(0.0), alphaCommitted(0.0), deltaLambda(0.0), deltaAlpha(0.0), s(0.0), sCommitted(0.0),
 						  L(_L), t(_t), h(_h)
 { 
    Kpen(0,0) = _E*L*t/h;
@@ -163,7 +163,6 @@ GambarottaLagomarsinoModel::sign(double _V) {
 	}
 }
 
-
 // standard methods
 int 
 GambarottaLagomarsinoModel::setTrialStrain(const Vector &strain, const Vector &rate) {
@@ -195,11 +194,10 @@ GambarottaLagomarsinoModel::setTrialStrain(const Vector &strain) {
 
 		double N = stress(0);
 		double Vf;
-		// kill it here if in tension? Yes
+		// kill it here if in tension
 		if (N>-DBL_EPSILON) {
 			stress(1) = 0.0;
 			K.Zero();
-			//opserr << "GambarottaLagomarsinoModel: killed in tension\n";
 			return 0;
 		}
 
@@ -209,19 +207,14 @@ GambarottaLagomarsinoModel::setTrialStrain(const Vector &strain) {
 		Vf = Kpen(1,1)*(u(1) - csi*alpha)  - L*t/(ct*h)*csi ;
 		residuals(1) = this->sign(Vf)* (Vf) + mu*N; 
 		
-		//opserr<< "RESIDUALS 0 =" << residuals;
-		
 		if (residuals(0)<=tol && residuals(1)<=tol ) {
 			// no evolution of damage parameters, elastic step 
 			
 		} else {
 			// evolution of damage parameters
-
-			if (residuals(0)<=-tol && alpha>DBL_EPSILON) {   // -tol because otherwise we enter here even if there should be evolution of damage: for the first iteration tha damage function is equal to the lat converged value
-				// try sliding without damage evolution (unloading/reloading)
-				//opserr<<"sliding without damage evolution (unloading/reloading)\n";
-				//opserr << "from " << uCommitted(1) << " to " << u(1) << ". csi0 = " << csi << ", sCommitted " << sCommitted << endln;
+			if (residuals(0)<=-tol && alpha>DBL_EPSILON) {   // -tol because otherwise we enter here even if there should be evolution of damage: for the first iteration the damage function is equal to the last converged value
 				
+				// try first sliding without damage evolution (unloading/reloading)			
 				deltaLambda = residuals(1) / (Kpen(1,1) + L*t/(ct*h*alpha));
 				s += deltaLambda * this->sign(Vf);
 								
@@ -242,15 +235,10 @@ GambarottaLagomarsinoModel::setTrialStrain(const Vector &strain) {
 				K.addMatrixTripleProduct(0.0, Kpen, (dg_dsigma % df_dsigma), Kpen, -1.0);
 				K /= (df_dsigma^(Kpen*dg_dsigma)) - df_dLambda;
 				K += Kpen;
-
-				//opserr<< "alpha=" << alpha << ", csi=" << csi << ". s=" << s << ", deltaLambda = " << deltaLambda <<  "\n";
-
 			} 
 			else {
 				// sliding with evolution of damage (new loading)
-				// Newton Raphson scheme to solve the nonlinear system
-
-				
+				// Newton Raphson scheme to solve the nonlinear system			
 				int iter = 0;
 			
 				Matrix inverseDerivative(2,2);
@@ -262,33 +250,13 @@ GambarottaLagomarsinoModel::setTrialStrain(const Vector &strain) {
 				Vector updates(2);
 				double G = Kpen(1,1) / (L*t/h);
 
-				//opserr << "from " << uCommitted(1) << " to " << u(1) << ". csi0 = " << csi << ", sCommitted " << sCommitted << endln;
-
 				while ( (residuals.Norm() >= tol || (alpha<DBL_EPSILON && iter<=1)) && iter<=maxIter) {
 					iter++;
-					// jacobian (-jacobian, in fact)
 					
-					/*
-					if (alpha>tol) {
-
-					M(0,0) = L*t*(s*s)/(ct*h*pow(alpha,3)) + this->derToughnessFunction(alpha);
-					M(0,1) = -L*t*s/(ct*h*pow(alpha,2))   * this->sign(Vf);
-					M(1,0) = M(0,1);
-					M(1,1) = Kpen(1,1) + L*t/(ct*h*alpha);
-
-					} else {
-						M(0,0) =  this->derToughnessFunction(alpha);
-						M(0,1) = 0.0;
-						M(1,0) = M(0,1);
-						M(1,1) = Kpen(1,1);
-					}
-					*/
-
 					M(0,0) = this->derToughnessFunction(alpha);
 					M(0,1) = -L*t/(ct*h)*csi;
 					M(1,0) = G*L*t/h*csi * this->sign(Vf);
 					M(1,1) = this->sign(Vf)*(Kpen(1,1)*alpha + L*t/(ct*h));
-
 
 					inverseDerivative(0,0) = M(1,1);
 					inverseDerivative(0,1) = -M(0,1);
@@ -296,8 +264,6 @@ GambarottaLagomarsinoModel::setTrialStrain(const Vector &strain) {
 					inverseDerivative(1,1) = M(0,0);
 
 					inverseDerivative /= M(0,0)*M(1,1) - M(0,1)*M(1,0);
-
-					//updates = (preM*inverseDerivative)*residuals;
 					updates = (inverseDerivative)*residuals;
 				
 					deltaAlpha  += updates(0);
@@ -305,43 +271,13 @@ GambarottaLagomarsinoModel::setTrialStrain(const Vector &strain) {
 					alpha += updates(0);
 					csi += updates(1);
 
-					//deltaLambda += updates(1) * this->sign(Vf);
 					deltaLambda = (csi*alpha - sCommitted) / this->sign(Vf);
-					//s += updates(1);
-					//s += updates(1)*alpha;
 					s = csi*alpha;
-
-					//opserr<< "updated: alpha=" << alpha << ", csi=" << csi << ". s=" << s << ", deltaLambda = " << deltaLambda <<  "\n";
-									
-
-					/*
-					if (alpha>DBL_EPSILON)
-						residuals(0) = 0.5*L*t / ( ct*h*pow(alpha,2) )*pow(s,2) - this->toughnessFunction(alpha);
-					else
-						residuals(0) = this->toughnessFunction(0.0);
-
- 
-					if (alpha>DBL_EPSILON)
-						Vf = Kpen(1,1)*(u(1) - s)  - s*L*t/(ct*h*alpha);			
-					else
-						Vf = Kpen(1,1)*(u(1) - s);  
-
-					residuals(1) = abs(Vf) + mu*N;  
-
-					//preM(1,1) = this->sign(Vf);
-					opserr<< "RESIDUALS old =" << residuals;
-					*/
-
-					
 
 					residuals(0) = 0.5*L*t / ( ct*h)*pow(csi,2) - this->toughnessFunction(alpha);
 					residuals(1) = this->sign(Vf)* ( Kpen(1,1)*(u(1) - csi*alpha)  - L*t/(ct*h)*csi ) + mu*N;
 
-					//opserr<< "RESIDUALS new =" << residuals;
-
-
-
-
+					
 					if (alpha<alphaCommitted)   {  // if we enter here: there should have been the update only for deltaLambda and we are here because the damage function is close to zero
 
 						alpha=alphaCommitted;
@@ -369,135 +305,17 @@ GambarottaLagomarsinoModel::setTrialStrain(const Vector &strain) {
 				stress(1) = Kpen(1,1)*(u(1) - s);
 
 				if (iter>maxIter) {
-					//opserr << "GambarottaLagomarsinoModel: did not converge the internal Newton-Raphson scheme. N=" <<N << ". displ=" << s <<". Residuals " << residuals;
-					// maybe insert here fatal error
+					// maybe insert here warning or error
 					K=Kpen*0;
 					stress(1) = -mu*N* this->sign(Vf);
 					s = sCommitted;
 					alpha = alphaCommitted;
 					deltaLambda = 0.0;
 					deltaAlpha = 0.0;
-					/*
-					
-					opserr << "NOT converged in " << iter << " iterations. N=" <<N << ". displ=" << u(1) <<" from " << uCommitted(1) << ". Residuals " << residuals << "\n";
-
-					// repeat iterations, verbose ------------------------------------------------------------------------------------
-					
-
-					csi = 0.;
-					if (alphaCommitted>0.0) csi = sCommitted / alphaCommitted;
-
-	
-					residuals(0) = 0.5*L*t / ( ct*h)*pow(csi,2) - this->toughnessFunction(alpha);
-					residuals(1) = abs( Kpen(1,1)*(u(1) - csi*alpha)  - L*t/(ct*h)*csi ) + mu*N; 
-					Vf = Kpen(1,1)*(u(1) - csi*alpha)  - L*t/(ct*h)*csi ;
-
-
-
-				iter = 0;
-			
-				Matrix inverseDerivative(2,2);
-				Matrix M(2,2);
-				Matrix preM(2,2);
-				preM(0,0) = 1.;
-				preM(1,1) = this->sign(Vf);
-
-				opserr << "from " << uCommitted(1) << " to " << u(1) << ". csi0 = " << csi << ", sCommitted " << sCommitted << ", alphaCommitted " << alphaCommitted << endln;
-
-
-
-				while (residuals.Norm() >= tol && iter<=maxIter) {
-
-					opserr<< "RESIDUALS new =" << residuals;
-
-
-					iter++;
-					// jacobian (-jacobian, in fact)
-					
-					M(0,0) = this->derToughnessFunction(alpha);
-					M(0,1) = -L*t/(ct*h)*csi;
-					M(1,0) = G*L*t/h*csi * this->sign(Vf);
-					M(1,1) = this->sign(Vf)*(Kpen(1,1)*alpha + L*t/(ct*h));
-
-
-					inverseDerivative(0,0) = M(1,1);
-					inverseDerivative(0,1) = -M(0,1);
-					inverseDerivative(1,0) = -M(1,0);
-					inverseDerivative(1,1) = M(0,0);
-
-					inverseDerivative /= M(0,0)*M(1,1) - M(0,1)*M(1,0);
-
-					//updates = (preM*inverseDerivative)*residuals;
-					updates = (inverseDerivative)*residuals;
-				
-					deltaAlpha  += updates(0);
-					if (deltaAlpha<DBL_EPSILON)      deltaAlpha=0.0;
-					alpha += updates(0);
-					csi += updates(1);
-
-					//deltaLambda += updates(1) * this->sign(Vf);
-					deltaLambda = (csi*alpha - sCommitted) / this->sign(Vf);
-					//s += updates(1);
-					//s += updates(1)*alpha;
-					s = csi*alpha;
-
-					opserr<< "updated: alpha=" << alpha << ", csi=" << csi << ". s=" << s << ", deltaLambda = " << deltaLambda <<  "\n";
-									
-					residuals(0) = 0.5*L*t / ( ct*h)*pow(csi,2) - this->toughnessFunction(alpha);
-					//residuals(1) = abs( Kpen(1,1)*(u(1) - csi*alpha)  - L*t/(ct*h)*csi ) + mu*N; 
-					residuals(1) = this->sign(Vf)* ( Kpen(1,1)*(u(1) - csi*alpha)  - L*t/(ct*h)*csi ) + mu*N;
-
-					
-					
-
-					if (alpha<alphaCommitted)   {  // if we enter here: there should have been the update only for deltaLambda and we are here because the damage function is close to zero
-						alpha=alphaCommitted;
-						deltaAlpha = 0.0;
-						
-						s = sCommitted;
-						
-						
-					if (alpha>DBL_EPSILON)
-						Vf = Kpen(1,1)*(u(1) - s)  - s*L*t/(ct*h*alpha);			
-					else
-						Vf = Kpen(1,1)*(u(1) - s);  
-
-					residuals(1) = abs(Vf) + mu*N;  
-
-						deltaLambda = residuals(1) / (Kpen(1,1) + L*t/(ct*h*alpha));
-				        s += deltaLambda * this->sign(Vf);
-
-						if (alpha>DBL_EPSILON)
-							residuals(1) = abs( Kpen(1,1)*(u(1) - s)  - s*L*t/(ct*h*alpha) ) + mu*N;    
-						else
-							residuals(1) = abs( Kpen(1,1)*(u(1) - s)) + mu*N; 
-
-						//residuals(0) = 0.0; // fake, just to exit the while loop.
-						residuals(0) = 0.5*L*t / ( ct*h*pow(alpha,2) )*pow(s,2) - this->toughnessFunction(alpha);
-
-						//opserr << "Corrected in the loop (iter " << iter << "). N/DBL_EPS = " << N/DBL_EPSILON << ". Residuals: " << residuals;
-
-						if (residuals(0)<-tol)
-							residuals(0) = 0.0;
-
-						
-						
-					}
-					
-				}  // end while (NR iterations)
-
-
-
-				*/
-				
-
-
 
 					return 0;
 
 				}	else {
-
-					//opserr << "converged in " << iter << " iterations: alphaCommitted " << alphaCommitted << ", alpha " << alpha << ", sCommitted " << sCommitted << ", s " << s << "\n";
 
 				// tangent operator update
 				double hh;				
@@ -519,19 +337,12 @@ GambarottaLagomarsinoModel::setTrialStrain(const Vector &strain) {
 				K.addMatrixTripleProduct(0.0, Kpen, (dg_dsigma % df_dsigma), Kpen, -1.0);
 				K /= df_dalpha*hh + (df_dsigma^(Kpen*dg_dsigma)) - df_dLambda;
 				K += Kpen;
-
-				//opserr << "forces = " << stress << "tangent = " << K;
-				//opserr << "elastic tangent = " << Kpen << endln;
-
 				}
-
-
 			}  // end second case
-
 		}      // end evolution of damage parameters (2 cases)
-
 	}          // end set new strain
-    return 0;
+    
+	return 0;
 }
 
 int
@@ -555,9 +366,7 @@ GambarottaLagomarsinoModel::getCommittedTangent( )  {
 const Matrix& 
 GambarottaLagomarsinoModel::getTangent( ) 
 {
-	//opserr << "get tangent=" << Kpen;
 	if (alpha>1.0 && alphaCommitted<1.0) {
-		//opserr << "trying to pass from alpha " << alphaCommitted << " to " << alpha << endln;
 		return KCommitted;
 	} else {
 		if (abs(K(0,1))>-DBL_EPSILON && abs(K(1,1))>-DBL_EPSILON)		
@@ -588,7 +397,6 @@ GambarottaLagomarsinoModel::getStrain (void)
 int
 GambarottaLagomarsinoModel::commitState (void)
 {
-	// implement all commit variables
 	alphaCommitted = alpha;
 	sCommitted = s;
 	KCommitted = K;
