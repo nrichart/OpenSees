@@ -2693,8 +2693,8 @@ Macroelement3d::setResponse(const char **argv, int argc, OPS_Stream &output)
 
       theResponse = new ElementResponse(this, 1, P);
 
-    // local force - check if correct
-    }  else if (strcmp(argv[0],"localForce") == 0 || strcmp(argv[0],"localForces") == 0) {
+    // basic force - check if correct (allows confusion between basic forces and local forces)
+    }  else if (strcmp(argv[0],"basicForces") == 0 || strcmp(argv[0],"localForces") == 0) {
 
       output.tag("ResponseType","N_1");
       output.tag("ResponseType","Mz_1");
@@ -2803,6 +2803,11 @@ Macroelement3d::getResponse(int responseID, Information &eleInfo)
     }
 	Vector basicForces(12);
 	basicForces = q;
+
+	double tmp = basicForces(3);
+	for (int ii = 3; ii<11; ii++)
+		basicForces(ii) = basicForces(ii + 1);
+	basicForces(11) = tmp;
 
     return eleInfo.setVector(basicForces);
   }
