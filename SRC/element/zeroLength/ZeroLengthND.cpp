@@ -380,6 +380,7 @@ ZeroLengthND::getTangentStiff(void)
 	Matrix &stiff = *K;
 	const Matrix &tran = *A;
 
+	/*   Francesco Vanin: commented to account correctly for a non-symmetric stiffness matrix (implementation follows)
 	stiff.Zero();
 
 	double E;
@@ -412,6 +413,41 @@ ZeroLengthND::getTangentStiff(void)
     for (int i = 0; i < numDOF; i++)
 		for(int j = 0; j < i; j++)
 		    stiff(j,i) = stiff(i,j);
+	*/
+
+	
+	stiff.Zero();
+
+	double E;
+
+	// Compute element stiffness ... K = A^*kb*A
+	for (int k = 0; k < order; k++) {
+		for (int l = 0; l < order; l++) {
+			E = kb(k, l);
+			for (int i = 0; i < numDOF; i++)
+				for (int j = 0; j < numDOF; j++)
+					stiff(i, j) += tran(k, i) * E * tran(l, j);
+		}
+	}
+
+
+
+	if (the1DMaterial != 0) {
+
+		// Set trial strain for UniaxialMaterial
+		the1DMaterial->setTrialStrain(e);
+
+		// Get UniaxialMaterial tangent, the element basic stiffness
+		E = the1DMaterial->getTangent();
+
+		// Compute element stiffness ... K = A^*kb*A
+		for (int i = 0; i < numDOF; i++)
+			for (int j = 0; j < numDOF; j++)
+				stiff(i, j) += tran(2, i) * E * tran(2, j);
+	}
+	// Francesco Vanin: end addition
+
+
 
 	return stiff;
 }

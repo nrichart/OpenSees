@@ -46,7 +46,7 @@ class Parameter;
 class NoTensionSection3d : public SectionForceDeformation
 {
  public:
-  NoTensionSection3d(int tag, double _k, double _kg, double _L, double _t, double _J, double _fc, int _nSections, 
+  NoTensionSection3d(int tag, double _k, double _kg, double _t, double _L, double _J, double _fc, int _nSections, 
 	                  bool stronger=false, bool elastic=false, bool crushing=true, bool spandrel=false);
   NoTensionSection3d(void);
   ~NoTensionSection3d(void);

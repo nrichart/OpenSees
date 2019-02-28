@@ -1148,6 +1148,9 @@
     <ClCompile Include="..\..\..\DEVELOPER\material\cpp\OrthotropicMembraneSection\OrthotropicMembraneSection.cpp">
       <Filter>section</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\DEVELOPER\element\cpp\Macroelement3d\Macroelement3d\NoTensionSection3d.cpp">
+      <Filter>section</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\SRC\material\uniaxial\AxialSp.h">
@@ -2148,6 +2151,9 @@
       <Filter>uniaxial</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\DEVELOPER\material\cpp\OrthotropicMembraneSection\OrthotropicMembraneSection.h">
+      <Filter>section</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\DEVELOPER\element\cpp\Macroelement3d\Macroelement3d\NoTensionSection3d.h">
       <Filter>section</Filter>
     </ClInclude>
   </ItemGroup>

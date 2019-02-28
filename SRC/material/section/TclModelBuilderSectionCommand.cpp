@@ -89,6 +89,7 @@
 
 // added by Francesco Vanin
 #include <OrthotropicMembraneSection.h>
+#include <NoTensionSection3d.h>
 
 #include <string.h>
 #include <fstream>
@@ -1865,7 +1866,7 @@ TclModelBuilderSectionCommand (ClientData clientData, Tcl_Interp *interp, int ar
 	  theSection = new Isolator2spring(tag, tol, k1, Fy, kb, kvo, hb, Pe, Po);
 	}
     		
-		// added by Francesco Vanin: elastic orthotropic membrane section for plates
+		// added by Francesco Vanin: elastic orthotropic membrane section for plates and no tension section
 
 		else if ((strcmp(argv[1], "OrthotropicMembraneSection") == 0) || (strcmp(argv[1], "OrthotropicMembrane") == 0)) {
 			if (argc < 8) {
@@ -1916,6 +1917,64 @@ TclModelBuilderSectionCommand (ClientData clientData, Tcl_Interp *interp, int ar
 			}
 
 			theSection = new OrthotropicMembraneSection(tag, E1, E2, ni, G, h, rho);
+		}
+
+
+		else if ((strcmp(argv[1], "NoTensionSection3d") == 0) || (strcmp(argv[1], "NoTensionSection") == 0)) {
+			if (argc < 9) {
+				opserr << "WARNING insufficient arguments\n";
+				opserr << "Want: section NoTensionSection3d $tag $E $G $L $t $J $fc <$numSlices>\n";
+				return TCL_ERROR;
+			}
+
+			int tag;
+			double E,G,L,t,J,fc;
+			int numSlices = 5;
+
+			if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
+				opserr << "WARNING NoTensionSection3d: invalid tag" << endln;
+				return TCL_ERROR;
+			}
+
+			if (Tcl_GetDouble(interp, argv[3], &E) != TCL_OK) {
+				opserr << "WARNING NoTensionSection3d (tag " << tag << "): invalid Young's modulus\n";
+				return TCL_ERROR;
+			}
+
+			if (Tcl_GetDouble(interp, argv[4], &G) != TCL_OK) {
+				opserr << "WARNING NoTensionSection3d (tag " << tag << "): invalid shear modulus\n";
+				return TCL_ERROR;
+			}
+
+			if (Tcl_GetDouble(interp, argv[5], &L) != TCL_OK) {
+				opserr << "WARNING NoTensionSection3d (tag " << tag << "): invalid length (local direction y)\n";
+				return TCL_ERROR;
+			}
+
+			if (Tcl_GetDouble(interp, argv[6], &t) != TCL_OK) {
+				opserr << "WARNING NoTensionSection3d (tag " << tag << "): invalid thickness (local direction z)\n";
+				return TCL_ERROR;
+			}
+
+			if (Tcl_GetDouble(interp, argv[7], &J) != TCL_OK) {
+				opserr << "WARNING OrthotropicMembraneSection (tag " << tag << "): invalid torsional stiffness\n";
+				return TCL_ERROR;
+			}
+
+			if (Tcl_GetDouble(interp, argv[8], &fc) != TCL_OK) {
+				opserr << "WARNING OrthotropicMembraneSection (tag " << tag << "): invalid compressive strength\n";
+				fc = abs(fc);
+				return TCL_ERROR;
+			}
+
+			if (argc > 9) {
+				if (Tcl_GetInt(interp, argv[9], &numSlices) != TCL_OK) {
+					opserr << "WARNING OrthotropicMembraneSection (tag " << tag << "): invalid number of section discretisations\n";
+					return TCL_ERROR;
+				}
+			}
+
+			theSection = new NoTensionSection3d(tag, E, G, t, L, J, fc, numSlices);
 		}
 		// end addition Francesco Vanin
 
