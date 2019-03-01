@@ -1428,8 +1428,13 @@ Macroelement3d::update(void)
 		
 	// check for in-plane drift failure
 	driftS = abs(-uBasic(10)) /2.0 *oneOverL;
-	driftF = std::max(abs(-(uBasic(1)*(2*L) + uBasic(5)*L) /(2.0*L)), 
-		         abs(-(uBasic(8)*(2*L) + uBasic(5)*L) /(2.0*L)));
+#ifdef _WINDOWS_
+   driftF = max(abs(-(uBasic(1)*(2 * L) + uBasic(5)*L) / (2.0*L)),
+                abs(-(uBasic(8)*(2 * L) + uBasic(5)*L) / (2.0*L)));
+#else
+	driftF = std::max(abs(-(uBasic(1)*(2 * L) + uBasic(5)*L) / (2.0*L)),
+		abs(-(uBasic(8)*(2 * L) + uBasic(5)*L) / (2.0*L)));
+#endif // _WINDOWS_
 
 
 	double axialLoadRatio;
@@ -1443,8 +1448,15 @@ Macroelement3d::update(void)
 		shearSpanRatio = 10.;
 	}
 	else {
-		shearSpanRatio = std::max(M1 / (M1 - M3),
+
+#ifdef _WINDOWS_
+		shearSpanRatio = max(M1 / (M1 - M3),
 			                 M3 / (M3 - M1));
+#else
+		shearSpanRatio = std::max(M1 / (M1 - M3),
+			                      M3 / (M3 - M1));
+#endif // _WINDOWS_
+
 		if (shearSpanRatio > 10)
 			shearSpanRatio = 10.;
 	}
