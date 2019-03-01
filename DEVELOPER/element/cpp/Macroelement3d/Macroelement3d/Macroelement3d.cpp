@@ -1428,7 +1428,7 @@ Macroelement3d::update(void)
 		
 	// check for in-plane drift failure
 	driftS = abs(-uBasic(10)) /2.0 *oneOverL;
-	driftF = max(abs(-(uBasic(1)*(2*L) + uBasic(5)*L) /(2.0*L)), 
+	driftF = std::max(abs(-(uBasic(1)*(2*L) + uBasic(5)*L) /(2.0*L)), 
 		         abs(-(uBasic(8)*(2*L) + uBasic(5)*L) /(2.0*L)));
 
 
@@ -1443,7 +1443,7 @@ Macroelement3d::update(void)
 		shearSpanRatio = 10.;
 	}
 	else {
-		shearSpanRatio = max(M1 / (M1 - M3),
+		shearSpanRatio = std::max(M1 / (M1 - M3),
 			                 M3 / (M3 - M1));
 		if (shearSpanRatio > 10)
 			shearSpanRatio = 10.;

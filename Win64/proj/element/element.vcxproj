@@ -108,6 +108,12 @@
     </BuildLog>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\DEVELOPER\element\cpp\Macroelement3d\Macroelement3d\CohesiveSurface.cpp" />
+    <ClCompile Include="..\..\..\DEVELOPER\element\cpp\Macroelement3d\Macroelement3d\DamageShearInterface.cpp" />
+    <ClCompile Include="..\..\..\DEVELOPER\element\cpp\Macroelement3d\Macroelement3d\GambarottaLagomarsinoModel.cpp" />
+    <ClCompile Include="..\..\..\DEVELOPER\element\cpp\Macroelement3d\Macroelement3d\Macroelement3d.cpp" />
+    <ClCompile Include="..\..\..\DEVELOPER\element\cpp\Macroelement3d\Macroelement3d\NoTensionSection3d.cpp" />
+    <ClCompile Include="..\..\..\DEVELOPER\element\cpp\Macroelement3d\Macroelement3d\WrappedMaterial.cpp" />
     <ClCompile Include="..\..\..\OTHER\tetgen1.4.3\predicates.cxx" />
     <ClCompile Include="..\..\..\OTHER\tetgen1.4.3\tetgen.cxx" />
     <ClCompile Include="..\..\..\OTHER\Triangle\triangle.c" />
@@ -368,6 +374,12 @@
     <ClCompile Include="..\..\..\SRC\element\NewElement.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\DEVELOPER\element\cpp\Macroelement3d\Macroelement3d\CohesiveSurface.h" />
+    <ClInclude Include="..\..\..\DEVELOPER\element\cpp\Macroelement3d\Macroelement3d\DamageShearInterface.h" />
+    <ClInclude Include="..\..\..\DEVELOPER\element\cpp\Macroelement3d\Macroelement3d\GambarottaLagomarsinoModel.h" />
+    <ClInclude Include="..\..\..\DEVELOPER\element\cpp\Macroelement3d\Macroelement3d\Macroelement3d.h" />
+    <ClInclude Include="..\..\..\DEVELOPER\element\cpp\Macroelement3d\Macroelement3d\NoTensionSection3d.h" />
+    <ClInclude Include="..\..\..\DEVELOPER\element\cpp\Macroelement3d\Macroelement3d\WrappedMaterial.h" />
     <ClInclude Include="..\..\..\OTHER\tetgen1.4.3\tetgen.h" />
     <ClInclude Include="..\..\..\OTHER\Triangle\triangle.h" />
     <ClInclude Include="..\..\..\SRC\coordTransformation\CorotCrdTransfWarping2d.h" />

@@ -160,6 +160,8 @@ extern  void *OPS_ShellANDeS(void);
 extern  void *OPS_FourNodeTetrahedron(void);
 extern  void *OPS_LysmerTriangle(void);
 
+extern "C" void *OPS_Macroelement3d(void); // Added by Francesco Vanin (EPFL, 2019)
+
 extern int TclModelBuilder_addFeapTruss(ClientData clientData, Tcl_Interp *interp,  int argc,
 					TCL_Char **argv, Domain*, TclModelBuilder *, int argStart);
 
@@ -680,6 +682,19 @@ TclModelBuilderElementCommand(ClientData clientData, Tcl_Interp *interp,
       opserr << "TclElementCommand -- unable to create element of type : " << argv[1] << endln;
       return TCL_ERROR;
     }
+
+  // added by Francesco Vanin
+  }
+  else if (strcmp(argv[1], "Macroelement3d") == 0) {
+
+	  void *theEle = OPS_Macroelement3d();
+	  if (theEle != 0)
+		  theElement = (Element *)theEle;
+	  else {
+		  opserr << "TclElementCommand -- unable to create element of type : " << argv[1] << endln;
+		  return TCL_ERROR;
+    }
+	  //end addition
 
   } else if (strcmp(argv[1],"MVLEM") == 0) {
     
