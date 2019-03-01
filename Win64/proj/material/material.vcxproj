@@ -110,6 +110,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\DEVELOPER\element\cpp\Macroelement3d\Macroelement3d\NoTensionSection3d.cpp" />
+    <ClCompile Include="..\..\..\DEVELOPER\material\cpp\CompressionDamage1d\CompressionDamage1d\CompressionDamage1d.cpp" />
     <ClCompile Include="..\..\..\DEVELOPER\material\cpp\OrthotropicMembraneSection\OrthotropicMembraneSection.cpp" />
     <ClCompile Include="..\..\..\SRC\material\nD\AcousticMedium.cpp" />
     <ClCompile Include="..\..\..\SRC\material\nD\DruckerPrager3DThermal.cpp" />
@@ -463,6 +464,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\DEVELOPER\element\cpp\Macroelement3d\Macroelement3d\NoTensionSection3d.h" />
+    <ClInclude Include="..\..\..\DEVELOPER\material\cpp\CompressionDamage1d\CompressionDamage1d\CompressionDamage1d.h" />
     <ClInclude Include="..\..\..\DEVELOPER\material\cpp\OrthotropicMembraneSection\OrthotropicMembraneSection.h" />
     <ClInclude Include="..\..\..\SRC\material\nD\AcousticMedium.h" />
     <ClInclude Include="..\..\..\SRC\material\nD\DruckerPrager3DThermal.h" />

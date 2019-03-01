@@ -152,6 +152,8 @@ extern void *OPS_PySimple3(void);
 extern void *OPS_BoucWenOriginal(void);
 extern void *OPS_GNGMaterial(void);
 
+extern "C" void *OPS_CompressionDamage1d(void); // added by Francesco Vanin
+
 //extern int TclCommand_ConfinedConcrete02(ClientData clientData, Tcl_Interp *interp, int argc, 
 //					 TCL_Char **argv, TclModelBuilder *theTclBuilder);
 
@@ -1544,6 +1546,18 @@ TclModelBuilderUniaxialMaterialCommand (ClientData clientData, Tcl_Interp *inter
 	return TCL_ERROR;
 
     }
+
+	// added by Francesco Vanin
+	else if (strcmp(argv[1], "CompressionDamage1d") == 0) {
+
+		void *theMat = OPS_CompressionDamage1d();
+		if (theMat != 0)
+			theMaterial = (UniaxialMaterial *)theMat;
+		else
+			return TCL_ERROR;
+
+	}
+	// end addition
 
 	else if (strcmp(argv[1],"Pinching4") == 0) {
 		if (argc != 42 && argc != 31 ) {
