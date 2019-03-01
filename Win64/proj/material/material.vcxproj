@@ -110,6 +110,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\DEVELOPER\element\cpp\Macroelement3d\Macroelement3d\NoTensionSection3d.cpp" />
+    <ClCompile Include="..\..\..\DEVELOPER\material\cpp\BeamFrictionSupport\BeamFrictionSupport\BeamFrictionSupport.cpp" />
     <ClCompile Include="..\..\..\DEVELOPER\material\cpp\CompressionDamage1d\CompressionDamage1d\CompressionDamage1d.cpp" />
     <ClCompile Include="..\..\..\DEVELOPER\material\cpp\OrthotropicMembraneSection\OrthotropicMembraneSection.cpp" />
     <ClCompile Include="..\..\..\DEVELOPER\material\cpp\TensionDamage1d\TensionDamage1d\TensionDamage1d.cpp" />
@@ -465,6 +466,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\DEVELOPER\element\cpp\Macroelement3d\Macroelement3d\NoTensionSection3d.h" />
+    <ClInclude Include="..\..\..\DEVELOPER\material\cpp\BeamFrictionSupport\BeamFrictionSupport\BeamFrictionSupport.h" />
     <ClInclude Include="..\..\..\DEVELOPER\material\cpp\CompressionDamage1d\CompressionDamage1d\CompressionDamage1d.h" />
     <ClInclude Include="..\..\..\DEVELOPER\material\cpp\OrthotropicMembraneSection\OrthotropicMembraneSection.h" />
     <ClInclude Include="..\..\..\DEVELOPER\material\cpp\TensionDamage1d\TensionDamage1d\TensionDamage1d.h" />
