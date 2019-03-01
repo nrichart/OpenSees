@@ -1154,6 +1154,9 @@
     <ClCompile Include="..\..\..\DEVELOPER\material\cpp\CompressionDamage1d\CompressionDamage1d\CompressionDamage1d.cpp">
       <Filter>uniaxial\snap</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\DEVELOPER\material\cpp\TensionDamage1d\TensionDamage1d\TensionDamage1d.cpp">
+      <Filter>uniaxial\snap</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\SRC\material\uniaxial\AxialSp.h">
@@ -2160,6 +2163,9 @@
       <Filter>section</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\DEVELOPER\material\cpp\CompressionDamage1d\CompressionDamage1d\CompressionDamage1d.h">
+      <Filter>uniaxial\snap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\DEVELOPER\material\cpp\TensionDamage1d\TensionDamage1d\TensionDamage1d.h">
       <Filter>uniaxial\snap</Filter>
     </ClInclude>
   </ItemGroup>
