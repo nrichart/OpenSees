@@ -1,6 +1,6 @@
 # EXAMPLE 0: Sectional response for combined in-plane/out-of-plane loading
 #
-# @file   Section_rotated.tcl
+# @file   MomentCurvature_rotated.tcl
 #
 # @author: Francesco Vanin <francesco.vanin@epfl.ch>
 #
@@ -8,7 +8,11 @@
 #
 # @date modification: 15 Feb 2019
 #
-# @brief: ...
+# @brief: The model consists in a zero-length section equipped with the analytically integrated 
+# NoTensionSection3d model, on which a moment-curvature analysis is performed. Crushing is included
+# in the formulation. The orientation of the moment acting on the section is controlled by the 
+# variable momentAngle (line 50). The moment orientation (not the curvature, in the nonlinear 
+# range) is maintained constant in the analysis. 
 #
 # @section LICENSE
 #

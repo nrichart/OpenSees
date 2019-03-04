@@ -46,8 +46,8 @@ set G          1260.0e+06;      # Shear modulus (Pa)
 set fc         10.0e+06;        # Compressive strength of masonry (Pa)
 set c          0.050e+06;       # Equivalent cohesion (Pa)
 set Gc         6.0;             # Parameter Gc, defines softening of the response in the pre-peak branch (-)
-set mu0        0.47;            # Friction coeffcient at peak force (-)
-set muR        0.16;            # Residual friction coeffcient (-) - only for "standard" implementation
+set mu0        0.47;            # Friction coefficient at peak force (-)
+set muR        0.16;            # Residual friction coefficient (-) - only for "standard" implementation
 set dropDrift  0.0087;          # drift ratio at 20% force drop, for shear failure  - only for "standard" implementation
 set beta       0.4;             # Parameter beta, defines the post peak response (-) - only for "tremuri" implementation 
 

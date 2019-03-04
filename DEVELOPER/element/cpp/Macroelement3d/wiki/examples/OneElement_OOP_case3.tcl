@@ -10,7 +10,7 @@
 #
 # @brief: this input file produces the response of a single cantilever wall subjected to out-of-plane 
 # monotonic loading, including P-Delta effects. The wall is loaded with a linearly distributed vertical load 
-# and distributed horizontal laod. Results can be compared to a the lateral load multiplier 
+# and distributed horizontal load. Results can be compared to a the lateral load multiplier 
 # calculated through limit analysis. 
 #
 # @section LICENSE
@@ -47,8 +47,8 @@ set G          700.0e+06;       # Shear modulus (Pa)
 set fc         3.0e+06;         # Compressive strength of masonry (Pa)
 set c          0.150e+06;       # Equivalent cohesion (Pa)
 set Gc         3.0;             # Parameter Gc, defines softening of the response in the pre-peak branch (-)
-set mu0        0.4;             # Friction coeffcient at peak force (-)
-set muR        0.4;             # Residual friction coeffcient (-) 
+set mu0        0.4;             # Friction coefficient at peak force (-)
+set muR        0.4;             # Residual friction coefficient (-) 
 set dropDrift  0.008;           # drift ratio at 20% force drop, for shear failure 
 set rho        2200.;           # material density (kg/m3) 
 
