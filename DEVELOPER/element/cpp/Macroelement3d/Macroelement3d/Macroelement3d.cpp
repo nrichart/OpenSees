@@ -612,7 +612,7 @@ OPS_Macroelement3d()
     while(OPS_GetNumRemainingInputArgs() > 0) {
 	if (!alreadReadType)	type = OPS_GetString();
 
-	if (strcmp(type,"-cMass") == 0) {
+	if ((strcmp(type,"-cMass") == 0) || (strcmp(type, "-cmass") == 0)) {
 	    cmass = 1;
 		alreadReadType = false;
 	} 
@@ -2142,66 +2142,154 @@ Macroelement3d::getMass()
 
   } else  {
     // consistent mass matrix	  
-    static Matrix massLocal(18,18);
-    double m = rho*L;
-    
-	  if (isGable) {
-		massLocal(0,0) = 5./12.*2.; 
-		massLocal(1,1) = 5./12.*2.; 
-		massLocal(2,2) = 5./12.*2.;
 
-		massLocal(6,6) = 1./12.*2.; 
-		massLocal(7,7) = 1./12.*2.; 
-		massLocal(8,8) = 1./12.*2.;
+	 Matrix massI_over12(3,3);
+	 double m = rho*L / 6.;  // 1/12 mTot
 
-		massLocal(12,12) = 1./3.*2; 
-		massLocal(13,13) = 1./3.*2; 
-		massLocal(14,14) = 1./3.*2;
+	 if (isGable) {  
+		 m /= 4.;     // mTotGable/24
 
-		massLocal(15,15) = 1./6.*2.; 
-		massLocal(16,16) = 1./6.*2.; 
-		massLocal(17,17) = 1./6.*2.;
+		 massI_over12(0, 0) = m *massglobalDir(0);
+		 massI_over12(1, 1) = m *massglobalDir(1);
+		 massI_over12(2, 2) = m *massglobalDir(2);
 
-	  } else {
-		massLocal(1,1) = 0.3333333333333333;
-		massLocal(1,13) = 0.16666666666666666;
-		massLocal(2,2) = 0.3333333333333333;
-		massLocal(2,14) = 0.16666666666666666;
-		massLocal(7,7) = 0.3333333333333333;
-		massLocal(7,16) = 0.16666666666666666;
-		massLocal(8,8) = 0.3333333333333333;
-		massLocal(8,17) = 0.16666666666666666;
-		massLocal(12,12) = 1;
-		massLocal(13,1) = 0.16666666666666666;
-		massLocal(13,13) = 0.3333333333333333;
-		massLocal(14,2) = 0.16666666666666666;
-		massLocal(14,14) = 0.3333333333333333;
-		massLocal(15,15) = 1;
-		massLocal(16,7) = 0.16666666666666666;
-		massLocal(16,16) = 0.3333333333333333;
-		massLocal(17,8) = 0.16666666666666666;
-		massLocal(17,17) = 0.3333333333333333;
-	  }
-	massLocal *= m;
-	trasformMatrixToGlobal(massLocal);
+		 // node I
+		 K(0, 0) = 7.*massI_over12(0, 0);
+		 K(1, 1) = 7.*massI_over12(1, 1);
+		 K(2, 2) = 7.*massI_over12(2, 2);
 
-	// apply mass directions 
-    for (int i=0; i<3; i++) {
-	   for (int j=0; j<18; j++) {
-		  K(i,   j)  *= massglobalDir(i);
-		  K(i+6, j)  *= massglobalDir(i);
-		  K(i+12,j)  *= massglobalDir(i);
-		  K(i+15,j)  *= massglobalDir(i);
+		 // node J
+		 K(6, 6) = massI_over12(0, 0);
+		 K(7, 7) = massI_over12(1, 1);
+		 K(8, 8) = massI_over12(2, 2);
 
-		  K(j, i)  *= massglobalDir(i);
-		  K(j, i+6)  *= massglobalDir(i);
-		  K(j, i+12)  *= massglobalDir(i);
-		  K(j, i+15)  *= massglobalDir(i);
-	   }
-     }
+		 // node E
+		 K(12, 12) = 5.*massI_over12(0, 0);
+		 K(13, 13) = 5.*massI_over12(1, 1);
+		 K(14, 14) = 5.*massI_over12(2, 2);
 
+		 K(15, 15) = 3.*massI_over12(0, 0);
+		 K(16, 16) = 3.*massI_over12(1, 1);
+		 K(17, 17) = 3.*massI_over12(2, 2);
+
+		 // coupled dofs node I
+		 K(0, 12) = 3.*massI_over12(0, 0);
+		 K(1, 13) = 3.*massI_over12(1, 1);
+		 K(2, 14) = 3.*massI_over12(2, 2);
+
+		 K(12, 0) = 3.*massI_over12(0, 0);
+		 K(13, 1) = 3.*massI_over12(1, 1);
+		 K(14, 2) = 3.*massI_over12(2, 2);
+
+		 // coupled dofs node J
+		 K(6, 15) = massI_over12(0, 0);
+		 K(7, 16) = massI_over12(1, 1);
+		 K(8, 17) = massI_over12(2, 2);
+
+		 K(15, 6) = massI_over12(0, 0);
+		 K(16, 7) = massI_over12(1, 1);
+		 K(17, 8) = massI_over12(2, 2);
+
+	 }
+	 else {
+		 massI_over12(0, 0) = m *massglobalDir(0);
+		 massI_over12(1, 1) = m *massglobalDir(1);
+		 massI_over12(2, 2) = m *massglobalDir(2);
+
+		 // node I
+		 K(0, 0) = 2.*massI_over12(0, 0);
+		 K(1, 1) = 2.*massI_over12(1, 1);
+		 K(2, 2) = 2.*massI_over12(2, 2);
+
+		 // node J
+		 K(6, 6) = 2.*massI_over12(0, 0);
+		 K(7, 7) = 2.*massI_over12(1, 1);
+		 K(8, 8) = 2.*massI_over12(2, 2);
+
+		 // node E
+		 K(12, 12) = 2.*massI_over12(0, 0);
+		 K(13, 13) = 2.*massI_over12(1, 1);
+		 K(14, 14) = 2.*massI_over12(2, 2);
+
+		 K(15, 15) = 2.*massI_over12(0, 0);
+		 K(16, 16) = 2.*massI_over12(1, 1);
+		 K(17, 17) = 2.*massI_over12(2, 2);
+
+		 // coupled dofs node I
+		 K(0, 12) = massI_over12(0, 0);
+		 K(1, 13) = massI_over12(1, 1);
+		 K(2, 14) = massI_over12(2, 2);
+
+		 K(12, 0) = massI_over12(0, 0);
+		 K(13, 1) = massI_over12(1, 1);
+		 K(14, 2) = massI_over12(2, 2);
+
+		 // coupled dofs node J
+		 K(6, 15) = massI_over12(0, 0);
+		 K(7, 16) = massI_over12(1, 1);
+		 K(8, 17) = massI_over12(2, 2);
+
+		 K(15, 6) = massI_over12(0, 0);
+		 K(16, 7) = massI_over12(1, 1);
+		 K(17, 8) = massI_over12(2, 2);
+	 }
+	 
+
+	 // apply offset
+	 if (nodeIOffset) {
+
+		 K(0, 4) = K(4, 0) =  nodeIOffset[2] * K(0, 0);
+		 K(0, 5) = K(5, 0) = -nodeIOffset[1] * K(0, 0);
+		 K(1, 3) = K(3, 1) = -nodeIOffset[2] * K(1, 1);
+		 K(1, 5) = K(5, 1) =  nodeIOffset[0] * K(1, 1);
+		 K(2, 3) = K(3, 2) =  nodeIOffset[1] * K(2, 2);
+		 K(2, 4) = K(4, 2) = -nodeIOffset[0] * K(2, 2);
+
+		 K(3, 3) = (pow(nodeIOffset[1], 2) + pow(nodeIOffset[2], 2))* K(0, 0);
+		 K(4, 4) = (pow(nodeIOffset[0], 2) + pow(nodeIOffset[2], 2))* K(1, 1);
+		 K(5, 5) = (pow(nodeIOffset[0], 2) + pow(nodeIOffset[1], 2))* K(2, 2);
+
+		 K(3, 4) = K(4, 3) = -nodeIOffset[0] * nodeIOffset[1] * K(2, 2);
+		 K(3, 5) = K(5, 3) = -nodeIOffset[0] * nodeIOffset[2] * K(1, 1);
+		 K(4, 5) = K(5, 4) = -nodeIOffset[1] * nodeIOffset[2] * K(0, 0);
+
+
+		 K(12, 4) = K(4, 12) =  nodeIOffset[2] * K(12, 0);
+		 K(12, 5) = K(5, 12) = -nodeIOffset[1] * K(12, 0); 
+		 K(13, 3) = K(3, 13) = -nodeIOffset[2] * K(13, 1);
+		 K(13, 5) = K(5, 13) =  nodeIOffset[0] * K(13, 1);
+		 K(14, 3) = K(3, 14) =  nodeIOffset[1] * K(14, 2);
+		 K(14, 4) = K(4, 14) = -nodeIOffset[0] * K(14, 2);
+	 }
+
+
+	 if (nodeJOffset) {
+
+		 K(6, 10) = K(10, 6) =  nodeJOffset[2] * K(6, 6);
+		 K(6, 11) = K(11, 6) = -nodeJOffset[1] * K(6, 6);
+		 K(7, 9)  = K(9,  6) = -nodeJOffset[2] * K(7, 7);
+		 K(7, 11) = K(11, 7) =  nodeJOffset[0] * K(7, 7);
+		 K(8, 9)  = K(9,  8) =  nodeJOffset[1] * K(8, 8);
+		 K(8, 10) = K(10, 8) = -nodeJOffset[0] * K(8, 8);
+
+		 K(9,  9)  = (pow(nodeJOffset[1], 2) + pow(nodeJOffset[2], 2))* K(6, 6);
+		 K(10, 10) = (pow(nodeJOffset[0], 2) + pow(nodeJOffset[2], 2))* K(7, 7);
+		 K(11, 11) = (pow(nodeJOffset[0], 2) + pow(nodeJOffset[1], 2))* K(8, 8);
+
+		 K(9,  10) = K(6,  9)  = -nodeJOffset[0] * nodeJOffset[1] * K(8, 8);
+		 K(9,  11) = K(11, 9)  = -nodeJOffset[0] * nodeJOffset[2] * K(7, 7);
+		 K(10, 11) = K(11, 10) = -nodeJOffset[1] * nodeJOffset[2] * K(6, 6);
+
+		 K(15, 10) = K(10, 15) =  nodeIOffset[2] * K(15, 6);
+		 K(15, 11) = K(11, 15) = -nodeIOffset[1] * K(15, 6);
+		 K(16, 9)  = K(9,  16) = -nodeIOffset[2] * K(16, 7);
+		 K(16, 11) = K(11, 16) =  nodeIOffset[0] * K(16, 7);
+		 K(17, 9)  = K(9,  17) =  nodeIOffset[1] * K(17, 8);
+		 K(17, 10) = K(10, 17) = -nodeIOffset[0] * K(17, 8);
+
+	 } 	
   }
-
+  
   return K;
 }
 

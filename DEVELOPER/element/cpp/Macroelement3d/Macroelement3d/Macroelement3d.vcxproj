@@ -150,7 +150,7 @@
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;MACROELEMENT3D_EXPORTS;_WINDOWS;_USRDLL;</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\..\..\core;/Macroelement3d%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>-D__MS_VC_INSTALL_PATH="c:/Program files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.11.25503" %(AdditionalOptions)</AdditionalOptions>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -159,7 +159,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(TargetDir)$(ProjectName).dll" "V:\03_Projects\04_Basel_Project\19_Macroelement\00_files_and_images_for_wiki\examples\openseesAnalyses\$(ProjectName).dll"</Command>
+      <Command>copy /Y "$(TargetDir)$(ProjectName).dll" "..\..\..\..\..\Win64\bin\$(ProjectName).dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -168,7 +168,6 @@
     <ClInclude Include="GambarottaLagomarsinoModel.h" />
     <ClInclude Include="Macroelement3d.h" />
     <ClInclude Include="NoTensionSection3d.h" />
-    <ClInclude Include="targetver.h" />
     <ClInclude Include="WrappedMaterial.h" />
   </ItemGroup>
   <ItemGroup>
