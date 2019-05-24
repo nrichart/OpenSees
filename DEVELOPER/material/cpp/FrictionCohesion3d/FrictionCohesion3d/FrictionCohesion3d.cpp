@@ -145,6 +145,12 @@ FrictionCohesion3d::FrictionCohesion3d(int tag, UniaxialMaterial* comprMat, doub
     K = Kpen;
     KCommitted = Kpen;
 
+	double GfII_lim = c*c / G;
+	if (this->GfII < 1.1*GfII_lim) {
+		this->GfII = 1.1*GfII_lim;
+		opserr << "FrictionCohesion3d::tag:" << tag << ": corrected GfII (fracture energy in modeII) to " << this->GfII << " to avoid snap-back at material level." << endln;
+	}
+
 }
 
 
@@ -159,8 +165,16 @@ FrictionCohesion3d::FrictionCohesion3d(int tag, double G, double mu, double c, d
 	K = Kpen;
 	KCommitted = Kpen;
 
-	if (sigma0 > 0.0)
+	if (sigma0 > 0.0) {
 		sigma0 = -sigma0;
+		opserr << "FrictionCohesion3d::tag:" << tag << ": the constant vertical stress sigma0 is assumed to act in compression." << endln;
+	}
+
+	double GfII_lim = c*c / G;
+	if (this->GfII < 1.1*GfII_lim) {
+		this->GfII = 1.1*GfII_lim;
+		opserr << "FrictionCohesion3d::tag:" << tag << ": corrected GfII (fracture energy in modeII) to " << this->GfII << " to avoid snap-back at material level." << endln;
+	}
 
 }
 
