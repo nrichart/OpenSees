@@ -714,8 +714,8 @@ OPS_Macroelement3d()
 					  // maybe check that they sum to 1
 					  double sum = 0.;
 					  sum = intLength(0) + intLength(1) + intLength(2);
-					  if (abs(sum-1.0) < 0.01)
-						  opserr << "WARNING: Macroelement " << iData[0] <<", specified integration weights do not sum exactly to 1.\n";
+					  if (abs(sum-1.0) > 0.01)
+						  opserr << "WARNING: Macroelement " << iData[0] <<", specified integration weights do not sum exactly to 1 (sum=" << sum << ").\n";
 				  }
 			  }
 			  alreadReadType = false;
@@ -2104,7 +2104,7 @@ Macroelement3d::getMass()
   if (cMass == 0)  {
     // lumped mass matrix
 	  if (isGable) {
-		double m = rho*2.*L;
+		double m = 0.5*rho*2.*L;
 		K(0,0) = 5./12.*m *massglobalDir(0);
 		K(1,1) = 5./12.*m *massglobalDir(1);
 		K(2,2) = 5./12.*m *massglobalDir(2);
@@ -2144,7 +2144,7 @@ Macroelement3d::getMass()
     // consistent mass matrix	  
 
 	 Matrix massI_over12(3,3);
-	 double m = rho*L / 6.;  // 1/12 mTot
+	 double m = rho*L / 6.;  // 1/12 mTot, 1/6 mTot if gable
 
 	 if (isGable) {  
 		 m /= 4.;     // mTotGable/24
@@ -2437,7 +2437,7 @@ Macroelement3d::addInertiaLoadToUnbalance(const Vector &accel)
   if (cMass == 0)  {
     // take advantage of lumped mass matrix
 	if (isGable) {
-		double m = rho*2.*L;
+		double m = 0.5*rho*2.*L;
 		Q(0)  -= 5./12.*m *Raccel1(0) *massglobalDir(0);
 		Q(1)  -= 5./12.*m *Raccel1(1) *massglobalDir(1);
 		Q(2)  -= 5./12.*m *Raccel1(2) *massglobalDir(2);
@@ -2668,7 +2668,7 @@ Macroelement3d::getResistingForceIncInertia()
   if (cMass == 0)  {
     // take advantage of lumped mass matrix
 	if (isGable) {
-		double m = rho*2.*L;
+		double m = 0.5*rho*2.*L;
 		P(0)  += 5./12.*m* accel1(0) *massglobalDir(0);
 		P(1)  += 5./12.*m *accel1(1) *massglobalDir(1);
 		P(2)  += 5./12.*m *accel1(2) *massglobalDir(2);
