@@ -193,7 +193,7 @@ OPS_Macroelement3d()
 		// No tension 3d section model
 		// true for stronger, true for elastic, true for crushing
 		theSectionI = new NoTensionSection3d(0, E_, G, t, b, -1.0, dData2[5], 5, false, false,  true);   	
-		theSectionE = new NoTensionSection3d(0, E_, G, t, b, -1.0, dData2[5], 5, true,   true,  true);
+		theSectionE = new NoTensionSection3d(0, E_, G, t, b, -1.0, dData2[5], 5, true,  false,  true);
 		theSectionJ = new NoTensionSection3d(0, E_, G, t, b, -1.0, dData2[5], 5, false, false,  true);
 
 		// Gambarotta Lagomarsino model for shear
@@ -2794,7 +2794,7 @@ Macroelement3d::setResponse(const char **argv, int argc, OPS_Stream &output)
       theResponse = new ElementResponse(this, 1, P);
 
     // basic force - check if correct (allows confusion between basic forces and local forces)
-    }  else if (strcmp(argv[0],"basicForces") == 0 || strcmp(argv[0],"localForces") == 0) {
+    }  else if (strcmp(argv[0],"basicForces") == 0 || strcmp(argv[0],"localForces") == 0 || strcmp(argv[0], "localForce") == 0) {
 
       output.tag("ResponseType","N_1");
       output.tag("ResponseType","Mz_1");
@@ -2894,8 +2894,6 @@ Macroelement3d::getResponse(int responseID, Information &eleInfo)
     return eleInfo.setVector(this->getRayleighDampingForces());
     
   else if (responseID == 2) {
-   // P = Tgl ^ (this->getResistingForce());
-//	return eleInfo.setVector(P);
 
 	this->getResistingForce();
 	for (int i=0; i<12; i++) {
