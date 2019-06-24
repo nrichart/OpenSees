@@ -447,8 +447,8 @@ OPS_Macroelement3d()
         // standard input for spandrels, with my shear model and the middle section linear elastic (end sections slightly stronger)
 		// arguments: h, b, t, E, G, fc, mu, c, Gc, dropDrift, muR  
 
-		double dData2[13];
-	    numData = 13;
+		double dData2[11];
+	    numData = 11;
 		if (OPS_GetDoubleInput(&numData,&dData2[0]) < 0) {
 			opserr << "WARNING Macroelement3d (tag: " << iData[0] << "):'-spandrel' input structure incorrect, invalid double input(s)." << endln;
 			opserr << "Required structure : h, b, t, E, G, fc, mu, c, Gc, dropDrift, muR <-flags>" << endln;
