@@ -352,29 +352,26 @@ OPS_SumElementForcesRecorder()
   bool echoTime = false;
 
   bool doneParsingArgs = false;
-  char data[100];
-  char outputName[200];
+  const char * data;
+  const char * outputName;
   char **eleArgs = 0;
   int numEleArgs = 0;
 
 
   while (numRemainingArgs > 0) {
-    if (OPS_GetString(data,100) < 0) 
-      return 0;
-
+    const char* data = OPS_GetString();
+    
     // output to standard file
     if (strcmp(data,"-file") == 0)  { 
       outMode = 1;
-      if (OPS_GetString(outputName,200) < 0)
-	return 0;
+      outputName = OPS_GetString();
       numRemainingArgs -= 2;
     }
 
     // output to binary file
     else if (strcmp(data,"-binary") == 0) { 
       outMode = 2;
-      if (OPS_GetString(outputName,200) < 0)
-	return 0;
+      outputName = OPS_GetString();
       numRemainingArgs -= 2;
     }
 

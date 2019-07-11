@@ -30,20 +30,27 @@ submitted to Earthquake Engineering and Structural Dynamics (2019)
 Last edit: 26 Feb 2019
 */
 
+/* -------------------------------------------------------------------------- */
 #include "NoTensionSection3d.h"
-
+/* -------------------------------------------------------------------------- */
+#include <MaterialResponse.h>
+#include <classTags.h>
+#include <elementAPI.h>
 #include <Matrix.h>
 #include <Vector.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <MatrixUtil.h>
 #include <Parameter.h>
-#include <stdlib.h>
-#include <string.h>
-#include <MaterialResponse.h>
-
-#include <classTags.h>
-#include <elementAPI.h>
+/* -------------------------------------------------------------------------- */
+//#include <stdlib.h>
+//#include <string.h>
+#include <limits>
+#include <cmath>
+/* -------------------------------------------------------------------------- */
+#ifndef DBL_EPSILON
+#define DBL_EPSILON (std::numeric_limits<double>::epsilon())
+#endif
 
 ID NoTensionSection3d::code(4);
 
@@ -71,11 +78,11 @@ NoTensionSection3d::NoTensionSection3d (int tag, double _k, double _kg, double _
 	if (J<0.0) {
 		if (t>L) {
 			//J = 1/3.*t*L*L*L;                                            // good for thin sections
-			J = t*L*L*L * (1/3. - 0.21*L/t*(1.-pow(L,4)/(12*pow(t,4))));   // more refined formulation for squatter sections
+			J = t*L*L*L * (1./3. - 0.21*L/t*(1.-std::pow(L,4)/(12*std::pow(t,4))));   // more refined formulation for squatter sections
 		}
 		else {
 			//J = 1/3.*t*t*t*L;
-			J = L*t*t*t * (1 / 3. - 0.21*t / L*(1. - pow(t, 4) / (12 * pow(L, 4))));
+			J = L*t*t*t * (1. / 3. - 0.21*t / L*(1. - std::pow(t, 4) / (12 * std::pow(L, 4))));
 		}
 	}
 	
@@ -195,7 +202,7 @@ NoTensionSection3d::setTrialSectionDeformation (const Vector &def)
 	Vector increment(4);
 	increment = e - def;
 
-	if (fabs(increment.Norm()) < DBL_EPSILON) {
+	if (std::abs(increment.Norm()) < DBL_EPSILON) {
       return 0;
 	}
 
@@ -222,10 +229,10 @@ NoTensionSection3d::setTrialSectionDeformation (const Vector &def)
 	s.Zero();
 	Dtrial.Zero();
 
-	if (abs(e(2)) < DBL_EPSILON) {
+	if (std::abs(e(2)) < DBL_EPSILON) {
 		// zero in plane moment
-		if (abs(e(1)) + 2.0*e(0)/L > DBL_EPSILON) {
-			if  (-abs(e(1)) + 2.0*e(0)/L > DBL_EPSILON) {
+		if (std::abs(e(1)) + 2.0*e(0)/L > DBL_EPSILON) {
+			if  (-std::abs(e(1)) + 2.0*e(0)/L > DBL_EPSILON) {
 				// all tension, all zeroes, do nothing
 			} else {				
 					// case 5
@@ -235,15 +242,15 @@ NoTensionSection3d::setTrialSectionDeformation (const Vector &def)
 
 					if (chiZ<0.0) {
 						// case 4a,c: both out from different sides, chiZ>=0
-							 s(0) = (pow(chiY,2)*pow(t,3) + 3*t*pow(chiZ*L + 2*eps0,2))/(24.*chiZ);
-							 s(1) = -(pow(chiY,2)*pow(t,3)*eps0 + t*(-(chiZ*L) + eps0)*pow(chiZ*L + 2*eps0,2))/(24.*pow(chiZ,2));
-							 s(2) = (chiY*pow(t,3)*(chiZ*L + 2*eps0))/(24.*chiZ);
+							 s(0) = (std::pow(chiY,2)*std::pow(t,3) + 3*t*std::pow(chiZ*L + 2*eps0,2))/(24.*chiZ);
+							 s(1) = -(std::pow(chiY,2)*std::pow(t,3)*eps0 + t*(-(chiZ*L) + eps0)*std::pow(chiZ*L + 2*eps0,2))/(24.*std::pow(chiZ,2));
+							 s(2) = (chiY*std::pow(t,3)*(chiZ*L + 2*eps0))/(24.*chiZ);
 
 					} else {
 						// case 4b,d: both out from different sides, chiZ<0
-							 s(0) = -(pow(chiY,2)*pow(t,3) + 3*t*pow(chiZ*L - 2*eps0,2))/(24.*chiZ);
-							 s(1) = (pow(chiY,2)*pow(t,3)*eps0 + t*pow(chiZ*L - 2*eps0,2)*(chiZ*L + eps0))/(24.*pow(chiZ,2));
-							 s(2) = (chiY*pow(t,3)*(chiZ*L - 2*eps0))/(24.*chiZ);
+							 s(0) = -(std::pow(chiY,2)*std::pow(t,3) + 3*t*std::pow(chiZ*L - 2*eps0,2))/(24.*chiZ);
+							 s(1) = (std::pow(chiY,2)*std::pow(t,3)*eps0 + t*std::pow(chiZ*L - 2*eps0,2)*(chiZ*L + eps0))/(24.*std::pow(chiZ,2));
+							 s(2) = (chiY*std::pow(t,3)*(chiZ*L - 2*eps0))/(24.*chiZ);
 					}
 			}
 
@@ -274,15 +281,15 @@ NoTensionSection3d::setTrialSectionDeformation (const Vector &def)
 		if (inside1==0 && inside2==0) {
 			if (chiY>0.0) {
 			   // case 1a,b: both neutral points inside the long side, fi_y>0
-				 s(0) = -(L*(pow(chiZ,2)*pow(L,2) + 3*pow(chiY*t - 2*eps0,2)))/(24.*chiY);
-				 s(1) = (chiZ*pow(L,3)*(chiY*t - 2*eps0))/(24.*chiY);
-				 s(2) = (L*(pow(chiY,3)*pow(t,3) - 3*pow(chiY,2)*pow(t,2)*eps0 + pow(chiZ,2)*pow(L,2)*eps0 + 4*pow(eps0,3)))/(24.*pow(chiY,2));
+				 s(0) = -(L*(std::pow(chiZ,2)*std::pow(L,2) + 3*std::pow(chiY*t - 2*eps0,2)))/(24.*chiY);
+				 s(1) = (chiZ*std::pow(L,3)*(chiY*t - 2*eps0))/(24.*chiY);
+				 s(2) = (L*(std::pow(chiY,3)*std::pow(t,3) - 3*std::pow(chiY,2)*std::pow(t,2)*eps0 + std::pow(chiZ,2)*std::pow(L,2)*eps0 + 4*std::pow(eps0,3)))/(24.*std::pow(chiY,2));
 
 			} else {
                // case 1c,d: both neutral points inside the long side, fi_y<0
-				 s(0) = (L*(pow(chiZ,2)*pow(L,2) + 3*pow(chiY*t + 2*eps0,2)))/(24.*chiY);
-				 s(1) = (chiZ*pow(L,3)*(chiY*t + 2*eps0))/(24.*chiY);
-				 s(2) = (L*(pow(chiY,3)*pow(t,3) + 3*pow(chiY,2)*pow(t,2)*eps0 - pow(chiZ,2)*pow(L,2)*eps0 - 4*pow(eps0,3)))/(24.*pow(chiY,2));
+				 s(0) = (L*(std::pow(chiZ,2)*std::pow(L,2) + 3*std::pow(chiY*t + 2*eps0,2)))/(24.*chiY);
+				 s(1) = (chiZ*std::pow(L,3)*(chiY*t + 2*eps0))/(24.*chiY);
+				 s(2) = (L*(std::pow(chiY,3)*std::pow(t,3) + 3*std::pow(chiY,2)*std::pow(t,2)*eps0 - std::pow(chiZ,2)*std::pow(L,2)*eps0 - 4*std::pow(eps0,3)))/(24.*std::pow(chiY,2));
 			}
 
 		} else {
@@ -304,30 +311,30 @@ NoTensionSection3d::setTrialSectionDeformation (const Vector &def)
 					if (inside2>0) {
 						if (chiY>0.0) {
 							// case 2a
-							 s(0) = -pow(-(chiY*t) + chiZ*L + 2*eps0,3)/(48.*chiZ*chiY);
-							 s(1) = -((chiY*t + 3*chiZ*L - 2*eps0)*pow(-(chiY*t) + chiZ*L + 2*eps0,3))/(384.*pow(chiZ,2)*chiY);
-							 s(2) = (pow(-(chiY*t) + chiZ*L + 2*eps0,3)*(3*chiY*t + chiZ*L + 2*eps0))/(384.*chiZ*pow(chiY,2));
+							 s(0) = -std::pow(-(chiY*t) + chiZ*L + 2*eps0,3)/(48.*chiZ*chiY);
+							 s(1) = -((chiY*t + 3*chiZ*L - 2*eps0)*std::pow(-(chiY*t) + chiZ*L + 2*eps0,3))/(384.*std::pow(chiZ,2)*chiY);
+							 s(2) = (std::pow(-(chiY*t) + chiZ*L + 2*eps0,3)*(3*chiY*t + chiZ*L + 2*eps0))/(384.*chiZ*std::pow(chiY,2));
 
 						} else {
 							// case 3a
-						     s(0) = t*L*eps0 + pow(-(chiY*t) + chiZ*L + 2*eps0,3)/(48.*chiZ*chiY);
-							 s(1) = (chiZ*t*pow(L,3))/12. + ((chiY*t + 3*chiZ*L - 2*eps0)*pow(-(chiY*t) + chiZ*L + 2*eps0,3))/(384.*pow(chiZ,2)*chiY);
-							 s(2) = (chiY*pow(t,3)*L)/12. - (pow(-(chiY*t) + chiZ*L + 2*eps0,3)*(3*chiY*t + chiZ*L + 2*eps0))/(384.*chiZ*pow(chiY,2));
+						     s(0) = t*L*eps0 + std::pow(-(chiY*t) + chiZ*L + 2*eps0,3)/(48.*chiZ*chiY);
+							 s(1) = (chiZ*t*std::pow(L,3))/12. + ((chiY*t + 3*chiZ*L - 2*eps0)*std::pow(-(chiY*t) + chiZ*L + 2*eps0,3))/(384.*std::pow(chiZ,2)*chiY);
+							 s(2) = (chiY*std::pow(t,3)*L)/12. - (std::pow(-(chiY*t) + chiZ*L + 2*eps0,3)*(3*chiY*t + chiZ*L + 2*eps0))/(384.*chiZ*std::pow(chiY,2));
 						}
 
 					} else {
 						if (inside2<0) {
 							if (chiY<0.0) {
 								// case 2c
-								 s(0) = pow(chiY*t + chiZ*L + 2*eps0,3)/(48.*chiZ*chiY);
-								 s(1) = -((chiY*t - 3*chiZ*L + 2*eps0)*pow(chiY*t + chiZ*L + 2*eps0,3))/(384.*pow(chiZ,2)*chiY);
-								 s(2) = -((-3*chiY*t + chiZ*L + 2*eps0)*pow(chiY*t + chiZ*L + 2*eps0,3))/(384.*chiZ*pow(chiY,2));;
+								 s(0) = std::pow(chiY*t + chiZ*L + 2*eps0,3)/(48.*chiZ*chiY);
+								 s(1) = -((chiY*t - 3*chiZ*L + 2*eps0)*std::pow(chiY*t + chiZ*L + 2*eps0,3))/(384.*std::pow(chiZ,2)*chiY);
+								 s(2) = -((-3*chiY*t + chiZ*L + 2*eps0)*std::pow(chiY*t + chiZ*L + 2*eps0,3))/(384.*chiZ*std::pow(chiY,2));;
 
 							} else {
 								// case 3c
-									 s(0) = t*L*eps0 - pow(chiY*t + chiZ*L + 2*eps0,3)/(48.*chiZ*chiY);
-									 s(1) = (chiZ*t*pow(L,3))/12. + ((chiY*t - 3*chiZ*L + 2*eps0)*pow(chiY*t + chiZ*L + 2*eps0,3))/(384.*pow(chiZ,2)*chiY);
-									 s(2) = (chiY*pow(t,3)*L)/12. + ((-3*chiY*t + chiZ*L + 2*eps0)*pow(chiY*t + chiZ*L + 2*eps0,3))/(384.*chiZ*pow(chiY,2));
+									 s(0) = t*L*eps0 - std::pow(chiY*t + chiZ*L + 2*eps0,3)/(48.*chiZ*chiY);
+									 s(1) = (chiZ*t*std::pow(L,3))/12. + ((chiY*t - 3*chiZ*L + 2*eps0)*std::pow(chiY*t + chiZ*L + 2*eps0,3))/(384.*std::pow(chiZ,2)*chiY);
+									 s(2) = (chiY*std::pow(t,3)*L)/12. + ((-3*chiY*t + chiZ*L + 2*eps0)*std::pow(chiY*t + chiZ*L + 2*eps0,3))/(384.*chiZ*std::pow(chiY,2));
 
 							}
 
@@ -335,28 +342,28 @@ NoTensionSection3d::setTrialSectionDeformation (const Vector &def)
 							if (inside1>0) {
 								if (chiY>0.0) {
 									// case 2b
-								    s(0) = -pow(chiY*t + chiZ*L - 2*eps0,3)/(48.*chiZ*chiY);
-									s(1) = (pow(chiY*t + chiZ*L - 2*eps0,3)*(-(chiY*t) + 3*chiZ*L + 2*eps0))/(384.*pow(chiZ,2)*chiY);
-									s(2) = (pow(chiY*t + chiZ*L - 2*eps0,3)*(3*chiY*t - chiZ*L + 2*eps0))/(384.*chiZ*pow(chiY,2));
+								    s(0) = -std::pow(chiY*t + chiZ*L - 2*eps0,3)/(48.*chiZ*chiY);
+									s(1) = (std::pow(chiY*t + chiZ*L - 2*eps0,3)*(-(chiY*t) + 3*chiZ*L + 2*eps0))/(384.*std::pow(chiZ,2)*chiY);
+									s(2) = (std::pow(chiY*t + chiZ*L - 2*eps0,3)*(3*chiY*t - chiZ*L + 2*eps0))/(384.*chiZ*std::pow(chiY,2));
 
 								} else {
 									// case 3b
-								     s(0) = pow(chiY*t + chiZ*L - 2*eps0,3)/(48.*chiZ*chiY) + t*L*eps0;
-									 s(1) = (chiZ*t*pow(L,3))/12. + ((chiY*t - 3*chiZ*L - 2*eps0)*pow(chiY*t + chiZ*L - 2*eps0,3))/(384.*pow(chiZ,2)*chiY);
-									 s(2) = (chiY*pow(t,3)*L)/12. + ((-3*chiY*t + chiZ*L - 2*eps0)*pow(chiY*t + chiZ*L - 2*eps0,3))/(384.*chiZ*pow(chiY,2));
+								     s(0) = std::pow(chiY*t + chiZ*L - 2*eps0,3)/(48.*chiZ*chiY) + t*L*eps0;
+									 s(1) = (chiZ*t*std::pow(L,3))/12. + ((chiY*t - 3*chiZ*L - 2*eps0)*std::pow(chiY*t + chiZ*L - 2*eps0,3))/(384.*std::pow(chiZ,2)*chiY);
+									 s(2) = (chiY*std::pow(t,3)*L)/12. + ((-3*chiY*t + chiZ*L - 2*eps0)*std::pow(chiY*t + chiZ*L - 2*eps0,3))/(384.*chiZ*std::pow(chiY,2));
 								}
 
 							} else {
 								if (chiY<0.0) {
 									// case 2d
-									 s(0) = pow(-(chiY*t) + chiZ*L - 2*eps0,3)/(48.*chiZ*chiY);
-									 s(1) = (pow(chiY*t - chiZ*L + 2*eps0,3)*(chiY*t + 3*chiZ*L + 2*eps0))/(384.*pow(chiZ,2)*chiY);
-									 s(2) = (pow(-(chiY*t) + chiZ*L - 2*eps0,3)*(3*chiY*t + chiZ*L - 2*eps0))/(384.*chiZ*pow(chiY,2));
+									 s(0) = std::pow(-(chiY*t) + chiZ*L - 2*eps0,3)/(48.*chiZ*chiY);
+									 s(1) = (std::pow(chiY*t - chiZ*L + 2*eps0,3)*(chiY*t + 3*chiZ*L + 2*eps0))/(384.*std::pow(chiZ,2)*chiY);
+									 s(2) = (std::pow(-(chiY*t) + chiZ*L - 2*eps0,3)*(3*chiY*t + chiZ*L - 2*eps0))/(384.*chiZ*std::pow(chiY,2));
 								} else {
 									// case 3d
-							         s(0) = t*L*eps0 + pow(chiY*t - chiZ*L + 2*eps0,3)/(48.*chiZ*chiY);
-							         s(1) = (chiZ*t*pow(L,3))/12. + (pow(-(chiY*t) + chiZ*L - 2*eps0,3)*(chiY*t + 3*chiZ*L + 2*eps0))/(384.*pow(chiZ,2)*chiY);
-							         s(2) = (chiY*pow(t,3)*L)/12. + ((3*chiY*t + chiZ*L - 2*eps0)*pow(chiY*t - chiZ*L + 2*eps0,3))/(384.*chiZ*pow(chiY,2));
+							         s(0) = t*L*eps0 + std::pow(chiY*t - chiZ*L + 2*eps0,3)/(48.*chiZ*chiY);
+							         s(1) = (chiZ*t*std::pow(L,3))/12. + (std::pow(-(chiY*t) + chiZ*L - 2*eps0,3)*(chiY*t + 3*chiZ*L + 2*eps0))/(384.*std::pow(chiZ,2)*chiY);
+							         s(2) = (chiY*std::pow(t,3)*L)/12. + ((3*chiY*t + chiZ*L - 2*eps0)*std::pow(chiY*t - chiZ*L + 2*eps0,3))/(384.*chiZ*std::pow(chiY,2));
 								}
 							}
 						}
@@ -365,15 +372,15 @@ NoTensionSection3d::setTrialSectionDeformation (const Vector &def)
 				} else {
 					if (chiZ<0.0) {
 						// case 4a,c: both out from different sides, chiZ>=0
-							 s(0) = (pow(chiY,2)*pow(t,3) + 3*t*pow(chiZ*L + 2*eps0,2))/(24.*chiZ);
-							 s(1) = -(pow(chiY,2)*pow(t,3)*eps0 + t*(-(chiZ*L) + eps0)*pow(chiZ*L + 2*eps0,2))/(24.*pow(chiZ,2));
-							 s(2) = (chiY*pow(t,3)*(chiZ*L + 2*eps0))/(24.*chiZ);
+							 s(0) = (std::pow(chiY,2)*std::pow(t,3) + 3*t*std::pow(chiZ*L + 2*eps0,2))/(24.*chiZ);
+							 s(1) = -(std::pow(chiY,2)*std::pow(t,3)*eps0 + t*(-(chiZ*L) + eps0)*std::pow(chiZ*L + 2*eps0,2))/(24.*std::pow(chiZ,2));
+							 s(2) = (chiY*std::pow(t,3)*(chiZ*L + 2*eps0))/(24.*chiZ);
 
 					} else {
 						// case 4b,d: both out from different sides, chiZ<0							 
-							 s(0) = -(pow(chiY,2)*pow(t,3) + 3*t*pow(chiZ*L - 2*eps0,2))/(24.*chiZ);
-							 s(1) = (pow(chiY,2)*pow(t,3)*eps0 + t*pow(chiZ*L - 2*eps0,2)*(chiZ*L + eps0))/(24.*pow(chiZ,2));
-							 s(2) = (chiY*pow(t,3)*(chiZ*L - 2*eps0))/(24.*chiZ);
+							 s(0) = -(std::pow(chiY,2)*std::pow(t,3) + 3*t*std::pow(chiZ*L - 2*eps0,2))/(24.*chiZ);
+							 s(1) = (std::pow(chiY,2)*std::pow(t,3)*eps0 + t*std::pow(chiZ*L - 2*eps0,2)*(chiZ*L + eps0))/(24.*std::pow(chiZ,2));
+							 s(2) = (chiY*std::pow(t,3)*(chiZ*L - 2*eps0))/(24.*chiZ);
 					}
 				}
 			}
@@ -414,9 +421,9 @@ NoTensionSection3d::setTrialSectionDeformation (const Vector &def)
 		// enter only if there is some stress (anf therefore the section is not open in tension)
 		if ((s.Norm() > DBL_EPSILON) && crushing) {
 			/*
-		    if ((sqrt(pow(e(1),2) + pow(e(2),2)) ) > DBL_EPSILON )  // if there is some rotation define the proportion of IP/OOP rotation
-     		  if (abs(e(1))*L/2. > 1./100. *(fc/k) || abs(e(2))*t/2. > 1./100. *(fc/k) ) 
-			  	IPfactor = abs(e(1)) / sqrt(pow(e(1),2.) + pow(e(2),2.));     
+		    if ((std::sqrt(std::pow(e(1),2) + std::pow(e(2),2)) ) > DBL_EPSILON )  // if there is some rotation define the proportion of IP/OOP rotation
+     		  if (std::abs(e(1))*L/2. > 1./100. *(fc/k) || std::abs(e(2))*t/2. > 1./100. *(fc/k) ) 
+			  	IPfactor = std::abs(e(1)) / std::sqrt(std::pow(e(1),2.) + std::pow(e(2),2.));     
 		    */ 
 
 			IPfactor = 1.0;  // commented previous lines: applies only slice discretisation parallel to the dimension L 
@@ -463,7 +470,7 @@ NoTensionSection3d::setTrialSectionDeformation (const Vector &def)
 					if (zetaNew > zetaZt(i, 0)) {
 						if (zetaNew <= 1.0) {
 							zetaZt(i, 0) = zetaNew;
-							dzeta0_de = -1.0*((bi*(3.0*c^e) - 3.0*c*(bi^e + fc/k)) / pow(3.0*c^e, 2.0));
+							dzeta0_de = -1.0*((bi*(3.0*c^e) - 3.0*c*(bi^e + fc/k)) / std::pow(3.0*c^e, 2.0));
 						}
 
 						else {
@@ -502,7 +509,7 @@ NoTensionSection3d::setTrialSectionDeformation (const Vector &def)
 					if (zetaNew > zetaZt(i,1)) {
 						if (zetaNew<=1.0) {
 							zetaZt(i,1) = zetaNew;
-							dzeta1_de = -1.0*((bi*(3.0*c^e) - 3.0*c*(bi^e + fc/k))/ pow(3.0*c^e, 2.0));
+							dzeta1_de = -1.0*((bi*(3.0*c^e) - 3.0*c*(bi^e + fc/k))/ std::pow(3.0*c^e, 2.0));
 
 						} else {						
 							zetaZt(i,0) = 1.0;
@@ -561,7 +568,7 @@ NoTensionSection3d::setTrialSectionDeformation (const Vector &def)
 
 						dCorr_de.Zero();
 						dCorr_de += -k*(muZt(i, 0) - 1.0) / (2.0*muZt(i, 0))  *t*weight(i) * (zetaZt(i, 0)*L) * (bi);
-						dCorr_de += corr / (muZt(i, 0) - 1.0) / (2.0*muZt(i, 0))* pow(muZt(i, 0), -2.0) * dmu0_de;
+						dCorr_de += corr / (muZt(i, 0) - 1.0) / (2.0*muZt(i, 0))* std::pow(muZt(i, 0), -2.0) * dmu0_de;
 						dCorr_de += (corr/ zetaZt(i, 0))  * dzeta0_de;
 
 						Dtrial += (bi + zetaZt(i, 0)*c) % (dCorr_de);
@@ -582,7 +589,7 @@ NoTensionSection3d::setTrialSectionDeformation (const Vector &def)
 
 						dCorr_de.Zero();
 						dCorr_de += -k*(muZt(i, 1) - 1.0) / (2.0*muZt(i, 1))  *t*weight(i) * (zetaZt(i, 1)*L) * (bi);
-						dCorr_de += corr / (muZt(i, 1) - 1.0) / (2.0*muZt(i, 1))* pow(muZt(i, 1), -2.0) * dmu1_de;
+						dCorr_de += corr / (muZt(i, 1) - 1.0) / (2.0*muZt(i, 1))* std::pow(muZt(i, 1), -2.0) * dmu1_de;
 						dCorr_de += corr / zetaZt(i, 1)   * dzeta1_de;
 
 						Dtrial += (bi + zetaZt(i, 1)*c) % (dCorr_de);
@@ -609,10 +616,10 @@ NoTensionSection3d::setTrialSectionDeformation (const Vector &def)
 	//---------------------------------------------------------------------------------------------------------//
 	// terms corresponding to the crushing correction are already added in the previous section
 
-	if (abs(e(2)) < DBL_EPSILON) {
+	if (std::abs(e(2)) < DBL_EPSILON) {
 		// zero in plane moment
-		if (abs(e(1)) + 2.0*e(0)/L > DBL_EPSILON) {
-			if  (-abs(e(1)) + 2.0*e(0)/L > DBL_EPSILON) {
+		if (std::abs(e(1)) + 2.0*e(0)/L > DBL_EPSILON) {
+			if  (-std::abs(e(1)) + 2.0*e(0)/L > DBL_EPSILON) {
 				// all tension, all zeroes, do nothing
 				Dtrial.Zero();
 			} else {
@@ -624,26 +631,26 @@ NoTensionSection3d::setTrialSectionDeformation (const Vector &def)
 				  if (chiZ<0.0) {
 						// case 4a,c: both out from different sides, chiZ>=0
 						 Dtrial(0,0) += k*t*(L/2. + eps0/chiZ); 
-						 Dtrial(1,0) += -k*(t*(pow(chiY,2)*pow(t,2) - 3*pow(chiZ,2)*pow(L,2) + 12*pow(eps0,2)))/(24.*pow(chiZ,2)); 
-						 Dtrial(2,0) += k*(chiY*pow(t,3))/(12.*chiZ); 
-						 Dtrial(0,1) += -k*(t*(pow(chiY,2)*pow(t,2) - 3*pow(chiZ,2)*pow(L,2) + 12*pow(eps0,2)))/(24.*pow(chiZ,2)); 
-						 Dtrial(1,1) += k*(t*(pow(chiZ,3)*pow(L,3) + 2*pow(chiY,2)*pow(t,2)*eps0 + 8*pow(eps0,3)))/(24.*pow(chiZ,3)); 
-						 Dtrial(2,1) += -k*(chiY*pow(t,3)*eps0)/(12.*pow(chiZ,2)); 
-						 Dtrial(0,2) += k*(chiY*pow(t,3))/(12.*chiZ); 
-						 Dtrial(1,2) += -k*(chiY*pow(t,3)*eps0)/(12.*pow(chiZ,2)); 
-						 Dtrial(2,2) += k*(pow(t,3)*(chiZ*L + 2*eps0))/(24.*chiZ); 
+						 Dtrial(1,0) += -k*(t*(std::pow(chiY,2)*std::pow(t,2) - 3*std::pow(chiZ,2)*std::pow(L,2) + 12*std::pow(eps0,2)))/(24.*std::pow(chiZ,2)); 
+						 Dtrial(2,0) += k*(chiY*std::pow(t,3))/(12.*chiZ); 
+						 Dtrial(0,1) += -k*(t*(std::pow(chiY,2)*std::pow(t,2) - 3*std::pow(chiZ,2)*std::pow(L,2) + 12*std::pow(eps0,2)))/(24.*std::pow(chiZ,2)); 
+						 Dtrial(1,1) += k*(t*(std::pow(chiZ,3)*std::pow(L,3) + 2*std::pow(chiY,2)*std::pow(t,2)*eps0 + 8*std::pow(eps0,3)))/(24.*std::pow(chiZ,3)); 
+						 Dtrial(2,1) += -k*(chiY*std::pow(t,3)*eps0)/(12.*std::pow(chiZ,2)); 
+						 Dtrial(0,2) += k*(chiY*std::pow(t,3))/(12.*chiZ); 
+						 Dtrial(1,2) += -k*(chiY*std::pow(t,3)*eps0)/(12.*std::pow(chiZ,2)); 
+						 Dtrial(2,2) += k*(std::pow(t,3)*(chiZ*L + 2*eps0))/(24.*chiZ); 
 
 					} else {
 						// case 4b,d: both out from different sides, chiZ<0
 						 Dtrial(0,0) += k*(t*(L - (2*eps0)/chiZ))/2.; 
-						 Dtrial(1,0) += k*(t*(pow(chiY,2)*pow(t,2) - 3*pow(chiZ,2)*pow(L,2) + 12*pow(eps0,2)))/(24.*pow(chiZ,2)); 
-						 Dtrial(2,0) += -k*(chiY*pow(t,3))/(12.*chiZ); 
-						 Dtrial(0,1) += k*(t*(pow(chiY,2)*pow(t,2) - 3*pow(chiZ,2)*pow(L,2) + 12*pow(eps0,2)))/(24.*pow(chiZ,2)); 
-						 Dtrial(1,1) += k*(t*(pow(chiZ,3)*pow(L,3) - 2*pow(chiY,2)*pow(t,2)*eps0 - 8*pow(eps0,3)))/(24.*pow(chiZ,3)); 
-						 Dtrial(2,1) += k*(chiY*pow(t,3)*eps0)/(12.*pow(chiZ,2)); 
-						 Dtrial(0,2) += -k*(chiY*pow(t,3))/(12.*chiZ); 
-						 Dtrial(1,2) += k*(chiY*pow(t,3)*eps0)/(12.*pow(chiZ,2)); 
-						 Dtrial(2,2) += k*(pow(t,3)*(chiZ*L - 2*eps0))/(24.*chiZ); 
+						 Dtrial(1,0) += k*(t*(std::pow(chiY,2)*std::pow(t,2) - 3*std::pow(chiZ,2)*std::pow(L,2) + 12*std::pow(eps0,2)))/(24.*std::pow(chiZ,2)); 
+						 Dtrial(2,0) += -k*(chiY*std::pow(t,3))/(12.*chiZ); 
+						 Dtrial(0,1) += k*(t*(std::pow(chiY,2)*std::pow(t,2) - 3*std::pow(chiZ,2)*std::pow(L,2) + 12*std::pow(eps0,2)))/(24.*std::pow(chiZ,2)); 
+						 Dtrial(1,1) += k*(t*(std::pow(chiZ,3)*std::pow(L,3) - 2*std::pow(chiY,2)*std::pow(t,2)*eps0 - 8*std::pow(eps0,3)))/(24.*std::pow(chiZ,3)); 
+						 Dtrial(2,1) += k*(chiY*std::pow(t,3)*eps0)/(12.*std::pow(chiZ,2)); 
+						 Dtrial(0,2) += -k*(chiY*std::pow(t,3))/(12.*chiZ); 
+						 Dtrial(1,2) += k*(chiY*std::pow(t,3)*eps0)/(12.*std::pow(chiZ,2)); 
+						 Dtrial(2,2) += k*(std::pow(t,3)*(chiZ*L - 2*eps0))/(24.*chiZ); 
 				    }
 			}
 
@@ -672,26 +679,26 @@ NoTensionSection3d::setTrialSectionDeformation (const Vector &def)
 			if (chiY>0.0) {
 			   // case 1a,b: both neutral points inside the long side, fi_y>0
 			     Dtrial(0,0) += k*(L*(t - (2*eps0)/chiY))/2.; 
-				 Dtrial(1,0) += -k*(chiZ*pow(L,3))/(12.*chiY); 
-				 Dtrial(2,0) += k*(L*(-3*pow(chiY,2)*pow(t,2) + pow(chiZ,2)*pow(L,2) + 12*pow(eps0,2)))/(24.*pow(chiY,2)); 
-				 Dtrial(0,1) += -k*(chiZ*pow(L,3))/(12.*chiY); 
-				 Dtrial(1,1) += k*(pow(L,3)*(chiY*t - 2*eps0))/(24.*chiY); 
-				 Dtrial(2,1) += k*(chiZ*pow(L,3)*eps0)/(12.*pow(chiY,2)); 
-				 Dtrial(0,2) += k*(L*(-3*pow(chiY,2)*pow(t,2) + pow(chiZ,2)*pow(L,2) + 12*pow(eps0,2)))/(24.*pow(chiY,2)); 
-				 Dtrial(1,2) += k*(chiZ*pow(L,3)*eps0)/(12.*pow(chiY,2)); 
-				 Dtrial(2,2) += k*(L*(pow(chiY,3)*pow(t,3) - 2*pow(chiZ,2)*pow(L,2)*eps0 - 8*pow(eps0,3)))/(24.*pow(chiY,3)); 
+				 Dtrial(1,0) += -k*(chiZ*std::pow(L,3))/(12.*chiY); 
+				 Dtrial(2,0) += k*(L*(-3*std::pow(chiY,2)*std::pow(t,2) + std::pow(chiZ,2)*std::pow(L,2) + 12*std::pow(eps0,2)))/(24.*std::pow(chiY,2)); 
+				 Dtrial(0,1) += -k*(chiZ*std::pow(L,3))/(12.*chiY); 
+				 Dtrial(1,1) += k*(std::pow(L,3)*(chiY*t - 2*eps0))/(24.*chiY); 
+				 Dtrial(2,1) += k*(chiZ*std::pow(L,3)*eps0)/(12.*std::pow(chiY,2)); 
+				 Dtrial(0,2) += k*(L*(-3*std::pow(chiY,2)*std::pow(t,2) + std::pow(chiZ,2)*std::pow(L,2) + 12*std::pow(eps0,2)))/(24.*std::pow(chiY,2)); 
+				 Dtrial(1,2) += k*(chiZ*std::pow(L,3)*eps0)/(12.*std::pow(chiY,2)); 
+				 Dtrial(2,2) += k*(L*(std::pow(chiY,3)*std::pow(t,3) - 2*std::pow(chiZ,2)*std::pow(L,2)*eps0 - 8*std::pow(eps0,3)))/(24.*std::pow(chiY,3)); 
 
 			} else {
                // case 1c,d: both neutral points inside the long side, fi_y<0
 				 Dtrial(0,0) += k*(t*L)/2. + k*(L*eps0)/chiY; 
-				 Dtrial(1,0) += k*(chiZ*pow(L,3))/(12.*chiY); 
-				 Dtrial(2,0) += -k*(L*(-3*pow(chiY,2)*pow(t,2) + pow(chiZ,2)*pow(L,2) + 12*pow(eps0,2)))/(24.*pow(chiY,2)); 
-				 Dtrial(0,1) += k*(chiZ*pow(L,3))/(12.*chiY); 
-				 Dtrial(1,1) += k*(pow(L,3)*(chiY*t + 2*eps0))/(24.*chiY); 
-				 Dtrial(2,1) += -k*(chiZ*pow(L,3)*eps0)/(12.*pow(chiY,2)); 
-				 Dtrial(0,2) += -k*(L*(-3*pow(chiY,2)*pow(t,2) + pow(chiZ,2)*pow(L,2) + 12*pow(eps0,2)))/(24.*pow(chiY,2)); 
-				 Dtrial(1,2) += -k*(chiZ*pow(L,3)*eps0)/(12.*pow(chiY,2)); 
-				 Dtrial(2,2) += k*(L*(pow(chiY,3)*pow(t,3) + 2*pow(chiZ,2)*pow(L,2)*eps0 + 8*pow(eps0,3)))/(24.*pow(chiY,3)); 
+				 Dtrial(1,0) += k*(chiZ*std::pow(L,3))/(12.*chiY); 
+				 Dtrial(2,0) += -k*(L*(-3*std::pow(chiY,2)*std::pow(t,2) + std::pow(chiZ,2)*std::pow(L,2) + 12*std::pow(eps0,2)))/(24.*std::pow(chiY,2)); 
+				 Dtrial(0,1) += k*(chiZ*std::pow(L,3))/(12.*chiY); 
+				 Dtrial(1,1) += k*(std::pow(L,3)*(chiY*t + 2*eps0))/(24.*chiY); 
+				 Dtrial(2,1) += -k*(chiZ*std::pow(L,3)*eps0)/(12.*std::pow(chiY,2)); 
+				 Dtrial(0,2) += -k*(L*(-3*std::pow(chiY,2)*std::pow(t,2) + std::pow(chiZ,2)*std::pow(L,2) + 12*std::pow(eps0,2)))/(24.*std::pow(chiY,2)); 
+				 Dtrial(1,2) += -k*(chiZ*std::pow(L,3)*eps0)/(12.*std::pow(chiY,2)); 
+				 Dtrial(2,2) += k*(L*(std::pow(chiY,3)*std::pow(t,3) + 2*std::pow(chiZ,2)*std::pow(L,2)*eps0 + 8*std::pow(eps0,3)))/(24.*std::pow(chiY,3)); 
 			}
 
 		} else {
@@ -711,54 +718,54 @@ NoTensionSection3d::setTrialSectionDeformation (const Vector &def)
 					if (inside2>0) {
 						if (chiY>0.0) {
 							// case 2a
-							Dtrial(0,0) += -k*pow(-(chiY*t) + chiZ*L + 2*eps0,2)/(8.*chiZ*chiY); 
-							Dtrial(1,0) += -k*((chiY*t + 2*chiZ*L - 2*eps0)*pow(-(chiY*t) + chiZ*L + 2*eps0,2))/(48.*pow(chiZ,2)*chiY); 
-							Dtrial(2,0) += k*(pow(-(chiY*t) + chiZ*L + 2*eps0,2)*(2*chiY*t + chiZ*L + 2*eps0))/(48.*chiZ*pow(chiY,2)); 
-							Dtrial(0,1) += -k*((chiY*t + 2*chiZ*L - 2*eps0)*pow(-(chiY*t) + chiZ*L + 2*eps0,2))/(48.*pow(chiZ,2)*chiY); 
-							Dtrial(1,1) += -k*(pow(-(chiY*t) + chiZ*L + 2*eps0,2)*(pow(chiY,2)*pow(t,2) + 2*chiZ*chiY*t*L + 3*pow(chiZ,2)*pow(L,2) - 4*(chiY*t + chiZ*L)*eps0 + 4*pow(eps0,2)))/(192.*pow(chiZ,3)*chiY); 
-							Dtrial(2,1) += k*(pow(-(chiY*t) + chiZ*L + 2*eps0,2)*(3*pow(chiY*t + chiZ*L,2) - 4*chiY*t*eps0 + 4*chiZ*L*eps0 - 4*pow(eps0,2)))/(384.*pow(chiZ,2)*pow(chiY,2)); 
-							Dtrial(0,2) += k*(pow(-(chiY*t) + chiZ*L + 2*eps0,2)*(2*chiY*t + chiZ*L + 2*eps0))/(48.*chiZ*pow(chiY,2)); 
-							Dtrial(1,2) += k*(pow(-(chiY*t) + chiZ*L + 2*eps0,2)*(3*pow(chiY*t + chiZ*L,2) - 4*chiY*t*eps0 + 4*chiZ*L*eps0 - 4*pow(eps0,2)))/(384.*pow(chiZ,2)*pow(chiY,2)); 
-							Dtrial(2,2) += -k*(pow(-(chiY*t) + chiZ*L + 2*eps0,2)*(3*pow(chiY,2)*pow(t,2) + 2*chiY*t*(chiZ*L + 2*eps0) + pow(chiZ*L + 2*eps0,2)))/(192.*chiZ*pow(chiY,3)); 
+							Dtrial(0,0) += -k*std::pow(-(chiY*t) + chiZ*L + 2*eps0,2)/(8.*chiZ*chiY); 
+							Dtrial(1,0) += -k*((chiY*t + 2*chiZ*L - 2*eps0)*std::pow(-(chiY*t) + chiZ*L + 2*eps0,2))/(48.*std::pow(chiZ,2)*chiY); 
+							Dtrial(2,0) += k*(std::pow(-(chiY*t) + chiZ*L + 2*eps0,2)*(2*chiY*t + chiZ*L + 2*eps0))/(48.*chiZ*std::pow(chiY,2)); 
+							Dtrial(0,1) += -k*((chiY*t + 2*chiZ*L - 2*eps0)*std::pow(-(chiY*t) + chiZ*L + 2*eps0,2))/(48.*std::pow(chiZ,2)*chiY); 
+							Dtrial(1,1) += -k*(std::pow(-(chiY*t) + chiZ*L + 2*eps0,2)*(std::pow(chiY,2)*std::pow(t,2) + 2*chiZ*chiY*t*L + 3*std::pow(chiZ,2)*std::pow(L,2) - 4*(chiY*t + chiZ*L)*eps0 + 4*std::pow(eps0,2)))/(192.*std::pow(chiZ,3)*chiY); 
+							Dtrial(2,1) += k*(std::pow(-(chiY*t) + chiZ*L + 2*eps0,2)*(3*std::pow(chiY*t + chiZ*L,2) - 4*chiY*t*eps0 + 4*chiZ*L*eps0 - 4*std::pow(eps0,2)))/(384.*std::pow(chiZ,2)*std::pow(chiY,2)); 
+							Dtrial(0,2) += k*(std::pow(-(chiY*t) + chiZ*L + 2*eps0,2)*(2*chiY*t + chiZ*L + 2*eps0))/(48.*chiZ*std::pow(chiY,2)); 
+							Dtrial(1,2) += k*(std::pow(-(chiY*t) + chiZ*L + 2*eps0,2)*(3*std::pow(chiY*t + chiZ*L,2) - 4*chiY*t*eps0 + 4*chiZ*L*eps0 - 4*std::pow(eps0,2)))/(384.*std::pow(chiZ,2)*std::pow(chiY,2)); 
+							Dtrial(2,2) += -k*(std::pow(-(chiY*t) + chiZ*L + 2*eps0,2)*(3*std::pow(chiY,2)*std::pow(t,2) + 2*chiY*t*(chiZ*L + 2*eps0) + std::pow(chiZ*L + 2*eps0,2)))/(192.*chiZ*std::pow(chiY,3)); 
 
 						} else {
 							// case 3a
-							 Dtrial(0,0) += k*t*L + pow(-(chiY*t) + chiZ*L + 2*eps0,2)/(8.*chiZ*chiY); 
-							 Dtrial(1,0) += k*((chiY*t + 2*chiZ*L - 2*eps0)*pow(-(chiY*t) + chiZ*L + 2*eps0,2))/(48.*pow(chiZ,2)*chiY); 
-							 Dtrial(2,0) += -k*(pow(-(chiY*t) + chiZ*L + 2*eps0,2)*(2*chiY*t + chiZ*L + 2*eps0))/(48.*chiZ*pow(chiY,2)); 
-							 Dtrial(0,1) += k*((chiY*t + 2*chiZ*L - 2*eps0)*pow(-(chiY*t) + chiZ*L + 2*eps0,2))/(48.*pow(chiZ,2)*chiY); 
-							 Dtrial(1,1) += k*(pow(chiY,4)*pow(t,4) + 3*pow(chiZ,4)*pow(L,4) - 8*pow(chiY,3)*pow(t,3)*eps0 + 8*pow(chiZ,3)*pow(L,3)*eps0 + 24*pow(chiY,2)*pow(t,2)*pow(eps0,2) + 16*pow(eps0,4) + 4*chiY*t*(3*pow(chiZ,3)*pow(L,3) - 8*pow(eps0,3)))/(192.*pow(chiZ,3)*chiY); 
-							 Dtrial(2,1) += -k*(pow(-(chiY*t) + chiZ*L + 2*eps0,2)*(3*pow(chiY*t + chiZ*L,2) - 4*chiY*t*eps0 + 4*chiZ*L*eps0 - 4*pow(eps0,2)))/(384.*pow(chiZ,2)*pow(chiY,2)); 
-							 Dtrial(0,2) += -k*(pow(-(chiY*t) + chiZ*L + 2*eps0,2)*(2*chiY*t + chiZ*L + 2*eps0))/(48.*chiZ*pow(chiY,2)); 
-							 Dtrial(1,2) += -k*(pow(-(chiY*t) + chiZ*L + 2*eps0,2)*(3*pow(chiY*t + chiZ*L,2) - 4*chiY*t*eps0 + 4*chiZ*L*eps0 - 4*pow(eps0,2)))/(384.*pow(chiZ,2)*pow(chiY,2)); 
-							 Dtrial(2,2) += k*(3*pow(chiY,4)*pow(t,4) + 4*pow(chiY,3)*pow(t,3)*(3*chiZ*L - 2*eps0) + pow(chiZ*L + 2*eps0,4))/(192.*chiZ*pow(chiY,3)); 
+							 Dtrial(0,0) += k*t*L + std::pow(-(chiY*t) + chiZ*L + 2*eps0,2)/(8.*chiZ*chiY); 
+							 Dtrial(1,0) += k*((chiY*t + 2*chiZ*L - 2*eps0)*std::pow(-(chiY*t) + chiZ*L + 2*eps0,2))/(48.*std::pow(chiZ,2)*chiY); 
+							 Dtrial(2,0) += -k*(std::pow(-(chiY*t) + chiZ*L + 2*eps0,2)*(2*chiY*t + chiZ*L + 2*eps0))/(48.*chiZ*std::pow(chiY,2)); 
+							 Dtrial(0,1) += k*((chiY*t + 2*chiZ*L - 2*eps0)*std::pow(-(chiY*t) + chiZ*L + 2*eps0,2))/(48.*std::pow(chiZ,2)*chiY); 
+							 Dtrial(1,1) += k*(std::pow(chiY,4)*std::pow(t,4) + 3*std::pow(chiZ,4)*std::pow(L,4) - 8*std::pow(chiY,3)*std::pow(t,3)*eps0 + 8*std::pow(chiZ,3)*std::pow(L,3)*eps0 + 24*std::pow(chiY,2)*std::pow(t,2)*std::pow(eps0,2) + 16*std::pow(eps0,4) + 4*chiY*t*(3*std::pow(chiZ,3)*std::pow(L,3) - 8*std::pow(eps0,3)))/(192.*std::pow(chiZ,3)*chiY); 
+							 Dtrial(2,1) += -k*(std::pow(-(chiY*t) + chiZ*L + 2*eps0,2)*(3*std::pow(chiY*t + chiZ*L,2) - 4*chiY*t*eps0 + 4*chiZ*L*eps0 - 4*std::pow(eps0,2)))/(384.*std::pow(chiZ,2)*std::pow(chiY,2)); 
+							 Dtrial(0,2) += -k*(std::pow(-(chiY*t) + chiZ*L + 2*eps0,2)*(2*chiY*t + chiZ*L + 2*eps0))/(48.*chiZ*std::pow(chiY,2)); 
+							 Dtrial(1,2) += -k*(std::pow(-(chiY*t) + chiZ*L + 2*eps0,2)*(3*std::pow(chiY*t + chiZ*L,2) - 4*chiY*t*eps0 + 4*chiZ*L*eps0 - 4*std::pow(eps0,2)))/(384.*std::pow(chiZ,2)*std::pow(chiY,2)); 
+							 Dtrial(2,2) += k*(3*std::pow(chiY,4)*std::pow(t,4) + 4*std::pow(chiY,3)*std::pow(t,3)*(3*chiZ*L - 2*eps0) + std::pow(chiZ*L + 2*eps0,4))/(192.*chiZ*std::pow(chiY,3)); 
 						}
 
 					} else {
 						if (inside2<0) {
 							if (chiY<0.0) {
 								// case 2c
-								 Dtrial(0,0) += k*pow(chiY*t + chiZ*L + 2*eps0,2)/(8.*chiZ*chiY); 
-								 Dtrial(1,0) += -k*((chiY*t - 2*chiZ*L + 2*eps0)*pow(chiY*t + chiZ*L + 2*eps0,2))/(48.*pow(chiZ,2)*chiY); 
-								 Dtrial(2,0) += -k*((-2*chiY*t + chiZ*L + 2*eps0)*pow(chiY*t + chiZ*L + 2*eps0,2))/(48.*chiZ*pow(chiY,2)); 
-								 Dtrial(0,1) += -k*((chiY*t - 2*chiZ*L + 2*eps0)*pow(chiY*t + chiZ*L + 2*eps0,2))/(48.*pow(chiZ,2)*chiY); 
-								 Dtrial(1,1) += k*(pow(chiY*t + chiZ*L + 2*eps0,2)*(pow(chiY,2)*pow(t,2) - 2*chiZ*chiY*t*L + 3*pow(chiZ,2)*pow(L,2) + 4*chiY*t*eps0 - 4*chiZ*L*eps0 + 4*pow(eps0,2)))/(192.*pow(chiZ,3)*chiY); 
-								 Dtrial(2,1) += -k*(pow(chiY*t + chiZ*L + 2*eps0,2)*(3*pow(chiY*t - chiZ*L,2) + 4*(chiY*t + chiZ*L)*eps0 - 4*pow(eps0,2)))/(384.*pow(chiZ,2)*pow(chiY,2)); 
-								 Dtrial(0,2) += -k*((-2*chiY*t + chiZ*L + 2*eps0)*pow(chiY*t + chiZ*L + 2*eps0,2))/(48.*chiZ*pow(chiY,2)); 
-								 Dtrial(1,2) += -k*(pow(chiY*t + chiZ*L + 2*eps0,2)*(3*pow(chiY*t - chiZ*L,2) + 4*(chiY*t + chiZ*L)*eps0 - 4*pow(eps0,2)))/(384.*pow(chiZ,2)*pow(chiY,2)); 
-								 Dtrial(2,2) += k*(pow(chiY*t + chiZ*L + 2*eps0,2)*(3*pow(chiY,2)*pow(t,2) - 2*chiY*t*(chiZ*L + 2*eps0) + pow(chiZ*L + 2*eps0,2)))/(192.*chiZ*pow(chiY,3)); 
+								 Dtrial(0,0) += k*std::pow(chiY*t + chiZ*L + 2*eps0,2)/(8.*chiZ*chiY); 
+								 Dtrial(1,0) += -k*((chiY*t - 2*chiZ*L + 2*eps0)*std::pow(chiY*t + chiZ*L + 2*eps0,2))/(48.*std::pow(chiZ,2)*chiY); 
+								 Dtrial(2,0) += -k*((-2*chiY*t + chiZ*L + 2*eps0)*std::pow(chiY*t + chiZ*L + 2*eps0,2))/(48.*chiZ*std::pow(chiY,2)); 
+								 Dtrial(0,1) += -k*((chiY*t - 2*chiZ*L + 2*eps0)*std::pow(chiY*t + chiZ*L + 2*eps0,2))/(48.*std::pow(chiZ,2)*chiY); 
+								 Dtrial(1,1) += k*(std::pow(chiY*t + chiZ*L + 2*eps0,2)*(std::pow(chiY,2)*std::pow(t,2) - 2*chiZ*chiY*t*L + 3*std::pow(chiZ,2)*std::pow(L,2) + 4*chiY*t*eps0 - 4*chiZ*L*eps0 + 4*std::pow(eps0,2)))/(192.*std::pow(chiZ,3)*chiY); 
+								 Dtrial(2,1) += -k*(std::pow(chiY*t + chiZ*L + 2*eps0,2)*(3*std::pow(chiY*t - chiZ*L,2) + 4*(chiY*t + chiZ*L)*eps0 - 4*std::pow(eps0,2)))/(384.*std::pow(chiZ,2)*std::pow(chiY,2)); 
+								 Dtrial(0,2) += -k*((-2*chiY*t + chiZ*L + 2*eps0)*std::pow(chiY*t + chiZ*L + 2*eps0,2))/(48.*chiZ*std::pow(chiY,2)); 
+								 Dtrial(1,2) += -k*(std::pow(chiY*t + chiZ*L + 2*eps0,2)*(3*std::pow(chiY*t - chiZ*L,2) + 4*(chiY*t + chiZ*L)*eps0 - 4*std::pow(eps0,2)))/(384.*std::pow(chiZ,2)*std::pow(chiY,2)); 
+								 Dtrial(2,2) += k*(std::pow(chiY*t + chiZ*L + 2*eps0,2)*(3*std::pow(chiY,2)*std::pow(t,2) - 2*chiY*t*(chiZ*L + 2*eps0) + std::pow(chiZ*L + 2*eps0,2)))/(192.*chiZ*std::pow(chiY,3)); 
 
 							} else {
 								// case 3c
-									 Dtrial(0,0) += k*t*L - k*pow(chiY*t + chiZ*L + 2*eps0,2)/(8.*chiZ*chiY); 
-									 Dtrial(1,0) += k*((chiY*t - 2*chiZ*L + 2*eps0)*pow(chiY*t + chiZ*L + 2*eps0,2))/(48.*pow(chiZ,2)*chiY); 
-									 Dtrial(2,0) += k*((-2*chiY*t + chiZ*L + 2*eps0)*pow(chiY*t + chiZ*L + 2*eps0,2))/(48.*chiZ*pow(chiY,2)); 
-									 Dtrial(0,1) += k*((chiY*t - 2*chiZ*L + 2*eps0)*pow(chiY*t + chiZ*L + 2*eps0,2))/(48.*pow(chiZ,2)*chiY); 
-									 Dtrial(1,1) += -k*(pow(chiY,4)*pow(t,4) + 3*pow(chiZ,4)*pow(L,4) + 8*pow(chiY,3)*pow(t,3)*eps0 + 8*pow(chiZ,3)*pow(L,3)*eps0 + 24*pow(chiY,2)*pow(t,2)*pow(eps0,2) + 16*pow(eps0,4) + 4*chiY*t*(-3*pow(chiZ,3)*pow(L,3) + 8*pow(eps0,3)))/(192.*pow(chiZ,3)*chiY); 
-									 Dtrial(2,1) += k*(pow(chiY*t + chiZ*L + 2*eps0,2)*(3*pow(chiY*t - chiZ*L,2) + 4*(chiY*t + chiZ*L)*eps0 - 4*pow(eps0,2)))/(384.*pow(chiZ,2)*pow(chiY,2)); 
-									 Dtrial(0,2) += k*((-2*chiY*t + chiZ*L + 2*eps0)*pow(chiY*t + chiZ*L + 2*eps0,2))/(48.*chiZ*pow(chiY,2)); 
-									 Dtrial(1,2) += k*(pow(chiY*t + chiZ*L + 2*eps0,2)*(3*pow(chiY*t - chiZ*L,2) + 4*(chiY*t + chiZ*L)*eps0 - 4*pow(eps0,2)))/(384.*pow(chiZ,2)*pow(chiY,2)); 
-									 Dtrial(2,2) += -k*(3*pow(chiY,4)*pow(t,4) + 4*pow(chiY,3)*pow(t,3)*(-3*chiZ*L + 2*eps0) + pow(chiZ*L + 2*eps0,4))/(192.*chiZ*pow(chiY,3)); 
+									 Dtrial(0,0) += k*t*L - k*std::pow(chiY*t + chiZ*L + 2*eps0,2)/(8.*chiZ*chiY); 
+									 Dtrial(1,0) += k*((chiY*t - 2*chiZ*L + 2*eps0)*std::pow(chiY*t + chiZ*L + 2*eps0,2))/(48.*std::pow(chiZ,2)*chiY); 
+									 Dtrial(2,0) += k*((-2*chiY*t + chiZ*L + 2*eps0)*std::pow(chiY*t + chiZ*L + 2*eps0,2))/(48.*chiZ*std::pow(chiY,2)); 
+									 Dtrial(0,1) += k*((chiY*t - 2*chiZ*L + 2*eps0)*std::pow(chiY*t + chiZ*L + 2*eps0,2))/(48.*std::pow(chiZ,2)*chiY); 
+									 Dtrial(1,1) += -k*(std::pow(chiY,4)*std::pow(t,4) + 3*std::pow(chiZ,4)*std::pow(L,4) + 8*std::pow(chiY,3)*std::pow(t,3)*eps0 + 8*std::pow(chiZ,3)*std::pow(L,3)*eps0 + 24*std::pow(chiY,2)*std::pow(t,2)*std::pow(eps0,2) + 16*std::pow(eps0,4) + 4*chiY*t*(-3*std::pow(chiZ,3)*std::pow(L,3) + 8*std::pow(eps0,3)))/(192.*std::pow(chiZ,3)*chiY); 
+									 Dtrial(2,1) += k*(std::pow(chiY*t + chiZ*L + 2*eps0,2)*(3*std::pow(chiY*t - chiZ*L,2) + 4*(chiY*t + chiZ*L)*eps0 - 4*std::pow(eps0,2)))/(384.*std::pow(chiZ,2)*std::pow(chiY,2)); 
+									 Dtrial(0,2) += k*((-2*chiY*t + chiZ*L + 2*eps0)*std::pow(chiY*t + chiZ*L + 2*eps0,2))/(48.*chiZ*std::pow(chiY,2)); 
+									 Dtrial(1,2) += k*(std::pow(chiY*t + chiZ*L + 2*eps0,2)*(3*std::pow(chiY*t - chiZ*L,2) + 4*(chiY*t + chiZ*L)*eps0 - 4*std::pow(eps0,2)))/(384.*std::pow(chiZ,2)*std::pow(chiY,2)); 
+									 Dtrial(2,2) += -k*(3*std::pow(chiY,4)*std::pow(t,4) + 4*std::pow(chiY,3)*std::pow(t,3)*(-3*chiZ*L + 2*eps0) + std::pow(chiZ*L + 2*eps0,4))/(192.*chiZ*std::pow(chiY,3)); 
 
 							}
 
@@ -766,53 +773,53 @@ NoTensionSection3d::setTrialSectionDeformation (const Vector &def)
 							if (inside1>0) {
 								if (chiY>0.0) {
 									// case 2b
-									Dtrial(0,0) += k*pow(chiY*t + chiZ*L - 2*eps0,2)/(8.*chiZ*chiY); 
-									Dtrial(1,0) += k*(pow(chiY*t + chiZ*L - 2*eps0,2)*(chiY*t - 2*(chiZ*L + eps0)))/(48.*pow(chiZ,2)*chiY); 
-									Dtrial(2,0) += k*((-2*chiY*t + chiZ*L - 2*eps0)*pow(chiY*t + chiZ*L - 2*eps0,2))/(48.*chiZ*pow(chiY,2)); 
-									Dtrial(0,1) += k*(pow(chiY*t + chiZ*L - 2*eps0,2)*(chiY*t - 2*(chiZ*L + eps0)))/(48.*pow(chiZ,2)*chiY); 
-									Dtrial(1,1) += k*(pow(chiY*t + chiZ*L - 2*eps0,2)*(pow(chiY,2)*pow(t,2) + 3*pow(chiZ,2)*pow(L,2) + 4*chiZ*L*eps0 + 4*pow(eps0,2) - 2*chiY*t*(chiZ*L + 2*eps0)))/(192.*pow(chiZ,3)*chiY); 
-									Dtrial(2,1) += -k*(pow(chiY*t + chiZ*L - 2*eps0,2)*(3*pow(chiY*t - chiZ*L,2) - 4*(chiY*t + chiZ*L)*eps0 - 4*pow(eps0,2)))/(384.*pow(chiZ,2)*pow(chiY,2)); 
-									Dtrial(0,2) += k*((-2*chiY*t + chiZ*L - 2*eps0)*pow(chiY*t + chiZ*L - 2*eps0,2))/(48.*chiZ*pow(chiY,2)); 
-									Dtrial(1,2) += -k*(pow(chiY*t + chiZ*L - 2*eps0,2)*(3*pow(chiY*t - chiZ*L,2) - 4*(chiY*t + chiZ*L)*eps0 - 4*pow(eps0,2)))/(384.*pow(chiZ,2)*pow(chiY,2)); 
-									Dtrial(2,2) += k*(pow(chiY*t + chiZ*L - 2*eps0,2)*(3*pow(chiY,2)*pow(t,2) + pow(chiZ*L - 2*eps0,2) + chiY*(-2*chiZ*t*L + 4*t*eps0)))/(192.*chiZ*pow(chiY,3)); 
+									Dtrial(0,0) += k*std::pow(chiY*t + chiZ*L - 2*eps0,2)/(8.*chiZ*chiY); 
+									Dtrial(1,0) += k*(std::pow(chiY*t + chiZ*L - 2*eps0,2)*(chiY*t - 2*(chiZ*L + eps0)))/(48.*std::pow(chiZ,2)*chiY); 
+									Dtrial(2,0) += k*((-2*chiY*t + chiZ*L - 2*eps0)*std::pow(chiY*t + chiZ*L - 2*eps0,2))/(48.*chiZ*std::pow(chiY,2)); 
+									Dtrial(0,1) += k*(std::pow(chiY*t + chiZ*L - 2*eps0,2)*(chiY*t - 2*(chiZ*L + eps0)))/(48.*std::pow(chiZ,2)*chiY); 
+									Dtrial(1,1) += k*(std::pow(chiY*t + chiZ*L - 2*eps0,2)*(std::pow(chiY,2)*std::pow(t,2) + 3*std::pow(chiZ,2)*std::pow(L,2) + 4*chiZ*L*eps0 + 4*std::pow(eps0,2) - 2*chiY*t*(chiZ*L + 2*eps0)))/(192.*std::pow(chiZ,3)*chiY); 
+									Dtrial(2,1) += -k*(std::pow(chiY*t + chiZ*L - 2*eps0,2)*(3*std::pow(chiY*t - chiZ*L,2) - 4*(chiY*t + chiZ*L)*eps0 - 4*std::pow(eps0,2)))/(384.*std::pow(chiZ,2)*std::pow(chiY,2)); 
+									Dtrial(0,2) += k*((-2*chiY*t + chiZ*L - 2*eps0)*std::pow(chiY*t + chiZ*L - 2*eps0,2))/(48.*chiZ*std::pow(chiY,2)); 
+									Dtrial(1,2) += -k*(std::pow(chiY*t + chiZ*L - 2*eps0,2)*(3*std::pow(chiY*t - chiZ*L,2) - 4*(chiY*t + chiZ*L)*eps0 - 4*std::pow(eps0,2)))/(384.*std::pow(chiZ,2)*std::pow(chiY,2)); 
+									Dtrial(2,2) += k*(std::pow(chiY*t + chiZ*L - 2*eps0,2)*(3*std::pow(chiY,2)*std::pow(t,2) + std::pow(chiZ*L - 2*eps0,2) + chiY*(-2*chiZ*t*L + 4*t*eps0)))/(192.*chiZ*std::pow(chiY,3)); 
 
 
 								} else {
 									// case 3b
-									 Dtrial(0,0) += k*t*L - pow(chiY*t + chiZ*L - 2*eps0,2)/(8.*chiZ*chiY); 
-									 Dtrial(1,0) += k*(pow(chiY*t + chiZ*L - 2*eps0,2)*(-(chiY*t) + 2*(chiZ*L + eps0)))/(48.*pow(chiZ,2)*chiY); 
-									 Dtrial(2,0) += k*(pow(chiY*t + chiZ*L - 2*eps0,2)*(2*chiY*t - chiZ*L + 2*eps0))/(48.*chiZ*pow(chiY,2)); 
-									 Dtrial(0,1) += k*(pow(chiY*t + chiZ*L - 2*eps0,2)*(-(chiY*t) + 2*(chiZ*L + eps0)))/(48.*pow(chiZ,2)*chiY); 
-									 Dtrial(1,1) += -k*(pow(chiY,4)*pow(t,4) + 3*pow(chiZ,4)*pow(L,4) - 8*pow(chiY,3)*pow(t,3)*eps0 - 8*pow(chiZ,3)*pow(L,3)*eps0 + 24*pow(chiY,2)*pow(t,2)*pow(eps0,2) + 16*pow(eps0,4) - 4*chiY*t*(3*pow(chiZ,3)*pow(L,3) + 8*pow(eps0,3)))/(192.*pow(chiZ,3)*chiY); 
-									 Dtrial(2,1) += k*(pow(chiY*t + chiZ*L - 2*eps0,2)*(3*pow(chiY*t - chiZ*L,2) - 4*(chiY*t + chiZ*L)*eps0 - 4*pow(eps0,2)))/(384.*pow(chiZ,2)*pow(chiY,2)); 
-									 Dtrial(0,2) += k*(pow(chiY*t + chiZ*L - 2*eps0,2)*(2*chiY*t - chiZ*L + 2*eps0))/(48.*chiZ*pow(chiY,2)); 
-									 Dtrial(1,2) += k*(pow(chiY*t + chiZ*L - 2*eps0,2)*(3*pow(chiY*t - chiZ*L,2) - 4*(chiY*t + chiZ*L)*eps0 - 4*pow(eps0,2)))/(384.*pow(chiZ,2)*pow(chiY,2)); 
-									 Dtrial(2,2) += -k*(3*pow(chiY,4)*pow(t,4) + pow(chiZ*L - 2*eps0,4) - 4*pow(chiY,3)*pow(t,3)*(3*chiZ*L + 2*eps0))/(192.*chiZ*pow(chiY,3)); 
+									 Dtrial(0,0) += k*t*L - std::pow(chiY*t + chiZ*L - 2*eps0,2)/(8.*chiZ*chiY); 
+									 Dtrial(1,0) += k*(std::pow(chiY*t + chiZ*L - 2*eps0,2)*(-(chiY*t) + 2*(chiZ*L + eps0)))/(48.*std::pow(chiZ,2)*chiY); 
+									 Dtrial(2,0) += k*(std::pow(chiY*t + chiZ*L - 2*eps0,2)*(2*chiY*t - chiZ*L + 2*eps0))/(48.*chiZ*std::pow(chiY,2)); 
+									 Dtrial(0,1) += k*(std::pow(chiY*t + chiZ*L - 2*eps0,2)*(-(chiY*t) + 2*(chiZ*L + eps0)))/(48.*std::pow(chiZ,2)*chiY); 
+									 Dtrial(1,1) += -k*(std::pow(chiY,4)*std::pow(t,4) + 3*std::pow(chiZ,4)*std::pow(L,4) - 8*std::pow(chiY,3)*std::pow(t,3)*eps0 - 8*std::pow(chiZ,3)*std::pow(L,3)*eps0 + 24*std::pow(chiY,2)*std::pow(t,2)*std::pow(eps0,2) + 16*std::pow(eps0,4) - 4*chiY*t*(3*std::pow(chiZ,3)*std::pow(L,3) + 8*std::pow(eps0,3)))/(192.*std::pow(chiZ,3)*chiY); 
+									 Dtrial(2,1) += k*(std::pow(chiY*t + chiZ*L - 2*eps0,2)*(3*std::pow(chiY*t - chiZ*L,2) - 4*(chiY*t + chiZ*L)*eps0 - 4*std::pow(eps0,2)))/(384.*std::pow(chiZ,2)*std::pow(chiY,2)); 
+									 Dtrial(0,2) += k*(std::pow(chiY*t + chiZ*L - 2*eps0,2)*(2*chiY*t - chiZ*L + 2*eps0))/(48.*chiZ*std::pow(chiY,2)); 
+									 Dtrial(1,2) += k*(std::pow(chiY*t + chiZ*L - 2*eps0,2)*(3*std::pow(chiY*t - chiZ*L,2) - 4*(chiY*t + chiZ*L)*eps0 - 4*std::pow(eps0,2)))/(384.*std::pow(chiZ,2)*std::pow(chiY,2)); 
+									 Dtrial(2,2) += -k*(3*std::pow(chiY,4)*std::pow(t,4) + std::pow(chiZ*L - 2*eps0,4) - 4*std::pow(chiY,3)*std::pow(t,3)*(3*chiZ*L + 2*eps0))/(192.*chiZ*std::pow(chiY,3)); 
 								}
 
 							} else {
 								if (chiY<0.0) {
 									// case 2d
-									 Dtrial(0,0) += -k*pow(chiY*t - chiZ*L + 2*eps0,2)/(8.*chiZ*chiY); 
-									 Dtrial(1,0) += k*(pow(chiY*t - chiZ*L + 2*eps0,2)*(chiY*t + 2*(chiZ*L + eps0)))/(48.*pow(chiZ,2)*chiY); 
-									 Dtrial(2,0) += -k*((2*chiY*t + chiZ*L - 2*eps0)*pow(chiY*t - chiZ*L + 2*eps0,2))/(48.*chiZ*pow(chiY,2)); 
-									 Dtrial(0,1) += k*(pow(chiY*t - chiZ*L + 2*eps0,2)*(chiY*t + 2*(chiZ*L + eps0)))/(48.*pow(chiZ,2)*chiY); 
-									 Dtrial(1,1) += -k*(pow(chiY*t - chiZ*L + 2*eps0,2)*(pow(chiY,2)*pow(t,2) + 3*pow(chiZ,2)*pow(L,2) + 4*chiZ*L*eps0 + 4*pow(eps0,2) + 2*chiY*t*(chiZ*L + 2*eps0)))/(192.*pow(chiZ,3)*chiY); 
-									 Dtrial(2,1) += k*(pow(chiY*t - chiZ*L + 2*eps0,2)*(3*pow(chiY*t + chiZ*L,2) + 4*(chiY*t - chiZ*L)*eps0 - 4*pow(eps0,2)))/(384.*pow(chiZ,2)*pow(chiY,2)); 
-									 Dtrial(0,2) += -k*((2*chiY*t + chiZ*L - 2*eps0)*pow(chiY*t - chiZ*L + 2*eps0,2))/(48.*chiZ*pow(chiY,2)); 
-									 Dtrial(1,2) += k*(pow(chiY*t - chiZ*L + 2*eps0,2)*(3*pow(chiY*t + chiZ*L,2) + 4*(chiY*t - chiZ*L)*eps0 - 4*pow(eps0,2)))/(384.*pow(chiZ,2)*pow(chiY,2)); 
-									 Dtrial(2,2) += -k*((3*pow(chiY,2)*pow(t,2) + 2*chiY*t*(chiZ*L - 2*eps0) + pow(chiZ*L - 2*eps0,2))*pow(chiY*t - chiZ*L + 2*eps0,2))/(192.*chiZ*pow(chiY,3)); 
+									 Dtrial(0,0) += -k*std::pow(chiY*t - chiZ*L + 2*eps0,2)/(8.*chiZ*chiY); 
+									 Dtrial(1,0) += k*(std::pow(chiY*t - chiZ*L + 2*eps0,2)*(chiY*t + 2*(chiZ*L + eps0)))/(48.*std::pow(chiZ,2)*chiY); 
+									 Dtrial(2,0) += -k*((2*chiY*t + chiZ*L - 2*eps0)*std::pow(chiY*t - chiZ*L + 2*eps0,2))/(48.*chiZ*std::pow(chiY,2)); 
+									 Dtrial(0,1) += k*(std::pow(chiY*t - chiZ*L + 2*eps0,2)*(chiY*t + 2*(chiZ*L + eps0)))/(48.*std::pow(chiZ,2)*chiY); 
+									 Dtrial(1,1) += -k*(std::pow(chiY*t - chiZ*L + 2*eps0,2)*(std::pow(chiY,2)*std::pow(t,2) + 3*std::pow(chiZ,2)*std::pow(L,2) + 4*chiZ*L*eps0 + 4*std::pow(eps0,2) + 2*chiY*t*(chiZ*L + 2*eps0)))/(192.*std::pow(chiZ,3)*chiY); 
+									 Dtrial(2,1) += k*(std::pow(chiY*t - chiZ*L + 2*eps0,2)*(3*std::pow(chiY*t + chiZ*L,2) + 4*(chiY*t - chiZ*L)*eps0 - 4*std::pow(eps0,2)))/(384.*std::pow(chiZ,2)*std::pow(chiY,2)); 
+									 Dtrial(0,2) += -k*((2*chiY*t + chiZ*L - 2*eps0)*std::pow(chiY*t - chiZ*L + 2*eps0,2))/(48.*chiZ*std::pow(chiY,2)); 
+									 Dtrial(1,2) += k*(std::pow(chiY*t - chiZ*L + 2*eps0,2)*(3*std::pow(chiY*t + chiZ*L,2) + 4*(chiY*t - chiZ*L)*eps0 - 4*std::pow(eps0,2)))/(384.*std::pow(chiZ,2)*std::pow(chiY,2)); 
+									 Dtrial(2,2) += -k*((3*std::pow(chiY,2)*std::pow(t,2) + 2*chiY*t*(chiZ*L - 2*eps0) + std::pow(chiZ*L - 2*eps0,2))*std::pow(chiY*t - chiZ*L + 2*eps0,2))/(192.*chiZ*std::pow(chiY,3)); 
 								} else {
 									// case 3d
-									 Dtrial(0,0) += k*t*L + k*pow(chiY*t - chiZ*L + 2*eps0,2)/(8.*chiZ*chiY); 
-									 Dtrial(1,0) += -k*(pow(chiY*t - chiZ*L + 2*eps0,2)*(chiY*t + 2*(chiZ*L + eps0)))/(48.*pow(chiZ,2)*chiY); 
-									 Dtrial(2,0) += k*((2*chiY*t + chiZ*L - 2*eps0)*pow(chiY*t - chiZ*L + 2*eps0,2))/(48.*chiZ*pow(chiY,2)); 
-									 Dtrial(0,1) += -k*(pow(chiY*t - chiZ*L + 2*eps0,2)*(chiY*t + 2*(chiZ*L + eps0)))/(48.*pow(chiZ,2)*chiY); 
-									 Dtrial(1,1) += k*(pow(chiY,4)*pow(t,4) + 3*pow(chiZ,4)*pow(L,4) + 8*pow(chiY,3)*pow(t,3)*eps0 - 8*pow(chiZ,3)*pow(L,3)*eps0 + 24*pow(chiY,2)*pow(t,2)*pow(eps0,2) + 16*pow(eps0,4) + 4*chiY*t*(3*pow(chiZ,3)*pow(L,3) + 8*pow(eps0,3)))/(192.*pow(chiZ,3)*chiY); 
-									 Dtrial(2,1) += -k*(pow(chiY*t - chiZ*L + 2*eps0,2)*(3*pow(chiY*t + chiZ*L,2) + 4*(chiY*t - chiZ*L)*eps0 - 4*pow(eps0,2)))/(384.*pow(chiZ,2)*pow(chiY,2)); 
-									 Dtrial(0,2) += k*((2*chiY*t + chiZ*L - 2*eps0)*pow(chiY*t - chiZ*L + 2*eps0,2))/(48.*chiZ*pow(chiY,2)); 
-									 Dtrial(1,2) += -k*(pow(chiY*t - chiZ*L + 2*eps0,2)*(3*pow(chiY*t + chiZ*L,2) + 4*(chiY*t - chiZ*L)*eps0 - 4*pow(eps0,2)))/(384.*pow(chiZ,2)*pow(chiY,2)); 
-									 Dtrial(2,2) += k*(3*pow(chiY,4)*pow(t,4) + pow(chiZ*L - 2*eps0,4) + 4*pow(chiY,3)*pow(t,3)*(3*chiZ*L + 2*eps0))/(192.*chiZ*pow(chiY,3)); 
+									 Dtrial(0,0) += k*t*L + k*std::pow(chiY*t - chiZ*L + 2*eps0,2)/(8.*chiZ*chiY); 
+									 Dtrial(1,0) += -k*(std::pow(chiY*t - chiZ*L + 2*eps0,2)*(chiY*t + 2*(chiZ*L + eps0)))/(48.*std::pow(chiZ,2)*chiY); 
+									 Dtrial(2,0) += k*((2*chiY*t + chiZ*L - 2*eps0)*std::pow(chiY*t - chiZ*L + 2*eps0,2))/(48.*chiZ*std::pow(chiY,2)); 
+									 Dtrial(0,1) += -k*(std::pow(chiY*t - chiZ*L + 2*eps0,2)*(chiY*t + 2*(chiZ*L + eps0)))/(48.*std::pow(chiZ,2)*chiY); 
+									 Dtrial(1,1) += k*(std::pow(chiY,4)*std::pow(t,4) + 3*std::pow(chiZ,4)*std::pow(L,4) + 8*std::pow(chiY,3)*std::pow(t,3)*eps0 - 8*std::pow(chiZ,3)*std::pow(L,3)*eps0 + 24*std::pow(chiY,2)*std::pow(t,2)*std::pow(eps0,2) + 16*std::pow(eps0,4) + 4*chiY*t*(3*std::pow(chiZ,3)*std::pow(L,3) + 8*std::pow(eps0,3)))/(192.*std::pow(chiZ,3)*chiY); 
+									 Dtrial(2,1) += -k*(std::pow(chiY*t - chiZ*L + 2*eps0,2)*(3*std::pow(chiY*t + chiZ*L,2) + 4*(chiY*t - chiZ*L)*eps0 - 4*std::pow(eps0,2)))/(384.*std::pow(chiZ,2)*std::pow(chiY,2)); 
+									 Dtrial(0,2) += k*((2*chiY*t + chiZ*L - 2*eps0)*std::pow(chiY*t - chiZ*L + 2*eps0,2))/(48.*chiZ*std::pow(chiY,2)); 
+									 Dtrial(1,2) += -k*(std::pow(chiY*t - chiZ*L + 2*eps0,2)*(3*std::pow(chiY*t + chiZ*L,2) + 4*(chiY*t - chiZ*L)*eps0 - 4*std::pow(eps0,2)))/(384.*std::pow(chiZ,2)*std::pow(chiY,2)); 
+									 Dtrial(2,2) += k*(3*std::pow(chiY,4)*std::pow(t,4) + std::pow(chiZ*L - 2*eps0,4) + 4*std::pow(chiY,3)*std::pow(t,3)*(3*chiZ*L + 2*eps0))/(192.*chiZ*std::pow(chiY,3)); 
 								}
 							}
 						}
@@ -822,26 +829,26 @@ NoTensionSection3d::setTrialSectionDeformation (const Vector &def)
 					if (chiZ<0.0) {
 						// case 4a,c: both out from different sides, chiZ>=0
 						 Dtrial(0,0) += k*t*(L/2. + eps0/chiZ); 
-						 Dtrial(1,0) += -k*(t*(pow(chiY,2)*pow(t,2) - 3*pow(chiZ,2)*pow(L,2) + 12*pow(eps0,2)))/(24.*pow(chiZ,2)); 
-						 Dtrial(2,0) += k*(chiY*pow(t,3))/(12.*chiZ); 
-						 Dtrial(0,1) += -k*(t*(pow(chiY,2)*pow(t,2) - 3*pow(chiZ,2)*pow(L,2) + 12*pow(eps0,2)))/(24.*pow(chiZ,2)); 
-						 Dtrial(1,1) += k*(t*(pow(chiZ,3)*pow(L,3) + 2*pow(chiY,2)*pow(t,2)*eps0 + 8*pow(eps0,3)))/(24.*pow(chiZ,3)); 
-						 Dtrial(2,1) += -k*(chiY*pow(t,3)*eps0)/(12.*pow(chiZ,2)); 
-						 Dtrial(0,2) += k*(chiY*pow(t,3))/(12.*chiZ); 
-						 Dtrial(1,2) += -k*(chiY*pow(t,3)*eps0)/(12.*pow(chiZ,2)); 
-						 Dtrial(2,2) += k*(pow(t,3)*(chiZ*L + 2*eps0))/(24.*chiZ); 
+						 Dtrial(1,0) += -k*(t*(std::pow(chiY,2)*std::pow(t,2) - 3*std::pow(chiZ,2)*std::pow(L,2) + 12*std::pow(eps0,2)))/(24.*std::pow(chiZ,2)); 
+						 Dtrial(2,0) += k*(chiY*std::pow(t,3))/(12.*chiZ); 
+						 Dtrial(0,1) += -k*(t*(std::pow(chiY,2)*std::pow(t,2) - 3*std::pow(chiZ,2)*std::pow(L,2) + 12*std::pow(eps0,2)))/(24.*std::pow(chiZ,2)); 
+						 Dtrial(1,1) += k*(t*(std::pow(chiZ,3)*std::pow(L,3) + 2*std::pow(chiY,2)*std::pow(t,2)*eps0 + 8*std::pow(eps0,3)))/(24.*std::pow(chiZ,3)); 
+						 Dtrial(2,1) += -k*(chiY*std::pow(t,3)*eps0)/(12.*std::pow(chiZ,2)); 
+						 Dtrial(0,2) += k*(chiY*std::pow(t,3))/(12.*chiZ); 
+						 Dtrial(1,2) += -k*(chiY*std::pow(t,3)*eps0)/(12.*std::pow(chiZ,2)); 
+						 Dtrial(2,2) += k*(std::pow(t,3)*(chiZ*L + 2*eps0))/(24.*chiZ); 
 
 					} else {
 						// case 4b,d: both out from different sides, chiZ<0
 						 Dtrial(0,0) += k*(t*(L - (2*eps0)/chiZ))/2.; 
-						 Dtrial(1,0) += k*(t*(pow(chiY,2)*pow(t,2) - 3*pow(chiZ,2)*pow(L,2) + 12*pow(eps0,2)))/(24.*pow(chiZ,2)); 
-						 Dtrial(2,0) += -k*(chiY*pow(t,3))/(12.*chiZ); 
-						 Dtrial(0,1) += k*(t*(pow(chiY,2)*pow(t,2) - 3*pow(chiZ,2)*pow(L,2) + 12*pow(eps0,2)))/(24.*pow(chiZ,2)); 
-						 Dtrial(1,1) += k*(t*(pow(chiZ,3)*pow(L,3) - 2*pow(chiY,2)*pow(t,2)*eps0 - 8*pow(eps0,3)))/(24.*pow(chiZ,3)); 
-						 Dtrial(2,1) += k*(chiY*pow(t,3)*eps0)/(12.*pow(chiZ,2)); 
-						 Dtrial(0,2) += -k*(chiY*pow(t,3))/(12.*chiZ); 
-						 Dtrial(1,2) += k*(chiY*pow(t,3)*eps0)/(12.*pow(chiZ,2)); 
-						 Dtrial(2,2) += k*(pow(t,3)*(chiZ*L - 2*eps0))/(24.*chiZ); 
+						 Dtrial(1,0) += k*(t*(std::pow(chiY,2)*std::pow(t,2) - 3*std::pow(chiZ,2)*std::pow(L,2) + 12*std::pow(eps0,2)))/(24.*std::pow(chiZ,2)); 
+						 Dtrial(2,0) += -k*(chiY*std::pow(t,3))/(12.*chiZ); 
+						 Dtrial(0,1) += k*(t*(std::pow(chiY,2)*std::pow(t,2) - 3*std::pow(chiZ,2)*std::pow(L,2) + 12*std::pow(eps0,2)))/(24.*std::pow(chiZ,2)); 
+						 Dtrial(1,1) += k*(t*(std::pow(chiZ,3)*std::pow(L,3) - 2*std::pow(chiY,2)*std::pow(t,2)*eps0 - 8*std::pow(eps0,3)))/(24.*std::pow(chiZ,3)); 
+						 Dtrial(2,1) += k*(chiY*std::pow(t,3)*eps0)/(12.*std::pow(chiZ,2)); 
+						 Dtrial(0,2) += -k*(chiY*std::pow(t,3))/(12.*chiZ); 
+						 Dtrial(1,2) += k*(chiY*std::pow(t,3)*eps0)/(12.*std::pow(chiZ,2)); 
+						 Dtrial(2,2) += k*(std::pow(t,3)*(chiZ*L - 2*eps0))/(24.*chiZ); 
 
 					}
 				}
@@ -862,7 +869,7 @@ NoTensionSection3d::setTrialSectionDeformation (const Vector &def)
 		// fake stiffness instead of zero
 		
 		double factor = 0.000001; 
-		if  (sqrt(pow(s(0),2) + pow(s(1),2) + pow(s(1),2))<DBL_EPSILON) {
+		if  (std::sqrt(std::pow(s(0),2) + std::pow(s(1),2) + std::pow(s(1),2))<DBL_EPSILON) {
 
 			Dtrial(0,0) += factor *k* L*t;
 			Dtrial(1,1) += factor *k* t*L*L*L /12.0;
@@ -886,9 +893,9 @@ NoTensionSection3d::getSectionDeformation (void)
 const Vector &
 NoTensionSection3d::getStressResultant (void)
 {	        
-	if (abs(s(0))>-DBL_EPSILON && 
-		abs(s(1))>-DBL_EPSILON &&
-		abs(s(2))>-DBL_EPSILON )		
+	if (std::abs(s(0))>-DBL_EPSILON && 
+		std::abs(s(1))>-DBL_EPSILON &&
+		std::abs(s(2))>-DBL_EPSILON )		
 	
 		return s;
 	else
@@ -900,17 +907,17 @@ NoTensionSection3d::getStressResultant (void)
 const Matrix &
 NoTensionSection3d::getSectionTangent(void)
 {
-	if (abs(Dtrial(0,0))>-DBL_EPSILON && 
-		abs(Dtrial(0,1))>-DBL_EPSILON &&
-		abs(Dtrial(0,2))>-DBL_EPSILON &&
+	if (std::abs(Dtrial(0,0))>-DBL_EPSILON && 
+		std::abs(Dtrial(0,1))>-DBL_EPSILON &&
+		std::abs(Dtrial(0,2))>-DBL_EPSILON &&
 				
-		abs(Dtrial(1,0))>-DBL_EPSILON &&
-		abs(Dtrial(1,1))>-DBL_EPSILON &&
-		abs(Dtrial(1,2))>-DBL_EPSILON &&
+		std::abs(Dtrial(1,0))>-DBL_EPSILON &&
+		std::abs(Dtrial(1,1))>-DBL_EPSILON &&
+		std::abs(Dtrial(1,2))>-DBL_EPSILON &&
 		
-		abs(Dtrial(2,0))>-DBL_EPSILON &&
-		abs(Dtrial(2,1))>-DBL_EPSILON &&
-		abs(Dtrial(2,2))>-DBL_EPSILON )		
+		std::abs(Dtrial(2,0))>-DBL_EPSILON &&
+		std::abs(Dtrial(2,1))>-DBL_EPSILON &&
+		std::abs(Dtrial(2,2))>-DBL_EPSILON )		
 	
      	return Dtrial;
 	else

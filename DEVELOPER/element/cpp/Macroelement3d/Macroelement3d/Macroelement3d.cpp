@@ -31,33 +31,39 @@ submitted to Earthquake Engineering and Structural Dynamics (2019)
 Last edit: 27 Feb 2019
 */
 
-
+/* -------------------------------------------------------------------------- */
 #include "Macroelement3d.h"
-#include "NoTensionSection3d.h"
 #include "DamageShearInterface.h"
 #include "GambarottaLagomarsinoModel.h"
+#include "NoTensionSection3d.h"
 #include "WrappedMaterial.h"
-
-#include <Node.h>
-#include <SectionForceDeformation.h>
-#include <Matrix.h>
-#include <Vector.h>
-#include <ID.h>
-#include <Renderer.h>
-#include <Domain.h>
-#include <string.h>
-#include <Information.h>
+/* -------------------------------------------------------------------------- */
 #include <Channel.h>
-#include <FEM_ObjectBroker.h>
+#include <CompositeResponse.h>
+#include <Domain.h>
 #include <ElementResponse.h>
 #include <ElementalLoad.h>
+#include <FEM_ObjectBroker.h>
+#include <ID.h>
+#include <Information.h>
+#include <Matrix.h>
+#include <Node.h>
 #include <Parameter.h>
-#include <math.h>
-#include <algorithm>
-#include <elementAPI.h>
-#include <string>
+#include <Renderer.h>
+#include <SectionForceDeformation.h>
 #include <TransientIntegrator.h>
-#include <CompositeResponse.h>
+#include <Vector.h>
+#include <elementAPI.h>
+/* -------------------------------------------------------------------------- */
+#include <algorithm>
+#include <limits>
+#include <string>
+#include <cmath>
+/* -------------------------------------------------------------------------- */
+
+#ifndef DBL_EPSILON
+#define DBL_EPSILON (std::numeric_limits<double>::epsilon())
+#endif
 
 
 Matrix Macroelement3d::K(18,18);
@@ -188,7 +194,7 @@ OPS_Macroelement3d()
 		double Gc = dData2[8];
 		double beta = dData2[9];
 
-		Ltfc = abs(fc*b*t);
+		Ltfc = std::abs(fc*b*t);
 		
 		// No tension 3d section model
 		// true for stronger, true for elastic, true for crushing
@@ -234,7 +240,7 @@ OPS_Macroelement3d()
 		double Gc = dData2[8];
 		double beta = dData2[9];
 
-		Ltfc = abs(fc*b*t);
+		Ltfc = std::abs(fc*b*t);
 
 		// true for stronger, true for elastic, true for crushing
 		double thinner = 100.;
@@ -313,7 +319,7 @@ OPS_Macroelement3d()
 		double Gc = dData2[8];
 		double beta = dData2[9];
 
-		Ltfc = abs(fc*b*t);
+		Ltfc = std::abs(fc*b*t);
 
 		// Gambarotta Lagomarsino model for shear
 		// true-false for elastic solution or not. The 5/6 factor is dropped to make it equivalent to Tremuri
@@ -429,7 +435,7 @@ OPS_Macroelement3d()
 		double dropDrift = dData2[9];
 		double muR = dData2[10];
 
-		Ltfc = abs(fc*b*t);
+		Ltfc = std::abs(fc*b*t);
 
 		// true for stronger, true for elastic, true for crushing
 		theSectionI = new NoTensionSection3d(0, E_, G, t, b, -1.0, fc, 11, false, false, true);   	
@@ -472,7 +478,7 @@ OPS_Macroelement3d()
 		double dropDrift = dData2[9];
 		double muR = dData2[10];
 
-		Ltfc = abs(fc*b*t);
+		Ltfc = std::abs(fc*b*t);
 
 		// true for stronger, true for elastic, true for crushing
 		theSectionI = new NoTensionSection3d(0, E_, G, t, b, -1.0, fc, 5, true, false, false);  	
@@ -516,7 +522,7 @@ OPS_Macroelement3d()
 		double dropDrift = dData2[9];
 		double muR = dData2[10];
 
-		Ltfc = abs(fc*0.5*b*t);
+		Ltfc = std::abs(fc*0.5*b*t);
 
 		// true for stronger, true for elastic, true for crushing
 		theSectionI = new NoTensionSection3d(0, E_, 0.5*G, t,     b, -1.0, fc, 5, false, false, true);   
@@ -714,7 +720,7 @@ OPS_Macroelement3d()
 					  // maybe check that they sum to 1
 					  double sum = 0.;
 					  sum = intLength(0) + intLength(1) + intLength(2);
-					  if (abs(sum-1.0) < 0.01)
+					  if (std::abs(sum-1.0) < 0.01)
 						  opserr << "WARNING: Macroelement " << iData[0] <<", specified integration weights do not sum exactly to 1.\n";
 				  }
 			  }
@@ -1427,14 +1433,14 @@ Macroelement3d::update(void)
    
 		
 	// check for in-plane drift failure
-	driftS = abs(-uBasic(10)) /2.0 *oneOverL;
-#ifdef _WINDOWS_
-   driftF = max(abs(-(uBasic(1)*(2 * L) + uBasic(5)*L) / (2.0*L)),
-                abs(-(uBasic(8)*(2 * L) + uBasic(5)*L) / (2.0*L)));
-#else
-	driftF = std::max(abs(-(uBasic(1)*(2 * L) + uBasic(5)*L) / (2.0*L)),
-		abs(-(uBasic(8)*(2 * L) + uBasic(5)*L) / (2.0*L)));
-#endif // _WINDOWS_
+	driftS = std::abs(-uBasic(10)) /2.0 *oneOverL;
+// #ifdef _WINDOWS_
+// 	driftF = std::max(std::abs(-(uBasic(1)*(2 * L) + uBasic(5)*L) / (2.0*L)),
+//                 std::abs(-(uBasic(8)*(2 * L) + uBasic(5)*L) / (2.0*L)));
+// #else
+	driftF = std::max(std::abs(-(uBasic(1)*(2 * L) + uBasic(5)*L) / (2.0*L)),
+		std::abs(-(uBasic(8)*(2 * L) + uBasic(5)*L) / (2.0*L)));
+//#endif // _WINDOWS_
 
 
 	double axialLoadRatio;
@@ -1444,18 +1450,18 @@ Macroelement3d::update(void)
 	    axialLoadRatio = 0.0;
 
 	double shearSpanRatio;
-	if (abs(M1 - M3) < DBL_EPSILON) {
+	if (std::abs(M1 - M3) < DBL_EPSILON) {
 		shearSpanRatio = 10.;
 	}
 	else {
 
-#ifdef _WINDOWS_
-		shearSpanRatio = max(M1 / (M1 - M3),
-			                 M3 / (M3 - M1));
-#else
+// #ifdef _WINDOWS_
+// 		shearSpanRatio = max(M1 / (M1 - M3),
+// 			                 M3 / (M3 - M1));
+// #else
 		shearSpanRatio = std::max(M1 / (M1 - M3),
 			                      M3 / (M3 - M1));
-#endif // _WINDOWS_
+//#endif // _WINDOWS_
 
 		if (shearSpanRatio > 10)
 			shearSpanRatio = 10.;
@@ -1494,13 +1500,13 @@ Macroelement3d::driftModel(double currentDriftF, double currentDriftS, double ax
 
 		double driftF_capacity = limitDriftF(index-1) + (limitDriftF(index)-limitDriftF(index-1)) / (limitDriftF_ALR(index)-limitDriftF_ALR(index-1)) 
 		                     * (axialLoadRatio - limitDriftF_ALR(index-1));
-		driftF_capacity *= pow(H0overL, betaShearSpanF);
+		driftF_capacity *= std::pow(H0overL, betaShearSpanF);
 	    
 		//check for loss of lateral force capacity
-		if (abs(driftF)>driftF_capacity)    failedF = true;
+		if (std::abs(driftF)>driftF_capacity)    failedF = true;
 
 		if (alphaAC_HC>0) {  // check for axial collapse
-			if (abs(driftF)>driftF_capacity*alphaAC_HC)    collapsedF = true;
+			if (std::abs(driftF)>driftF_capacity*alphaAC_HC)    collapsedF = true;
 		}
 
 
@@ -1521,13 +1527,13 @@ Macroelement3d::driftModel(double currentDriftF, double currentDriftS, double ax
 
 		double driftS_capacity = limitDriftS(index-1) + (limitDriftS(index)-limitDriftS(index-1)) / (limitDriftS_ALR(index)-limitDriftS_ALR(index-1)) 
 		                     * (axialLoadRatio - limitDriftS_ALR(index-1));
-		driftS_capacity *= pow(H0overL, betaShearSpanS);
+		driftS_capacity *= std::pow(H0overL, betaShearSpanS);
 	    
 		//check for loss of lateral force capacity
-		if (abs(driftS)>driftS_capacity)    failedS = true;
+		if (std::abs(driftS)>driftS_capacity)    failedS = true;
 
 		if (alphaAC_HC>0) {  // check for axial collapse
-			if (abs(driftS)>driftS_capacity*alphaAC_HC)    collapsedS = true;
+			if (std::abs(driftS)>driftS_capacity*alphaAC_HC)    collapsedS = true;
 		}
 	}
 
@@ -1633,14 +1639,14 @@ Macroelement3d::getBasicDisplacement(Vector dispI, Vector dispJ, Vector dispE) {
 	if (PDelta) {
 		// non-linear total compatibility relations: OpenSees does not incluide this
 		// first order approximationd of rotations, second order approximations of axial strain
-		updatedBasic(0)  =  uE(0) - uI(0)  + 0.5*oneOverL*(pow(dV1,2) + pow(dW1,2));
+		updatedBasic(0)  =  uE(0) - uI(0)  + 0.5*oneOverL*(std::pow(dV1,2) + std::pow(dW1,2));
 		updatedBasic(1)  = -uI(5)  + oneOverL*dV1 ;
 		updatedBasic(2)  = -uI(4)  - oneOverL*dW1;
 		updatedBasic(3)  =  uJ(3) - uI(3);
 		updatedBasic(4)  = -uE(0) + uE(3); // + 0.5*oneOverL*(-deltaV2*(uI(1)-uJ(1)) -deltaW2*(uI(2)-uJ(2)));  term to be included if exact formulation is applied
 		updatedBasic(5)  =  oneOverL*(-dV1 + dV3);
 		updatedBasic(6)  =  oneOverL*( dW1 - dW3);
-		updatedBasic(7)  =  uJ(0) - uE(3) + 0.5*oneOverL*(pow(dV3,2) + pow(dW3,2));
+		updatedBasic(7)  =  uJ(0) - uE(3) + 0.5*oneOverL*(std::pow(dV3,2) + std::pow(dW3,2));
 		updatedBasic(8)  =  uJ(5) - oneOverL*dV3;
 		updatedBasic(9)  =  uJ(4) + oneOverL*dW3;
 		updatedBasic(10) =  dV2;  // the terms for the exact formulation are not included as they need an update of deltaU also
@@ -2245,9 +2251,9 @@ Macroelement3d::getMass()
 		 K(2, 3) = K(3, 2) =  nodeIOffset[1] * K(2, 2);
 		 K(2, 4) = K(4, 2) = -nodeIOffset[0] * K(2, 2);
 
-		 K(3, 3) = (pow(nodeIOffset[1], 2) + pow(nodeIOffset[2], 2))* K(0, 0);
-		 K(4, 4) = (pow(nodeIOffset[0], 2) + pow(nodeIOffset[2], 2))* K(1, 1);
-		 K(5, 5) = (pow(nodeIOffset[0], 2) + pow(nodeIOffset[1], 2))* K(2, 2);
+		 K(3, 3) = (std::pow(nodeIOffset[1], 2) + std::pow(nodeIOffset[2], 2))* K(0, 0);
+		 K(4, 4) = (std::pow(nodeIOffset[0], 2) + std::pow(nodeIOffset[2], 2))* K(1, 1);
+		 K(5, 5) = (std::pow(nodeIOffset[0], 2) + std::pow(nodeIOffset[1], 2))* K(2, 2);
 
 		 K(3, 4) = K(4, 3) = -nodeIOffset[0] * nodeIOffset[1] * K(2, 2);
 		 K(3, 5) = K(5, 3) = -nodeIOffset[0] * nodeIOffset[2] * K(1, 1);
@@ -2272,9 +2278,9 @@ Macroelement3d::getMass()
 		 K(8, 9)  = K(9,  8) =  nodeJOffset[1] * K(8, 8);
 		 K(8, 10) = K(10, 8) = -nodeJOffset[0] * K(8, 8);
 
-		 K(9,  9)  = (pow(nodeJOffset[1], 2) + pow(nodeJOffset[2], 2))* K(6, 6);
-		 K(10, 10) = (pow(nodeJOffset[0], 2) + pow(nodeJOffset[2], 2))* K(7, 7);
-		 K(11, 11) = (pow(nodeJOffset[0], 2) + pow(nodeJOffset[1], 2))* K(8, 8);
+		 K(9,  9)  = (std::pow(nodeJOffset[1], 2) + std::pow(nodeJOffset[2], 2))* K(6, 6);
+		 K(10, 10) = (std::pow(nodeJOffset[0], 2) + std::pow(nodeJOffset[2], 2))* K(7, 7);
+		 K(11, 11) = (std::pow(nodeJOffset[0], 2) + std::pow(nodeJOffset[1], 2))* K(8, 8);
 
 		 K(9,  10) = K(6,  9)  = -nodeJOffset[0] * nodeJOffset[1] * K(8, 8);
 		 K(9,  11) = K(11, 9)  = -nodeJOffset[0] * nodeJOffset[2] * K(7, 7);
