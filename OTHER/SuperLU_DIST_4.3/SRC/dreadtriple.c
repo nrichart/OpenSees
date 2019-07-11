@@ -150,7 +150,7 @@ dreadtriple(FILE *fp, int_t *m, int_t *n, int_t *nonz,
 }
 
 
-void dreadrhs(int m, double *b)
+__attribute__((weak)) void dreadrhs(int m, double *b)
 {
     FILE *fp, *fopen();
     int i;
