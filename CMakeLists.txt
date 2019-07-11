@@ -1,0 +1,104 @@
+project(OpenSees LANGUAGES C CXX Fortran)
+cmake_minimum_required(VERSION 3.0.0)
+
+set(BUILD_SHARED_LIBS TRUE)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
+
+set(OPS_GRAPHICS "NONE" CACHE STRING "OpenSees graphics flags")
+set_property(CACHE OPS_GRAPHICS PROPERTY STRINGS
+  NONE
+  UsingOpenGL
+  )
+
+option(OPS_RELIABILITY "OpenSees reliability flags" OFF)
+option(OPS_DEVELOPER "Compiles OpenSees DEVELOPER extensions" OFF)
+
+set(OPS_PROGRAMMING_MODE "PARALLEL" CACHE STRING "Programming mode")
+set_property(CACHE OPS_PROGRAMMING_MODE PROPERTY STRINGS
+  SEQUENTIAL
+  THREADS
+  PARALLEL
+  PARALLEL_INTERPERTERS
+  )
+
+set(OPS_INTERPRETER_LANGUAGE "PYTHON" CACHE STRING "Interpreter language")
+set_property(CACHE OPS_INTERPRETER_LANGUAGE PROPERTY STRINGS
+  PYTHON
+  TCL
+  )
+
+list(APPEND OPENSEES_LIBRARIES
+  OTHER/BLAS
+  OTHER/AMD
+  # OTHER/CBLAS
+  OTHER/LAPACK
+  OTHER/SuperLU_5.1.1
+  OTHER/ARPACK
+  OTHER/ITPACK
+  OTHER/UMFPACK
+  OTHER/METIS
+  OTHER/CSPARSE
+  OTHER/Mumps
+  SRC
+  )
+
+if(OPS_PROGRAMMING_MODE STREQUAL "PARALLEL")
+   list(APPEND OPENSEES_LIBRARIES OTHER/SuperLU_DIST_4.3)
+endif()
+
+if(OPS_GRAPHICS STREQUAL "NONE")
+  set(OPS_FLAGS_GRAPHICS -D_NOGRAPHICS CACHE STRING "Graphics flags")
+endif()
+
+if(OPS_RELIABILITY)
+  set(OPS_FLAGS_RELIABILITY -D_RELIABILITY CACHE STRING "Reliability flags")
+else()
+  set(OPS_FLAGS_RELIABILITY "" CACHE STRING "Reliability flags")
+endif()
+
+if(NOT DEFINED _ops_flags_os)
+  set(_ops_flags_os)
+  if(UNIX)
+    list(APPEND _ops_flags_os -D_UNIX)
+  endif()
+  if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    list(APPEND _ops_flags_os -D_LINUX)
+  endif()
+  if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    list(APPEND _ops_flags_os -D_MACOSX)
+  endif()
+  if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    list(APPEND _ops_flags_os -D_WIN32)
+  endif()
+  string(REPLACE ";" " " _ops_flags_os_space "${_ops_flags_os}")
+endif()
+
+set(OPS_FLAGS_OS "${_ops_flags_os_space}" CACHE STRING "OS specific flags")
+
+if(OPS_PROGRAMMING_MODE STREQUAL "PARALLEL")
+  set(OPS_PROGRAMMING_MODE_FLAG -D_PARALLEL_PROCESSING)
+elseif(OPS_PROGRAMMING_MODE STREQUAL "PARALLEL_INTERPERTERS")
+  set(OPS_PROGRAMMING_MODE_FLAG -D_PARALLEL_INTERPRETERS)
+endif()
+
+set(OPS_FLAGS_EXTRA "-D_TCL85 -Wall -ffloat-store -Wno-write-strings" CACHE STRING "Extra compilation flags")
+set(OPS_FLAGS "${OPS_FLAGS_OS} ${OPS_PROGRAMMING_MODE_FLAG} ${OPS_FLAGS_RELIABILITY} ${OPS_FLAGS_EXTRA} ${OPS_FLAGS_GRAPHICS}"
+  CACHE STRING "Extra compilation flags" FORCE)
+
+find_package(TCL 8.5)
+set(OPS_EXTERNAL_INCLUDE_DIRS ${TCL_INCLUDE_PATH})
+set(OPS_EXTERNAL_LIBRARIES ${TCL_LIBRARY})
+
+if("${OPS_PROGRAMMING_MODE}" MATCHES ".*PARALLEL.*")
+  find_package(MPI REQUIRED)
+  list(APPEND OPS_EXTERNAL_INCLUDE_DIRS ${MPI_C_INCLUDE_DIRS})
+  list(APPEND OPS_EXTERNAL_LIBRARIES ${MPI_C_LIBRARIES} ${MPI_CXX_LIBRARIES}) 
+endif()
+
+foreach(_dir ${OPENSEES_LIBRARIES})
+  add_subdirectory(${_dir})
+endforeach()
+
+if(OPS_DEVELOPER)
+  add_subdirectory(DEVELOPER)
+endif()

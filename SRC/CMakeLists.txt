@@ -1,0 +1,1503 @@
+set(TCL_COMMAND_LIBS
+  api/elementAPI_TCL.cpp
+  coordTransformation/TclGeomTransfCommand.cpp
+  damage/TclModelBuilderDamageModelCommand.cpp
+  database/TclDatabaseCommands.cpp
+  domain/component/TclParameterCommands.cpp
+  domain/component/TclUpdateMaterialCommand.cpp
+  domain/groundMotion/TclGroundMotionCommand.cpp
+  domain/pattern/TclPatternCommand.cpp
+  domain/pattern/TclSeriesCommand.cpp
+  domain/pattern/TclSeriesIntegratorCommand.cpp
+  domain/region/TclRegionCommands.cpp
+  element/PFEMElement/TclModelBuilder_addPFEMElement.cpp
+  element/TclElementCommands.cpp
+  element/UP-ucsd/TclFourNodeQuadUPCommand.cpp
+  element/adapter/TclActuatorCommand.cpp
+  element/adapter/TclActuatorCorotCommand.cpp
+  element/adapter/TclAdapterCommand.cpp
+  element/beamWithHinges/TclBeamWithHingesBuilder.cpp
+  element/brick/TclBrickCommand.cpp
+  element/brick/TclTwenty_Node_BrickCommand.cpp
+  element/dispBeamColumnInt/TclDispBeamColumnIntCommand.cpp
+  element/elasticBeamColumn/TclElasticBeamCommand.cpp
+  element/elastomericBearing/TclElastomericBearingBoucWenCommand.cpp
+  element/elastomericBearing/TclElastomericBearingPlasticityCommand.cpp
+  element/elastomericBearing/TclElastomericBearingUFRPCommand.cpp
+  element/feap/TclFeapElementCommand.cpp
+  element/forceBeamColumn/TclForceBeamColumnCommand.cpp
+  element/fourNodeQuad/TclFourNodeQuadCommand.cpp
+  element/frictionBearing/TclFlatSliderCommand.cpp
+  element/frictionBearing/TclRJWatsonEQSCommand.cpp
+  element/frictionBearing/TclSingleFPCommand.cpp
+  element/frictionBearing/frictionModel/TclModelBuilderFrictionModelCommand.cpp
+  element/generic/TclGenericClientCommand.cpp
+  element/generic/TclGenericCopyCommand.cpp
+  element/joint/TclBeamColumnJointCommand.cpp
+  element/joint/TclJoint2dCommand.cpp
+  element/joint/TclJoint3dCommand.cpp
+  element/twoNodeLink/TclTwoNodeLinkCommand.cpp
+  element/updatedLagrangianBeamColumn/TclCyclicModelCommands.cpp
+  element/updatedLagrangianBeamColumn/TclElement2dGNL.cpp
+  element/updatedLagrangianBeamColumn/TclElement2dYS.cpp
+  element/zeroLength/TclZeroLength.cpp
+  material/nD/TclModelBuilderNDMaterialCommand.cpp
+  material/nD/feap/TclFeapMaterialCommand.cpp
+  material/nD/soil/TclUpdateMaterialStageCommand.cpp
+  material/section/TclModelBuilderSectionCommand.cpp
+  material/section/yieldSurface/TclModelBuilderYS_SectionCommand.cpp
+  material/uniaxial/PY/TclPyTzQzMaterialCommand.cpp
+  material/uniaxial/TclModelBuilderUniaxialMaterialCommand.cpp
+  material/uniaxial/backbone/TclModelBuilderBackboneCommand.cpp
+  material/uniaxial/drain/TclDrainMaterialCommand.cpp
+  material/uniaxial/fedeas/TclFedeasMaterialCommand.cpp
+  material/uniaxial/limitState/TclLimitState.cpp
+  material/uniaxial/snap/TclSnapMaterialCommand.cpp
+  material/yieldSurface/evolution/TclModelBuilderYS_EvolutionCommand.cpp
+  material/yieldSurface/plasticHardeningMaterial/TclModelBuilderYSPlasticMaterialCommand.cpp
+  material/yieldSurface/yieldSurfaceBC/TclModelBuilderYieldSurfaceBCCommand.cpp
+  modelbuilder/tcl/TclModelBuilder.cpp
+  modelbuilder/tcl/TclPlaneStressMaterialTester.cpp
+  modelbuilder/tcl/TclSectionTester.cpp
+  modelbuilder/tcl/TclUniaxialMaterialTester.cpp
+  recorder/TclRecorderCommands.cpp
+  )
+
+set(FMK_LIBS
+  database/FE_Datastore.cpp
+  api/packages.cpp 
+  )
+
+set(KJE_LIBS
+  material/uniaxial/limitState/LimitStateMaterial.cpp
+  material/uniaxial/limitState/limitCurve/LimitCurve.cpp
+  material/uniaxial/limitState/limitCurve/AxialCurve.cpp
+  material/uniaxial/limitState/limitCurve/WrapperLimitCurve.cpp
+  material/uniaxial/limitState/limitCurve/RotationShearCurve.cpp
+  material/uniaxial/limitState/limitCurve/ShearCurve.cpp
+  material/uniaxial/limitState/limitCurve/ThreePointCurve.cpp 
+  )
+
+# the files that make up the FE_LIBRARY
+set(GLF_LIBS
+  element/zeroLength/ZeroLength.cpp
+  element/zeroLength/ZeroLengthSection.cpp
+  element/zeroLength/CoupledZeroLength.cpp
+  element/zeroLength/ZeroLengthND.cpp
+  element/zeroLength/ZeroLengthImpact3D.cpp
+  )
+
+set(REMO_LIBS
+  element/nonlinearBeamColumn/matrixutil/MatrixUtil.cpp
+  element/forceBeamColumn/ForceBeamColumn2d.cpp
+  element/forceBeamColumn/ForceBeamColumn2dThermal.cpp
+  element/forceBeamColumn/ForceBeamColumnCBDI2d.cpp
+  element/forceBeamColumn/ForceBeamColumnWarping2d.cpp
+  element/forceBeamColumn/ForceBeamColumn3d.cpp
+  element/forceBeamColumn/ElasticForceBeamColumn2d.cpp
+  element/forceBeamColumn/ElasticForceBeamColumnWarping2d.cpp
+  element/forceBeamColumn/ElasticForceBeamColumn3d.cpp
+  element/forceBeamColumn/BeamIntegration.cpp
+  element/forceBeamColumn/LobattoBeamIntegration.cpp
+  element/forceBeamColumn/CompositeSimpsonBeamIntegration.cpp
+  element/forceBeamColumn/LegendreBeamIntegration.cpp
+  element/forceBeamColumn/RadauBeamIntegration.cpp
+  element/forceBeamColumn/NewtonCotesBeamIntegration.cpp
+  element/forceBeamColumn/HingeMidpointBeamIntegration.cpp
+  element/forceBeamColumn/HingeEndpointBeamIntegration.cpp
+  element/forceBeamColumn/HingeRadauBeamIntegration.cpp
+  element/forceBeamColumn/HingeRadauTwoBeamIntegration.cpp
+  element/forceBeamColumn/UserDefinedBeamIntegration.cpp
+  element/forceBeamColumn/UserDefinedHingeIntegration.cpp
+  element/forceBeamColumn/DistHingeIntegration.cpp
+  element/forceBeamColumn/RegularizedHingeIntegration.cpp
+  element/forceBeamColumn/MidDistanceBeamIntegration.cpp
+  element/forceBeamColumn/TrapezoidalBeamIntegration.cpp
+  element/forceBeamColumn/FixedLocationBeamIntegration.cpp
+  element/forceBeamColumn/LowOrderBeamIntegration.cpp
+  coordTransformation/CrdTransf.cpp
+  coordTransformation/LinearCrdTransf2d.cpp
+  coordTransformation/PDeltaCrdTransf2d.cpp
+  coordTransformation/CorotCrdTransf2d.cpp
+  coordTransformation/CorotCrdTransfWarping2d.cpp
+  coordTransformation/LinearCrdTransf3d.cpp
+  coordTransformation/PDeltaCrdTransf3d.cpp
+  coordTransformation/CorotCrdTransf3d.cpp
+  )
+
+set(LAW_LIBS
+  system_of_eqn/linearSOE/sparseSYM/SymSparseLinSOE.cpp
+  system_of_eqn/linearSOE/sparseSYM/SymSparseLinSolver.cpp
+  system_of_eqn/linearSOE/sparseSYM/grcm.c
+  system_of_eqn/linearSOE/sparseSYM/nest.c
+  system_of_eqn/linearSOE/sparseSYM/nmat.c
+  system_of_eqn/linearSOE/sparseSYM/symbolic.c
+  system_of_eqn/linearSOE/sparseSYM/utility.c
+  system_of_eqn/linearSOE/sparseSYM/newordr.c
+  system_of_eqn/linearSOE/sparseSYM/nnsim.c
+  system_of_eqn/linearSOE/sparseSYM/genmmd.f
+  system_of_eqn/eigenSOE/EigenSOE.cpp
+  system_of_eqn/eigenSOE/EigenSolver.cpp
+  system_of_eqn/eigenSOE/ArpackSOE.cpp
+  system_of_eqn/eigenSOE/ArpackSolver.cpp
+  system_of_eqn/eigenSOE/SymBandEigenSOE.cpp
+  system_of_eqn/eigenSOE/SymBandEigenSolver.cpp
+  analysis/analysis/EigenAnalysis.cpp
+  analysis/integrator/EigenIntegrator.cpp 
+  )
+
+set(GGD_LIBS
+  element/joint/MP_Joint2D.cpp
+  element/joint/MP_Joint3D.cpp
+  element/joint/Joint2D.cpp
+  element/joint/Joint3D.cpp
+  element/joint/BeamColumnJoint2d.cpp
+  element/joint/BeamColumnJoint3d.cpp
+  element/joint/ElasticTubularJoint.cpp
+  element/updatedLagrangianBeamColumn/Elastic2DGNL.cpp
+  element/updatedLagrangianBeamColumn/Inelastic2DYS02.cpp
+  element/updatedLagrangianBeamColumn/InelasticYS2DGNL.cpp
+  element/updatedLagrangianBeamColumn/Inelastic2DYS01.cpp
+  element/updatedLagrangianBeamColumn/Inelastic2DYS03.cpp
+  element/updatedLagrangianBeamColumn/UpdatedLagrangianBeam2D.cpp
+  element/updatedLagrangianBeamColumn/BilinearCyclic.cpp
+  element/updatedLagrangianBeamColumn/CyclicModel.cpp
+  element/updatedLagrangianBeamColumn/LinearCyclic.cpp
+  element/updatedLagrangianBeamColumn/QuadraticCyclic.cpp
+  material/yieldSurface/yieldSurfaceBC/Attalla2D.cpp
+  material/yieldSurface/yieldSurfaceBC/ElTawil2D.cpp
+  material/yieldSurface/yieldSurfaceBC/ElTawil2DUnSym.cpp
+  material/yieldSurface/yieldSurfaceBC/Hajjar2D.cpp
+  material/yieldSurface/yieldSurfaceBC/Orbison2D.cpp
+  material/yieldSurface/yieldSurfaceBC/YieldSurface_BC2D.cpp
+  material/yieldSurface/yieldSurfaceBC/YieldSurface_BC.cpp
+  material/yieldSurface/yieldSurfaceBC/NullYS2D.cpp
+  material/yieldSurface/evolution/BkStressLimSurface2D.cpp
+  material/yieldSurface/evolution/CombinedIsoKin2D01.cpp
+  material/yieldSurface/evolution/Isotropic2D01.cpp
+  material/yieldSurface/evolution/Kinematic2D02.cpp
+  material/yieldSurface/evolution/PeakOriented2D01.cpp
+  material/yieldSurface/evolution/PlasticHardening2D.cpp
+  material/yieldSurface/evolution/YS_Evolution.cpp
+  material/yieldSurface/evolution/BoundingSurface2D.cpp
+  material/yieldSurface/evolution/CombinedIsoKin2D02.cpp
+  material/yieldSurface/evolution/Kinematic2D01.cpp
+  material/yieldSurface/evolution/NullEvolution.cpp
+  material/yieldSurface/evolution/PeakOriented2D02.cpp
+  material/yieldSurface/evolution/YS_Evolution2D.cpp
+  material/yieldSurface/plasticHardeningMaterial/ExponReducing.cpp
+  material/yieldSurface/plasticHardeningMaterial/MultiLinearKp.cpp
+  material/yieldSurface/plasticHardeningMaterial/NullPlasticMaterial.cpp
+  material/yieldSurface/plasticHardeningMaterial/PlasticHardeningMaterial.cpp
+  damage/DamageModel.cpp
+  damage/Kratzig.cpp
+  damage/ParkAng.cpp
+  damage/DamageResponse.cpp
+  damage/HystereticEnergy.cpp
+  damage/Mehanny.cpp
+  damage/NormalizedPeak.cpp
+  )
+
+set(ERRORHANDLER_LIBS
+  handler/StandardStream.cpp
+  handler/FileStream.cpp
+  handler/OPS_Stream.cpp
+  handler/DataFileStream.cpp
+  handler/DataFileStreamAdd.cpp
+  handler/XmlFileStream.cpp
+  handler/BinaryFileStream.cpp
+  handler/DummyStream.cpp
+  handler/TCP_Stream.cpp
+  handler/DatabaseStream.cpp 
+  )
+
+set(PY_SJB_RWB_BJ_LIBS
+  material/uniaxial/PY/PySimple1.cpp
+  material/uniaxial/PY/QzSimple1.cpp
+  material/uniaxial/PY/TzSimple1.cpp
+  material/uniaxial/PY/PySimple2.cpp
+  material/uniaxial/PY/PySimple3.cpp
+  material/uniaxial/PY/QzSimple2.cpp
+  material/uniaxial/PY/TzSimple2.cpp
+  material/uniaxial/PY/ShallowFoundationGen.cpp
+  material/uniaxial/PY/PyLiq1.cpp
+  material/uniaxial/PY/TzLiq1.cpp
+  material/uniaxial/PY/PySimple1Gen.cpp
+  material/uniaxial/PY/TzSimple1Gen.cpp
+  )
+
+set(ZHY_LIBS
+  material/nD/soil/FluidSolidPorousMaterial.cpp
+  material/nD/soil/MultiYieldSurface.cpp
+  material/nD/soil/MultiYieldSurfaceClay.cpp
+  material/nD/soil/PressureDependMultiYield.cpp
+  material/nD/soil/PressureDependMultiYield02.cpp
+  material/nD/soil/PressureIndependMultiYield.cpp
+  material/nD/soil/T2Vector.cpp
+  element/UP-ucsd/BrickUP.cpp
+  element/UP-ucsd/BBarBrickUP.cpp
+  element/UP-ucsd/FourNodeQuadUP.cpp
+  element/UP-ucsd/BBarFourNodeQuadUP.cpp
+  element/UP-ucsd/Nine_Four_Node_QuadUP.cpp
+  element/UP-ucsd/Twenty_Eight_Node_BrickUP.cpp
+  element/UP-ucsd/shp3dv.cpp
+  )
+
+if(OPS_GRAPHICS STREQUAL NONE)
+  set(RENDERER_LIBS
+    renderer/PlainMap.cpp)
+elseif(OPS_GRAPHICS STREQUAL UsingOpenGL)
+  set(RENDERER_LIBS
+    renderer/OpenGlDevice.cpp
+    renderer/OpenGlRenderer.cpp
+    renderer/Renderer.cpp
+    renderer/PlainMap.cpp
+    recorder/FilePlotter.cpp
+    recorder/AlgorithmIncrements.cpp
+    )
+else()
+  set(RENDERER_LIBS
+    renderer/db.cpp
+    renderer/View.cpp
+    renderer/Projection.cpp
+    renderer/Viewport.cpp
+    renderer/Scan.cpp
+    renderer/Clipping.cpp
+    renderer/X11Device.cpp
+    renderer/WindowDevice.cpp
+    renderer/Device.cpp
+    renderer/gMatrix.cpp
+    renderer/DofColorMap.cpp
+    renderer/Renderer.cpp
+    renderer/WindowRenderer.cpp
+    renderer/X11Renderer.cpp
+    renderer/PlainMap.cpp
+    recorder/FilePlotter.cpp
+    recorder/AlgorithmIncrements.cpp
+    )
+endif()
+
+set(RECORDER_LIBS
+  recorder/Recorder.cpp
+  recorder/DatastoreRecorder.cpp
+  recorder/NodeRecorder.cpp
+  recorder/EnvelopeNodeRecorder.cpp
+  recorder/DriftRecorder.cpp
+  recorder/EnvelopeDriftRecorder.cpp
+  recorder/PatternRecorder.cpp
+  recorder/ElementRecorder.cpp
+  recorder/NormEnvelopeElementRecorder.cpp
+  recorder/NormElementRecorder.cpp
+  recorder/EnvelopeElementRecorder.cpp
+  recorder/response/Response.cpp
+  recorder/response/CompositeResponse.cpp
+  recorder/response/ElementResponse.cpp
+  recorder/response/MaterialResponse.cpp
+  recorder/response/FiberResponse.cpp
+  recorder/DamageRecorder.cpp
+  recorder/RemoveRecorder.cpp
+  recorder/PVDRecorder.cpp
+  recorder/GmshRecorder.cpp
+  recorder/MPCORecorder.cpp 
+  )
+
+set(DATABASE_LIBS
+  database/FileDatastore.cpp
+  database/NEESData.cpp
+  )
+
+set(MATRIX_LIBS
+  matrix/Matrix.cpp
+  matrix/Vector.cpp
+  matrix/ID.cpp
+  )
+
+set(TAGGED_LIBS
+  tagged/TaggedObject.cpp
+  tagged/storage/ArrayOfTaggedObjects.cpp
+  tagged/storage/ArrayOfTaggedObjectsIter.cpp
+  tagged/storage/MapOfTaggedObjects.cpp
+  tagged/storage/MapOfTaggedObjectsIter.cpp
+  )
+
+set(UTILITY_LIBS
+  utility/Timer.cpp
+  utility/SimulationInformation.cpp
+  utility/File.cpp
+  utility/FileIter.cpp
+  utility/PeerNGA.cpp
+  utility/StringContainer.cpp 
+  )
+
+set(GRAPH_LIBS
+  graph/graph/DOF_Graph.cpp
+  graph/graph/VertexIter.cpp
+  graph/graph/Vertex.cpp
+  graph/graph/Graph.cpp
+  graph/graph/DOF_GroupGraph.cpp
+  graph/numberer/RCM.cpp
+  graph/numberer/AMDNumberer.cpp
+  graph/numberer/MyRCM.cpp
+  graph/numberer/GraphNumberer.cpp
+  graph/numberer/SimpleNumberer.cpp
+  graph/partitioner/Metis.cpp
+  )
+
+set(ELE_LIBS
+  element/Element.cpp
+  element/WrapperElement.cpp
+  element/Information.cpp
+  element/ElementalLoad.cpp
+  element/truss/Truss.cpp
+  element/truss/TrussSection.cpp
+  element/truss/CorotTruss.cpp
+  element/truss/CorotTrussSection.cpp
+  element/truss/Truss2.cpp
+  element/truss/CorotTruss2.cpp
+  element/truss/N4BiaxialTruss.cpp
+  element/zeroLength/ZeroLengthContact2D.cpp
+  element/zeroLength/ZeroLengthContact3D.cpp
+  element/zeroLength/ZeroLengthContactNTS2D.cpp
+  element/zeroLength/ZeroLengthInterface2D.cpp
+  element/zeroLength/ZeroLengthRocking.cpp
+  element/surfaceLoad/SurfaceLoad.cpp
+  element/surfaceLoad/TriSurfaceLoad.cpp
+  element/UWelements/SimpleContact2D.cpp
+  element/UWelements/SimpleContact3D.cpp
+  element/UWelements/BeamContact2D.cpp
+  element/UWelements/BeamContact2Dp.cpp
+  element/UWelements/BeamContact3D.cpp
+  element/UWelements/BeamContact3Dp.cpp
+  element/UWelements/BeamEndContact3D.cpp
+  element/UWelements/BeamEndContact3Dp.cpp
+  element/UWelements/PileToe3D.cpp
+  element/HUelements/MultipleShearSpring.cpp
+  element/HUelements/MultipleNormalSpring.cpp
+  element/HUelements/KikuchiBearing.cpp
+  element/HUelements/DBESI0.C
+  element/HUelements/DBESI1.C
+  element/HUelements/YamamotoBiaxialHDR.cpp
+  element/XMUelements/AC3D8HexWithSensitivity.cpp
+  element/XMUelements/ASI3D8QuadWithSensitivity.cpp
+  element/XMUelements/AV3D4QuadWithSensitivity.cpp
+  element/XMUelements/VS3D4QuadWithSensitivity.cpp
+  element/feap/elmt01.f
+  element/feap/elmt02.f
+  element/feap/elmt03.f
+  element/feap/elmt04.f
+  element/feap/elmt05.f
+  element/feap/fillCommon.f
+  element/feap/getCommon.f
+  element/feap/dummyFeap.f
+  element/feap/fElement.cpp
+  element/feap/fElmt02.cpp
+  element/dispBeamColumn/AxEqDispBeamColumn2d.cpp
+  element/dispBeamColumn/DispBeamColumn2d.cpp
+  element/dispBeamColumn/DispBeamColumnNL2d.cpp
+  element/dispBeamColumn/DispBeamColumn2dThermal.cpp
+  element/dispBeamColumn/DispBeamColumn3d.cpp
+  element/dispBeamColumn/DispBeamColumn3dThermal.cpp
+  element/dispBeamColumn/DispBeamColumn2dWithSensitivity.cpp
+  element/dispBeamColumn/DispBeamColumn3dWithSensitivity.cpp
+  element/dispBeamColumnInt/DispBeamColumn2dInt.cpp
+  element/dispBeamColumnInt/FiberSection2dInt.cpp
+  element/dispBeamColumnInt/LinearCrdTransf2dInt.cpp
+  element/elasticBeamColumn/ElasticBeam2d.cpp
+  element/elasticBeamColumn/ModElasticBeam2d.cpp
+  element/elasticBeamColumn/ElasticBeam3d.cpp
+  element/elasticBeamColumn/ElasticTimoshenkoBeam2d.cpp
+  element/elasticBeamColumn/ElasticTimoshenkoBeam3d.cpp
+  element/elasticBeamColumn/WheelRail.cpp
+  element/fourNodeQuad/FourNodeQuad.cpp
+  element/fourNodeQuad/FourNodeQuad3d.cpp
+  element/fourNodeQuad/FourNodeQuadWithSensitivity.cpp
+  element/fourNodeQuad/ConstantPressureVolumeQuad.cpp
+  element/fourNodeQuad/EnhancedQuad.cpp
+  element/componentElement/ComponentElement2d.cpp
+  element/fourNodeQuad/NineNodeMixedQuad.cpp
+  element/shell/ShellMITC4.cpp
+  element/shell/ShellMITC4Thermal.cpp
+  element/shell/ShellMITC9.cpp
+  element/shell/ShellDKGQ.cpp
+  element/shell/ShellNLDKGQ.cpp
+  element/shell/ShellDKGT.cpp
+  element/shell/ShellNLDKGT.cpp
+  element/shell/ShellNLDKGQThermal.cpp
+  element/shell/R3vectors.cpp
+  element/shell/ShellANDeS.cpp
+  element/brick/Brick.cpp
+  element/brick/BbarBrick.cpp
+  element/brick/BbarBrickWithSensitivity.cpp
+  element/brick/shp3d.cpp
+  element/brick/Twenty_Node_Brick.cpp
+  element/generic/GenericClient.cpp
+  element/generic/GenericCopy.cpp
+  element/adapter/ActuatorCorot.cpp
+  element/adapter/Actuator.cpp
+  element/adapter/Adapter.cpp
+  element/elastomericBearing/ElastomericBearingBoucWen2d.cpp
+  element/elastomericBearing/ElastomericBearingBoucWen3d.cpp
+  element/elastomericBearing/ElastomericBearingBoucWenMod3d.cpp
+  element/elastomericBearing/ElastomericBearingUFRP2d.cpp
+  element/elastomericBearing/ElastomericBearingPlasticity2d.cpp
+  element/elastomericBearing/ElastomericBearingPlasticity3d.cpp
+  element/elastomericBearing/HDR.cpp
+  element/elastomericBearing/LeadRubberX.cpp
+  element/elastomericBearing/ElastomericX.cpp
+  element/frictionBearing/MultiFP2d.cpp
+  element/frictionBearing/TripleFrictionPendulum.cpp
+  element/frictionBearing/TFP_Bearing.cpp
+  element/frictionBearing/TFP_Bearing2d.cpp
+  element/frictionBearing/TPB1D.cpp
+  element/frictionBearing/FPBearingPTV.cpp
+  element/frictionBearing/FlatSliderSimple2d.cpp
+  element/frictionBearing/FlatSliderSimple3d.cpp
+  element/frictionBearing/SingleFPSimple2d.cpp
+  element/frictionBearing/SingleFPSimple3d.cpp
+  element/frictionBearing/frictionModel/Coulomb.cpp
+  element/frictionBearing/frictionModel/FrictionModel.cpp
+  element/frictionBearing/frictionModel/FrictionResponse.cpp
+  element/frictionBearing/frictionModel/VelNormalFrcDep.cpp
+  element/frictionBearing/RJWatsonEQS2d.cpp
+  element/frictionBearing/RJWatsonEQS3d.cpp
+  element/frictionBearing/frictionModel/VelPressureDep.cpp
+  element/frictionBearing/frictionModel/VelDependent.cpp
+  element/frictionBearing/frictionModel/VelDepMultiLinear.cpp
+  element/twoNodeLink/TwoNodeLink.cpp
+  element/pyMacro/PY_Macro2D.cpp
+  element/triangle/Tri31.cpp
+  element/PFEMElement/PFEMElement2D.cpp
+  element/PFEMElement/PFEMElement3D.cpp
+  element/PFEMElement/PFEMElement2DCompressible.cpp
+  element/PFEMElement/PFEMElement2DBubble.cpp
+  element/PFEMElement/PFEMElement3DBubble.cpp
+  element/PFEMElement/PFEMElement2Dmini.cpp
+  element/PFEMElement/PFEMElement2DFIC.cpp
+  element/PFEMElement/PFEMElement2DQuasi.cpp
+  element/PFEMElement/MINI.cpp
+  element/PFEMElement/LineMesh.cpp
+  element/PFEMElement/TriMesh.cpp
+  element/PFEMElement/TetMesh.cpp
+  element/PFEMElement/QuadMesh.cpp
+  element/PFEMElement/TriangleMeshGenerator.cpp
+  element/PFEMElement/TetMeshGenerator.cpp
+  element/PFEMElement/LineMeshGenerator.cpp
+  element/PFEMElement/QuadMeshGenerator.cpp
+  ../OTHER/Tetgen/tetgen.cxx
+  ../OTHER/Tetgen/predicates.cxx
+  ../OTHER/Triangle/triangle.c
+  element/PFEMElement/BackgroundMesh.cpp
+  element/PFEMElement/ParticleGroup.cpp
+  element/PFEMElement/Particle.cpp
+  element/PFEMElement/BackgroundDef.cpp
+  element/PFEMElement/TaylorHood2D.cpp
+  element/PFEMElement/TriGaussPoints.cpp
+  element/PFEMElement/HigherOrder.cpp
+  element/PFEMElement/Mesh.cpp
+  element/UWelements/SSPquad.cpp
+  element/UWelements/SSPquadUP.cpp
+  element/UWelements/SSPbrick.cpp
+  element/UWelements/SSPbrickUP.cpp
+  element/mvlem/MVLEM.cpp
+  element/mvlem/SFI_MVLEM.cpp
+  element/UWelements/Quad4FiberOverlay.cpp
+  element/UWelements/Brick8FiberOverlay.cpp
+  element/UWelements/QuadBeamEmbedContact.cpp
+  element/catenaryCable/CatenaryCable.cpp
+  element/tetrahedron/FourNodeTetrahedron.cpp
+  element/absorbentBoundaries/LysmerTriangle.cpp
+  element/UWelements/EmbeddedBeamInterfaceL.cpp
+  element/UWelements/EmbeddedBeamInterfaceP.cpp
+  element/UWelements/EmbeddedEPBeamInterface.cpp
+  element/UWelements/Tcl_generateInterfacePoints.cpp
+  )
+
+set(MATERIAL_LIBS
+  material/Material.cpp
+  material/uniaxial/UniaxialMaterial.cpp
+  material/uniaxial/UniaxialJ2Plasticity.cpp
+  material/uniaxial/WrapperUniaxialMaterial.cpp
+  material/uniaxial/ElasticMaterial.cpp
+  material/uniaxial/Elastic2Material.cpp
+  material/uniaxial/ElasticMultiLinear.cpp
+  material/uniaxial/ReinforcingSteel.cpp
+  material/uniaxial/ElasticPPMaterial.cpp
+  material/uniaxial/ElasticBilin.cpp
+  material/uniaxial/MultiLinear.cpp
+  material/uniaxial/HookGap.cpp
+  material/uniaxial/HardeningMaterial.cpp
+  material/uniaxial/ParallelMaterial.cpp
+  material/uniaxial/SeriesMaterial.cpp
+  material/uniaxial/Neoprene.cpp
+  material/uniaxial/Concrete01.cpp
+  material/uniaxial/Concrete02.cpp
+  material/uniaxial/Concrete04.cpp
+  material/uniaxial/Concrete06.cpp
+  material/uniaxial/Concrete07.cpp
+  material/uniaxial/ConcreteSakaiKawashima.cpp
+  material/uniaxial/FRPConfinedConcrete.cpp
+  material/uniaxial/FRPConfinedConcrete02.cpp
+  material/uniaxial/ResilienceMaterialHR.cpp
+  material/uniaxial/ResilienceLow.cpp
+  material/uniaxial/CFSSSWP.cpp
+  material/uniaxial/CFSWSWP.cpp
+  material/uniaxial/TriMatrix.cpp
+  material/uniaxial/CubicSpline.cpp
+  material/uniaxial/c14-SK-M.f
+  material/uniaxial/Steel01.cpp
+  material/uniaxial/SteelMPF.cpp
+  material/uniaxial/ConcreteCM.cpp
+  material/uniaxial/RambergOsgoodSteel.cpp
+  material/uniaxial/Steel02.cpp
+  material/uniaxial/Steel4.cpp
+  material/uniaxial/Steel2.cpp
+  material/uniaxial/OriginCentered.cpp
+  material/uniaxial/Steel03.cpp
+  material/uniaxial/SteelMP.cpp
+  material/uniaxial/BWBN.cpp
+  material/uniaxial/Steel01Thermal.cpp
+  material/uniaxial/Steel02Thermal.cpp
+  material/uniaxial/Concrete02Thermal.cpp
+  material/uniaxial/Concrete02Thermal.cpp
+  material/uniaxial/ConcreteECThermal.cpp
+  material/uniaxial/ElasticMaterialThermal.cpp
+  material/uniaxial/StainlessECThermal.cpp
+  material/uniaxial/SteelECThermal.cpp
+  material/uniaxial/limitState/PinchingLimitStateMaterial.cpp
+  material/uniaxial/ModIMKPinching.cpp
+  material/uniaxial/ModIMKPinching02.cpp
+  material/uniaxial/ModIMKPeakOriented.cpp
+  material/uniaxial/ModIMKPeakOriented02.cpp
+  material/uniaxial/SmoothPSConcrete.cpp
+  material/uniaxial/Concrete01WithSITC.cpp
+  material/uniaxial/ConcretewBeta.cpp
+  material/uniaxial/ConcreteD.cpp
+  material/uniaxial/KikuchiAikenHDR.cpp
+  material/uniaxial/KikuchiAikenLRB.cpp
+  material/uniaxial/AxialSpHD.cpp
+  material/uniaxial/AxialSp.cpp
+  material/uniaxial/ECC01.cpp
+  material/uniaxial/HystereticMaterial.cpp
+  material/uniaxial/EPPGapMaterial.cpp
+  material/uniaxial/ViscousMaterial.cpp
+  material/uniaxial/Maxwell.cpp
+  material/uniaxial/ViscousDamper.cpp
+  material/uniaxial/DamperMaterial.cpp
+  material/uniaxial/BilinearOilDamper.cpp
+  material/uniaxial/Cast.cpp
+  material/uniaxial/DoddRestrepo.f
+  material/uniaxial/Dodd_Restrepo.cpp
+  material/uniaxial/DoddRestr.cpp
+  material/uniaxial/STEELDR.f
+  material/uniaxial/PathIndependentMaterial.cpp
+  material/uniaxial/BackboneMaterial.cpp
+  material/uniaxial/MinMaxMaterial.cpp
+  material/uniaxial/TensionOnlyMaterial.cpp
+  material/uniaxial/SimpleFractureMaterial.cpp
+  material/uniaxial/InitStrainMaterial.cpp
+  material/uniaxial/InitStressMaterial.cpp
+  material/uniaxial/pyUCLA.cpp
+  material/uniaxial/FatigueMaterial.cpp
+  material/uniaxial/SAWSMaterial.cpp
+  material/uniaxial/snap/Bilin.cpp
+  material/uniaxial/snap/Bilin02.cpp
+  material/uniaxial/ConfinedConcrete01.cpp
+  material/uniaxial/CableMaterial.cpp
+  material/uniaxial/ENTMaterial.cpp
+  material/uniaxial/BoucWenMaterial.cpp
+  material/uniaxial/BoucWenOriginal.cpp
+  material/uniaxial/Pinching4Material.cpp
+  material/uniaxial/ShearPanelMaterial.cpp
+  material/uniaxial/BarSlipMaterial.cpp
+  material/uniaxial/Bond_SP01.cpp
+  material/uniaxial/HyperbolicGapMaterial.cpp
+  material/uniaxial/ImpactMaterial.cpp
+  material/uniaxial/SteelBRB.cpp
+  material/uniaxial/GNGMaterial.cpp
+  material/uniaxial/SelfCenteringMaterial.cpp
+  material/uniaxial/backbone/HystereticBackbone.cpp
+  material/uniaxial/backbone/ArctangentBackbone.cpp
+  material/uniaxial/backbone/TrilinearBackbone.cpp
+  material/uniaxial/backbone/ReeseSoftClayBackbone.cpp
+  material/uniaxial/backbone/ReeseStiffClayBelowWS.cpp
+  material/uniaxial/backbone/ReeseSandBackbone.cpp
+  material/uniaxial/backbone/ManderBackbone.cpp
+  material/uniaxial/backbone/RaynorBackbone.cpp
+  material/nD/NDMaterial.cpp
+  material/nD/PlaneStressLayeredMaterial.cpp
+  material/nD/PlaneStressRebarMaterial.cpp
+  material/nD/WrapperNDMaterial.cpp
+  material/nD/J2Plasticity.cpp
+  material/nD/J2PlaneStress.cpp
+  material/nD/J2PlaneStrain.cpp
+  material/nD/J2AxiSymm.cpp
+  material/nD/J2ThreeDimensional.cpp
+  material/nD/J2PlateFiber.cpp
+  material/nD/J2PlateFibre.cpp
+  material/nD/PlaneStressRebarMaterial.cpp
+  material/nD/PlaneStressLayeredMaterial.cpp
+  material/nD/J2BeamFiber2d.cpp
+  material/nD/J2BeamFiber3d.cpp
+  material/nD/FSAM.cpp
+  material/nD/ConcreteMcftNonLinear5.cpp
+  material/nD/ConcreteMcftNonLinear7.cpp
+  material/nD/InitStressNDMaterial.cpp
+  material/nD/matCMM/MaterialCMM.cpp
+  material/nD/PlasticDamageConcrete3d.cpp
+  material/nD/PlasticDamageConcretePlaneStress.cpp
+  material/nD/eig3.cpp
+  material/nD/CycLiqCP.cpp
+  material/nD/CycLiqCP3D.cpp
+  material/nD/CycLiqCPPlaneStrain.cpp
+  material/nD/CycLiqCPSP.cpp
+  material/nD/CycLiqCPSP3D.cpp
+  material/nD/CycLiqCPSPPlaneStrain.cpp
+  material/nD/UWmaterials/DruckerPrager.cpp
+  material/nD/UWmaterials/DruckerPrager3D.cpp
+  material/nD/UWmaterials/DruckerPragerPlaneStrain.cpp
+  material/nD/UWmaterials/ContactMaterial3D.cpp
+  material/nD/UWmaterials/ContactMaterial2D.cpp
+  material/nD/UWmaterials/BoundingCamClay.cpp
+  material/nD/UWmaterials/BoundingCamClay3D.cpp
+  material/nD/UWmaterials/BoundingCamClayPlaneStrain.cpp
+  material/nD/UWmaterials/ManzariDafalias.cpp
+  material/nD/UWmaterials/ManzariDafalias3D.cpp
+  material/nD/UWmaterials/ManzariDafaliasPlaneStrain.cpp
+  material/nD/UWmaterials/ManzariDafaliasRO.cpp
+  material/nD/UWmaterials/ManzariDafalias3DRO.cpp
+  material/nD/UWmaterials/ManzariDafaliasPlaneStrainRO.cpp
+  material/nD/UWmaterials/InitialStateAnalysisWrapper.cpp
+  material/nD/UWmaterials/J2CyclicBoundingSurface.cpp
+  material/nD/UWmaterials/PM4Sand.cpp
+  material/nD/UWmaterials/PM4Silt.cpp
+  material/nD/LinearCap.cpp
+  material/nD/AcousticMedium.cpp
+  material/nD/FeapMaterial.cpp
+  material/nD/feap/FeapMaterial01.cpp
+  material/nD/feap/matl01.f
+  material/nD/feap/FeapMaterial02.cpp
+  material/nD/feap/matl02.f
+  material/nD/feap/FeapMaterial03.cpp
+  material/nD/feap/matl03.f
+  material/nD/feap/feapCommon.f
+  material/nD/PressureDependentElastic3D.cpp
+  material/nD/ElasticIsotropicMaterial.cpp
+  material/nD/ElasticIsotropicThreeDimensional.cpp
+  material/nD/ElasticIsotropicPlaneStress2D.cpp
+  material/nD/ElasticIsotropicPlaneStrain2D.cpp
+  material/nD/ElasticIsotropicAxiSymm.cpp
+  material/nD/ElasticIsotropicPlateFiber.cpp
+  material/nD/ElasticIsotropicBeamFiber.cpp
+  material/nD/ElasticIsotropicBeamFiber2d.cpp
+  material/nD/ElasticOrthotropicMaterial.cpp
+  material/nD/ElasticOrthotropicThreeDimensional.cpp
+  material/nD/PlaneStressMaterial.cpp
+  material/nD/PlaneStrainMaterial.cpp
+  material/nD/PlateFiberMaterial.cpp
+  material/nD/ElasticIsotropic3DThermal.cpp
+  material/nD/ElasticIsotropicMaterialThermal.cpp
+  material/nD/J2PlasticityThermal.cpp
+  material/nD/J2ThreeDimensionalThermal.cpp
+  material/nD/DruckerPrager3DThermal.cpp
+  material/nD/DruckerPragerThermal.cpp
+  material/nD/J2ThreeDimensionalThermal.cpp
+  material/nD/PlateFiberMaterialThermal.cpp
+  material/nD/PlateFromPlaneStressMaterialThermal.cpp
+  material/nD/PlateRebarMaterialThermal.cpp
+  material/nD/BeamFiberMaterial.cpp
+  material/nD/BeamFiberMaterial2d.cpp
+  material/nD/cyclicSoil/MultiaxialCyclicPlasticity.cpp
+  material/nD/cyclicSoil/MultiaxialCyclicPlasticityPlaneStrain.cpp
+  material/nD/cyclicSoil/MultiaxialCyclicPlasticity3D.cpp
+  material/nD/cyclicSoil/MultiaxialCyclicPlasticityAxiSymm.cpp
+  material/nD/reinforcedConcretePlaneStress/FAReinforcedConcretePlaneStress.cpp
+  material/nD/reinforcedConcretePlaneStress/ReinforcedConcretePlaneStress.cpp
+  material/nD/reinforcedConcretePlaneStress/FAFourSteelRCPlaneStress.cpp
+  material/nD/reinforcedConcretePlaneStress/RAFourSteelRCPlaneStress.cpp
+  material/nD/reinforcedConcretePlaneStress/PrestressedConcretePlaneStress.cpp
+  material/nD/reinforcedConcretePlaneStress/FAPrestressedConcretePlaneStress.cpp
+  material/nD/reinforcedConcretePlaneStress/FAFourSteelPCPlaneStress.cpp
+  material/nD/reinforcedConcretePlaneStress/RAFourSteelPCPlaneStress.cpp
+  material/nD/reinforcedConcretePlaneStress/ConcreteZ01.cpp
+  material/nD/reinforcedConcretePlaneStress/ConcreteL01.cpp
+  material/nD/reinforcedConcretePlaneStress/SteelZ01.cpp
+  material/nD/reinforcedConcretePlaneStress/TendonL01.cpp
+  material/nD/CapPlasticity.cpp
+  material/nD/ConcreteS.cpp
+  material/nD/SimplifiedJ2.cpp
+  material/nD/PlaneStressSimplifiedJ2.cpp
+  material/nD/PlaneStressUserMaterial.cpp
+  material/nD/PlateFromPlaneStressMaterial.cpp
+  material/nD/PlateRebarMaterial.cpp
+  material/nD/stressDensityModel/stressDensity.cpp
+  material/nD/stressDensityModel/SDM-UC.f
+  )
+
+set(FEDEAS_LIBS
+  material/uniaxial/FedeasMaterial.cpp
+  material/uniaxial/fedeas/FedeasHardeningMaterial.cpp
+  material/uniaxial/fedeas/Hard1.f
+  material/uniaxial/fedeas/PlasticDamageMaterial.cpp
+  material/uniaxial/fedeas/PD1.f
+  material/uniaxial/fedeas/FedeasBond1Material.cpp
+  material/uniaxial/fedeas/FedeasBond2Material.cpp
+  material/uniaxial/fedeas/FedeasConcr1Material.cpp
+  material/uniaxial/fedeas/FedeasConcr2Material.cpp
+  material/uniaxial/fedeas/FedeasConcr3Material.cpp
+  material/uniaxial/fedeas/FedeasHyster1Material.cpp
+  material/uniaxial/fedeas/FedeasHyster2Material.cpp
+  material/uniaxial/fedeas/FedeasSteel1Material.cpp
+  material/uniaxial/fedeas/FedeasSteel2Material.cpp
+  )
+
+set(DRAIN_LIBS
+  material/uniaxial/DrainMaterial.cpp
+  material/uniaxial/drain/DrainHardeningMaterial.cpp
+  material/uniaxial/drain/anal00.f
+  material/uniaxial/drain/common00.f
+  material/uniaxial/drain/DrainBilinearMaterial.cpp
+  material/uniaxial/drain/DrainClough1Material.cpp
+  material/uniaxial/drain/DrainClough2Material.cpp
+  material/uniaxial/drain/DrainPinch1Material.cpp
+  )
+
+set(SNAP_LIBS 
+  material/uniaxial/snap/Pinching.cpp
+  material/uniaxial/snap/Bilinear.cpp
+  material/uniaxial/snap/Clough.cpp
+  material/uniaxial/snap/CloughHenry.cpp
+  material/uniaxial/snap/CloughDamage.cpp
+  material/uniaxial/snap/PinchingDamage.cpp
+  )
+
+set(SECTION_LIBS
+  material/section/SectionForceDeformation.cpp
+  material/section/fiber/Fiber.cpp
+  material/section/fiber/UniaxialFiber2d.cpp
+  material/section/fiber/UniaxialFiber3d.cpp
+  material/section/fiber/NDFiber2d.cpp
+  material/section/fiber/NDFiber3d.cpp
+  material/section/ElasticSection2d.cpp
+  material/section/ElasticSection3d.cpp
+  material/section/ElasticShearSection2d.cpp
+  material/section/ElasticShearSection3d.cpp
+  material/section/ElasticWarpingShearSection2d.cpp
+  material/section/ElasticTubeSection3d.cpp
+  material/section/FiberSection2d.cpp
+  material/section/NDFiberSection2d.cpp
+  material/section/NDFiberSectionWarping2d.cpp
+  material/section/FiberSection2dThermal.cpp
+  material/section/LayeredShellFiberSectionThermal.cpp
+  material/section/FiberSection3dThermal.cpp
+  material/section/MembranePlateFiberSectionThermal.cpp
+  material/section/FiberSectionGJThermal.cpp
+  material/section/FiberSection3d.cpp
+  material/section/NDFiberSection3d.cpp
+  material/section/SectionAggregator.cpp
+  material/section/ParallelSection.cpp
+  material/section/GenericSection1d.cpp
+  material/section/ElasticPlateSection.cpp
+  material/section/ElasticMembranePlateSection.cpp
+  material/section/MembranePlateFiberSection.cpp
+  material/section/Bidirectional.cpp
+  material/section/Elliptical2.cpp
+  material/section/Isolator2spring.cpp
+  material/section/BiaxialHysteretic.cpp
+  material/section/LayeredShellFiberSection.cpp
+  material/section/integration/SectionIntegration.cpp
+  material/section/integration/RCSectionIntegration.cpp
+  material/section/integration/RCCircularSectionIntegration.cpp
+  material/section/integration/WideFlangeSectionIntegration.cpp
+  material/section/integration/RCTBeamSectionIntegration.cpp
+  material/section/integration/TubeSectionIntegration.cpp
+  material/section/repres/patch/Patch.cpp
+  material/section/repres/patch/QuadPatch.cpp
+  material/section/repres/patch/CircPatch.cpp
+  material/section/repres/cell/Cell.cpp
+  material/section/repres/cell/QuadCell.cpp
+  material/section/repres/cell/CircSectionCell.cpp
+  material/section/repres/reinfBar/ReinfBar.cpp
+  material/section/repres/reinfLayer/ReinfLayer.cpp
+  material/section/repres/reinfLayer/StraightReinfLayer.cpp
+  material/section/repres/reinfLayer/CircReinfLayer.cpp
+  material/section/repres/section/SectionRepres.cpp
+  material/section/repres/section/FiberSectionRepr.cpp
+  material/section/yieldSurface/YieldSurfaceSection2d.cpp
+  material/section/yieldSurface/YS_Section2D01.cpp
+  material/section/yieldSurface/YS_Section2D02.cpp
+  material/section/yieldSurface/SoilFootingSection2d.cpp
+  )
+
+set(SysOfEqn_LIBS
+  system_of_eqn/linearSOE/LinearSOE.cpp
+  system_of_eqn/linearSOE/LinearSOESolver.cpp
+  system_of_eqn/linearSOE/DomainSolver.cpp
+  system_of_eqn/linearSOE/bandGEN/BandGenLinSOE.cpp
+  system_of_eqn/linearSOE/bandGEN/DistributedBandGenLinSOE.cpp
+  system_of_eqn/linearSOE/bandGEN/BandGenLinSolver.cpp
+  system_of_eqn/linearSOE/bandGEN/BandGenLinLapackSolver.cpp
+  system_of_eqn/linearSOE/fullGEN/FullGenLinSOE.cpp
+  system_of_eqn/linearSOE/fullGEN/FullGenLinSolver.cpp
+  system_of_eqn/linearSOE/fullGEN/FullGenLinLapackSolver.cpp
+  system_of_eqn/linearSOE/bandSPD/BandSPDLinSOE.cpp
+  system_of_eqn/linearSOE/bandSPD/BandSPDLinSolver.cpp
+  system_of_eqn/linearSOE/bandSPD/DistributedBandSPDLinSOE.cpp
+  system_of_eqn/linearSOE/bandSPD/BandSPDLinLapackSolver.cpp
+  system_of_eqn/linearSOE/itpack/ItpackLinSOE.cpp
+  system_of_eqn/linearSOE/itpack/ItpackLinSolver.cpp
+  system_of_eqn/linearSOE/diagonal/DiagonalSOE.cpp
+  system_of_eqn/linearSOE/diagonal/DiagonalSolver.cpp
+  system_of_eqn/linearSOE/diagonal/DiagonalDirectSolver.cpp
+  system_of_eqn/linearSOE/diagonal/DistributedDiagonalSOE.cpp
+  system_of_eqn/linearSOE/diagonal/DistributedDiagonalSolver.cpp
+  system_of_eqn/linearSOE/profileSPD/SProfileSPDLinSOE.cpp
+  system_of_eqn/linearSOE/profileSPD/SProfileSPDLinSolver.cpp
+  system_of_eqn/linearSOE/profileSPD/ProfileSPDLinSOE.cpp
+  system_of_eqn/linearSOE/profileSPD/DistributedProfileSPDLinSOE.cpp
+  system_of_eqn/linearSOE/profileSPD/ProfileSPDLinSolver.cpp
+  system_of_eqn/linearSOE/profileSPD/ProfileSPDLinDirectSolver.cpp
+  system_of_eqn/linearSOE/profileSPD/ProfileSPDLinSubstrSolver.cpp
+  system_of_eqn/linearSOE/sparseGEN/SparseGenColLinSOE.cpp
+  system_of_eqn/linearSOE/sparseGEN/PFEMLinSOE.cpp
+  system_of_eqn/linearSOE/sparseGEN/PFEMSolver.cpp
+  system_of_eqn/linearSOE/sparseGEN/PFEMSolver_Umfpack.cpp
+  system_of_eqn/linearSOE/sparseGEN/PFEMCompressibleLinSOE.cpp
+  system_of_eqn/linearSOE/sparseGEN/PFEMCompressibleSolver.cpp
+  system_of_eqn/linearSOE/sparseGEN/PFEMQuasiLinSOE.cpp
+  system_of_eqn/linearSOE/sparseGEN/PFEMQuasiSolver.cpp
+  system_of_eqn/linearSOE/sparseGEN/SparseGenColLinSolver.cpp
+  system_of_eqn/linearSOE/sparseGEN/SparseGenRowLinSOE.cpp
+  system_of_eqn/linearSOE/sparseGEN/SparseGenRowLinSolver.cpp
+  system_of_eqn/linearSOE/sparseGEN/PFEMDiaLinSOE.cpp
+  system_of_eqn/linearSOE/sparseGEN/PFEMDiaSolver.cpp
+  system_of_eqn/linearSOE/sparseGEN/PFEMSolver_Laplace.cpp
+  system_of_eqn/linearSOE/sparseGEN/PFEMSolver_LumpM.cpp
+  system_of_eqn/linearSOE/umfGEN/UmfpackGenLinSOE.cpp
+  system_of_eqn/linearSOE/umfGEN/UmfpackGenLinSolver.cpp
+  system_of_eqn/eigenSOE/FullGenEigenSOE.cpp
+  system_of_eqn/eigenSOE/FullGenEigenSolver.cpp
+  )
+
+list(APPEND SysOfEqn_LIBS
+  system_of_eqn/linearSOE/sparseGEN/SuperLU.cpp)
+
+if(OPS_PROGRAMMING_MODE STREQUAL "THREADS")
+  list(APPEND SysOfEqn_LIBS
+    system_of_eqn/linearSOE/sparseGEN/ThreadedSuperLU.cpp)
+endif()
+
+if(OPS_PROGRAMMING_MODE STREQUAL "PARALLEL")
+  list(APPEND SysOfEqn_LIBS
+    system_of_eqn/linearSOE/sparseGEN/SuperLU.cpp
+    system_of_eqn/linearSOE/sparseGEN/DistributedSuperLU.cpp
+    system_of_eqn/linearSOE/sparseGEN/DistributedSparseGenColLinSOE.cpp
+    system_of_eqn/linearSOE/mumps/MumpsParallelSOE.cpp
+    system_of_eqn/linearSOE/mumps/MumpsParallelSolver.cpp
+    system_of_eqn/linearSOE/mumps/MumpsSOE.cpp
+    system_of_eqn/linearSOE/mumps/MumpsSolver.cpp
+    )
+endif()
+
+if(OPS_PROGRAMMING_MODE STREQUAL "PARALLEL_INTERPRETERS")
+  list(APPEND SysOfEqn_LIBS
+    system_of_eqn/linearSOE/sparseGEN/PFEMSolver_Mumps.cpp
+    system_of_eqn/linearSOE/sparseGEN/PFEMCompressibleSolver_Mumps.cpp)
+endif()
+
+set(MODEL_BUILDER_LIBS
+  modelbuilder/ModelBuilder.cpp
+  modelbuilder/PlaneFrame.cpp
+  modelbuilder/tcl/Block2D.cpp
+  modelbuilder/tcl/Block3D.cpp
+  )
+
+set(DOMAIN_LIBS
+  domain/component/DomainComponent.cpp
+  domain/component/Parameter.cpp
+  domain/component/ElementParameter.cpp
+  domain/component/InitialStateParameter.cpp
+  domain/component/ElementStateParameter.cpp
+  domain/component/RVParameter.cpp
+#  domain/component/DVParameter.cpp
+  domain/component/NodeResponseParameter.cpp
+  domain/component/LoadFactorParameter.cpp
+  domain/component/MaterialStageParameter.cpp
+  domain/component/MatParameter.cpp
+  domain/domain/Domain.cpp
+  domain/domain/single/SingleDomEleIter.cpp
+  domain/domain/single/SingleDomNodIter.cpp
+  domain/domain/single/SingleDomSP_Iter.cpp
+  domain/domain/single/SingleDomPC_Iter.cpp
+  domain/domain/single/SingleDomAllSP_Iter.cpp
+  domain/domain/single/SingleDomMP_Iter.cpp
+  domain/domain/single/SingleDomParamIter.cpp
+  domain/domain/partitioned/PartitionedDomain.cpp
+  domain/domain/partitioned/PartitionedDomainEleIter.cpp
+  domain/domain/partitioned/PartitionedDomainSubIter.cpp
+  domain/partitioner/DomainPartitioner.cpp
+  domain/region/MeshRegion.cpp
+  domain/node/Node.cpp
+  domain/node/NodalLoad.cpp
+  domain/constraints/SP_Constraint.cpp
+  domain/constraints/MP_Constraint.cpp
+  domain/constraints/Pressure_Constraint.cpp
+  domain/constraints/ImposedMotionSP.cpp
+  domain/constraints/ImposedMotionSP1.cpp
+  domain/constraints/RigidDiaphragm.cpp
+  domain/constraints/RigidRod.cpp
+  domain/constraints/RigidBeam.cpp
+  domain/load/NodalLoadIter.cpp
+  domain/load/ElementalLoadIter.cpp
+  domain/load/Load.cpp
+  domain/load/Beam2dUniformLoad.cpp
+  domain/load/Beam2dPartialUniformLoad.cpp
+  domain/load/Beam2dPointLoad.cpp
+  domain/load/Beam2dTempLoad.cpp
+  domain/load/Beam2dThermalAction.cpp
+  domain/load/NodalThermalAction.cpp
+  domain/load/ThermalActionWrapper.cpp
+  domain/load/Beam3dThermalAction.cpp
+  domain/load/ShellThermalAction.cpp
+  domain/load/Beam3dUniformLoad.cpp
+  domain/load/Beam3dPartialUniformLoad.cpp
+  domain/load/Beam3dPointLoad.cpp
+  domain/load/BrickSelfWeight.cpp
+  domain/load/SurfaceLoader.cpp
+  domain/load/LysmerVelocityLoader.cpp
+  domain/load/SelfWeight.cpp
+  domain/pattern/LoadPattern.cpp
+  domain/pattern/FireLoadPattern.cpp
+  domain/pattern/EarthquakePattern.cpp
+  domain/pattern/MultiSupportPattern.cpp
+  domain/pattern/UniformExcitation.cpp
+  domain/pattern/LoadPatternIter.cpp
+  domain/pattern/TimeSeries.cpp
+  domain/pattern/LinearSeries.cpp
+  domain/pattern/RectangularSeries.cpp
+  domain/pattern/ConstantSeries.cpp
+  domain/pattern/TrigSeries.cpp
+  domain/pattern/PathSeries.cpp
+  domain/pattern/PeerMotion.cpp
+  domain/pattern/PeerNGAMotion.cpp
+  domain/pattern/PathTimeSeries.cpp
+  domain/pattern/PathTimeSeriesThermal.cpp
+  domain/pattern/PulseSeries.cpp
+  domain/pattern/TriangleSeries.cpp
+  domain/pattern/TimeSeriesIntegrator.cpp
+  domain/pattern/TrapezoidalTimeSeriesIntegrator.cpp
+  domain/pattern/SimpsonTimeSeriesIntegrator.cpp
+  domain/pattern/drm/Mesh3DSubdomain.cpp
+  domain/pattern/drm/GeometricBrickDecorator.cpp
+  domain/pattern/drm/DRMBoundaryLayerDecorator.cpp
+  domain/pattern/drm/DRMLoadPattern.cpp
+  domain/pattern/drm/DRMLoadPatternWrapper.cpp
+  domain/pattern/drm/DRMInputHandler.cpp
+  domain/pattern/drm/PlaneDRMInputHandler.cpp
+  domain/groundMotion/GroundMotion.cpp
+  domain/groundMotion/GroundMotionRecord.cpp
+  domain/groundMotion/InterpolatedGroundMotion.cpp
+  domain/subdomain/Subdomain.cpp
+  domain/subdomain/ShadowSubdomain.cpp
+  domain/subdomain/ActorSubdomain.cpp
+  domain/subdomain/SubdomainNodIter.cpp
+  analysis/analysis/DomainUser.cpp
+  )
+
+set(ANALYSIS_LIBS
+  analysis/analysis/Analysis.cpp
+  analysis/analysis/StaticAnalysis.cpp
+  analysis/analysis/TransientAnalysis.cpp
+  analysis/analysis/DirectIntegrationAnalysis.cpp
+  analysis/analysis/VariableTimeStepDirectIntegrationAnalysis.cpp
+  analysis/analysis/PFEMAnalysis.cpp
+  analysis/analysis/DomainDecompositionAnalysis.cpp
+  analysis/analysis/StaticDomainDecompositionAnalysis.cpp
+  analysis/analysis/TransientDomainDecompositionAnalysis.cpp
+  analysis/analysis/SubstructuringAnalysis.cpp
+  analysis/algorithm/SolutionAlgorithm.cpp
+  analysis/algorithm/equiSolnAlgo/EquiSolnAlgo.cpp
+  analysis/algorithm/equiSolnAlgo/Linear.cpp
+  analysis/algorithm/equiSolnAlgo/NewtonRaphson.cpp
+  analysis/algorithm/equiSolnAlgo/ModifiedNewton.cpp
+  analysis/algorithm/equiSolnAlgo/NewtonLineSearch.cpp
+  analysis/algorithm/equiSolnAlgo/NewtonHallM.cpp
+  analysis/algorithm/equiSolnAlgo/Broyden.cpp
+  analysis/algorithm/equiSolnAlgo/BFGS.cpp
+  analysis/algorithm/equiSolnAlgo/KrylovNewton.cpp
+  analysis/algorithm/equiSolnAlgo/PeriodicNewton.cpp
+  analysis/algorithm/equiSolnAlgo/LineSearch.cpp
+  analysis/algorithm/equiSolnAlgo/BisectionLineSearch.cpp
+  analysis/algorithm/equiSolnAlgo/SecantLineSearch.cpp
+  analysis/algorithm/equiSolnAlgo/RegulaFalsiLineSearch.cpp
+  analysis/algorithm/equiSolnAlgo/InitialInterpolatedLineSearch.cpp
+  analysis/algorithm/equiSolnAlgo/AcceleratedNewton.cpp
+  analysis/algorithm/equiSolnAlgo/accelerator/Accelerator.cpp
+  analysis/algorithm/equiSolnAlgo/accelerator/RaphsonAccelerator.cpp
+  analysis/algorithm/equiSolnAlgo/accelerator/PeriodicAccelerator.cpp
+  analysis/algorithm/equiSolnAlgo/accelerator/KrylovAccelerator.cpp
+  analysis/algorithm/equiSolnAlgo/accelerator/SecantAccelerator1.cpp
+  analysis/algorithm/equiSolnAlgo/accelerator/SecantAccelerator2.cpp
+  analysis/algorithm/equiSolnAlgo/accelerator/SecantAccelerator3.cpp
+  convergenceTest/ConvergenceTest.cpp
+  convergenceTest/CTestNormUnbalance.cpp
+  convergenceTest/CTestNormDispIncr.cpp
+  convergenceTest/NormDispAndUnbalance.cpp
+  convergenceTest/NormDispOrUnbalance.cpp
+  convergenceTest/CTestEnergyIncr.cpp
+  convergenceTest/CTestRelativeNormUnbalance.cpp
+  convergenceTest/CTestRelativeNormDispIncr.cpp
+  convergenceTest/CTestRelativeEnergyIncr.cpp
+  convergenceTest/CTestRelativeTotalNormDispIncr.cpp
+  convergenceTest/CTestFixedNumIter.cpp
+  convergenceTest/CTestPFEM.cpp
+  analysis/algorithm/domainDecompAlgo/DomainDecompAlgo.cpp
+  analysis/integrator/Integrator.cpp
+  analysis/integrator/IncrementalIntegrator.cpp
+  analysis/integrator/StaticIntegrator.cpp
+  analysis/integrator/LoadControl.cpp
+  analysis/integrator/LoadPath.cpp
+  analysis/integrator/ArcLength.cpp
+  analysis/integrator/HSConstraint.cpp
+  analysis/integrator/ArcLength1.cpp
+  analysis/integrator/MinUnbalDispNorm.cpp
+  analysis/integrator/DisplacementControl.cpp
+  analysis/integrator/DistributedDisplacementControl.cpp
+  analysis/integrator/TransientIntegrator.cpp
+  analysis/integrator/Newmark.cpp
+  analysis/integrator/PFEMIntegrator.cpp
+  analysis/integrator/TRBDF2.cpp
+  analysis/integrator/TRBDF3.cpp
+  analysis/integrator/HHT.cpp
+  analysis/integrator/AlphaOS_TP.cpp
+  analysis/integrator/AlphaOSGeneralized_TP.cpp
+  analysis/integrator/HHT_TP.cpp
+  analysis/integrator/HHTExplicit_TP.cpp
+  analysis/integrator/HHTGeneralized_TP.cpp
+  analysis/integrator/HHTGeneralizedExplicit_TP.cpp
+  analysis/integrator/HHTHSFixedNumIter_TP.cpp
+  analysis/integrator/HHTHSIncrLimit_TP.cpp
+  analysis/integrator/HHTHSIncrReduct_TP.cpp
+  analysis/integrator/GeneralizedAlpha.cpp
+  analysis/integrator/Newmark1.cpp
+  analysis/integrator/CentralDifference.cpp
+  analysis/integrator/CentralDifferenceAlternative.cpp
+  analysis/integrator/CentralDifferenceNoDamping.cpp
+  analysis/integrator/WilsonTheta.cpp
+  analysis/integrator/ExplicitDifference.cpp
+  analysis/integrator/NewmarkExplicit.cpp
+  analysis/integrator/NewmarkHSIncrReduct.cpp
+  analysis/integrator/NewmarkHSIncrLimit.cpp
+  analysis/integrator/NewmarkHSFixedNumIter.cpp
+  analysis/integrator/HHTExplicit.cpp
+  analysis/integrator/HHTGeneralized.cpp
+  analysis/integrator/HHTGeneralized_TP.cpp
+  analysis/integrator/HHTGeneralizedExplicit.cpp
+  analysis/integrator/HHTHSIncrReduct.cpp
+  analysis/integrator/HHTHSIncrLimit.cpp
+  analysis/integrator/HHTHSFixedNumIter.cpp
+  analysis/integrator/AlphaOS.cpp
+  analysis/integrator/AlphaOS_TP.cpp
+  analysis/integrator/KRAlphaExplicit.cpp
+  analysis/integrator/KRAlphaExplicit_TP.cpp
+  analysis/integrator/AlphaOSGeneralized.cpp
+  analysis/integrator/AlphaOSGeneralized_TP.cpp
+  analysis/integrator/Collocation.cpp
+  analysis/integrator/CollocationHSIncrReduct.cpp
+  analysis/integrator/CollocationHSIncrLimit.cpp
+  analysis/integrator/CollocationHSFixedNumIter.cpp
+  analysis/integrator/KRAlphaExplicit_TP.cpp
+  analysis/integrator/HHT_TP.cpp
+  analysis/integrator/Houbolt.cpp
+  analysis/integrator/ParkLMS3.cpp
+  analysis/integrator/BackwardEuler.cpp
+  analysis/model/AnalysisModel.cpp
+  analysis/model/FE_EleIter.cpp
+  analysis/model/DOF_GrpIter.cpp
+  analysis/handler/ConstraintHandler.cpp
+  analysis/handler/PlainHandler.cpp
+  analysis/handler/PenaltyConstraintHandler.cpp
+  analysis/handler/LagrangeConstraintHandler.cpp
+  analysis/handler/TransformationConstraintHandler.cpp
+  analysis/numberer/DOF_Numberer.cpp
+  analysis/numberer/PlainNumberer.cpp
+  analysis/numberer/ParallelNumberer.cpp
+  analysis/dof_grp/DOF_Group.cpp
+  analysis/dof_grp/LagrangeDOF_Group.cpp
+  analysis/dof_grp/TransformationDOF_Group.cpp
+  analysis/fe_ele/FE_Element.cpp
+  analysis/fe_ele/penalty/PenaltySP_FE.cpp
+  analysis/fe_ele/penalty/PenaltyMP_FE.cpp
+  analysis/fe_ele/lagrange/LagrangeSP_FE.cpp
+  analysis/fe_ele/lagrange/LagrangeMP_FE.cpp
+  analysis/fe_ele/transformation/TransformationFE.cpp
+  )
+
+set(ACTOR_LIBS
+  actor/channel/Channel.cpp
+  actor/channel/TCP_Socket.cpp
+  actor/channel/UDP_Socket.cpp
+  actor/channel/Socket.cpp
+  actor/channel/HTTP.cpp
+  actor/message/Message.cpp
+  actor/machineBroker/MachineBroker.cpp
+  actor/objectBroker/FEM_ObjectBroker.cpp
+  actor/objectBroker/FEM_ObjectBrokerAllClasses.cpp
+  actor/actor/Actor.cpp
+  actor/actor/MovableObject.cpp
+  actor/shadow/Shadow.cpp
+  actor/address/ChannelAddress.cpp
+  )
+
+set(RELIABILITY_LIBS
+  domain/pattern/DiscretizedRandomProcessSeries.cpp
+  domain/pattern/SimulatedRandomProcessSeries.cpp
+  reliability/analysis/analysis/FORMAnalysis.cpp
+  reliability/analysis/analysis/GFunVisualizationAnalysis.cpp
+  reliability/analysis/analysis/FOSMAnalysis.cpp
+  reliability/analysis/analysis/OutCrossingAnalysis.cpp
+  reliability/analysis/analysis/SamplingAnalysis.cpp
+  reliability/analysis/analysis/ReliabilityAnalysis.cpp
+  reliability/analysis/analysis/SORMAnalysis.cpp
+  reliability/analysis/analysis/SystemAnalysis.cpp
+  reliability/analysis/analysis/system/IPCM.cpp
+  reliability/analysis/analysis/system/PCM.cpp
+  reliability/analysis/analysis/system/SCIS.cpp
+  reliability/analysis/analysis/system/MVNcdf.cpp
+  reliability/analysis/analysis/BivariateDecomposition.cpp
+  reliability/analysis/analysis/DP_RSM_Sim.cpp
+  reliability/analysis/analysis/DP_RSM_Sim_TimeVariant.cpp
+  reliability/analysis/analysis/ExperimentalPointRule1D.cpp
+  reliability/analysis/analysis/GridPlane.cpp
+  reliability/analysis/analysis/ImportanceSamplingAnalysis.cpp
+  reliability/analysis/analysis/MonteCarloResponseAnalysis.cpp
+  reliability/analysis/analysis/MultiDimVisPrincPlane.cpp
+  reliability/analysis/analysis/OrthogonalPlaneSamplingAnalysis.cpp
+  reliability/analysis/analysis/PrincipalAxis.cpp
+  reliability/analysis/analysis/RespSurfaceSimulation.cpp
+  reliability/analysis/analysis/SurfaceDesign.cpp
+  reliability/analysis/analysis/UniformExperimentalPointRule1D.cpp
+  reliability/analysis/analysis/UnivariateDecomposition.cpp
+  reliability/analysis/convergenceCheck/OptimalityConditionReliabilityConvergenceCheck.cpp
+  reliability/analysis/convergenceCheck/ReliabilityConvergenceCheck.cpp
+  reliability/analysis/convergenceCheck/StandardReliabilityConvergenceCheck.cpp
+  reliability/analysis/curvature/CurvaturesBySearchAlgorithm.cpp
+  reliability/analysis/curvature/FindCurvatures.cpp
+  reliability/analysis/curvature/FirstPrincipalCurvature.cpp
+  reliability/analysis/curvature/CurvatureFitting.cpp
+  reliability/analysis/designPoint/SearchWithStepSizeAndStepDirection.cpp
+  reliability/analysis/designPoint/FindDesignPointAlgorithm.cpp
+  reliability/analysis/direction/HLRFSearchDirection.cpp
+  reliability/analysis/direction/SearchDirection.cpp
+  reliability/analysis/direction/PolakHeSearchDirectionAndMeritFunction.cpp
+  reliability/analysis/direction/SQPsearchDirectionMeritFunctionAndHessian.cpp
+  reliability/analysis/direction/GradientProjectionSearchDirection.cpp
+  reliability/analysis/gradient/GradientEvaluator.cpp
+  reliability/analysis/gradient/FiniteDifferenceGradient.cpp
+  reliability/analysis/gradient/ImplicitGradient.cpp
+  reliability/analysis/hessian/HessianEvaluator.cpp
+  reliability/analysis/hessian/FiniteDifferenceHessian.cpp
+  reliability/analysis/meritFunction/AdkZhangMeritFunctionCheck.cpp
+  reliability/analysis/meritFunction/CriteriaReductionMeritFunctionCheck.cpp
+  reliability/analysis/meritFunction/MeritFunctionCheck.cpp
+  reliability/analysis/misc/MatrixOperations.cpp
+  reliability/analysis/misc/CorrelatedStandardNormal.cpp
+  reliability/analysis/randomNumber/CStdLibRandGenerator.cpp
+  reliability/analysis/randomNumber/RandomNumberGenerator.cpp
+  reliability/analysis/rootFinding/RootFinding.cpp
+  reliability/analysis/rootFinding/SecantRootFinding.cpp
+  reliability/analysis/rootFinding/SafeGuardedZeroFindingAlgorithm.cpp
+  reliability/analysis/rootFinding/ZeroFindingAlgorithm.cpp
+  reliability/analysis/stepSize/ArmijoStepSizeRule.cpp
+  reliability/analysis/stepSize/FixedStepSizeRule.cpp
+  reliability/analysis/stepSize/StepSizeRule.cpp
+  reliability/analysis/transformation/NatafProbabilityTransformation.cpp
+  reliability/analysis/transformation/ProbabilityTransformation.cpp
+  reliability/analysis/transformation/AllIndependentTransformation.cpp
+  reliability/analysis/telm/RandomVibrationSimulatorResult.cpp
+  reliability/analysis/telm/Analyzer.cpp
+  reliability/analysis/telm/NewSearchWithStepSizeAndStepDirection.cpp
+  reliability/analysis/telm/ranrotb.cpp
+  reliability/analysis/telm/AnalyzerGFunEvaluator.cpp
+  reliability/analysis/telm/ranrotw.cpp
+  reliability/analysis/telm/AnalyzerGradGEvaluator.cpp
+  reliability/analysis/telm/NewStandardLinearOscillatorAccelerationFilter.cpp
+  reliability/analysis/telm/ReliabilityDirectIntegrationAnalysis.cpp
+  reliability/analysis/telm/CrossingRateAnalyzer.cpp
+  reliability/analysis/telm/ReliabilityStaticAnalysis.cpp
+  reliability/analysis/telm/DynamciAnalyzer.cpp
+  reliability/analysis/telm/NewWhitenoiseFilter.cpp
+  reliability/analysis/telm/SelectLoadInitialStaticAnalysis.cpp
+  reliability/analysis/telm/FirstPassageAnalyzer.cpp
+  reliability/analysis/telm/NonStatFirstPassageAnalyzer.cpp
+  reliability/analysis/telm/SmoothConcrete02.cpp
+  reliability/analysis/telm/FOSeriesSimulation.cpp
+  reliability/analysis/telm/NonStatRandomVibrationSimulation.cpp
+  reliability/analysis/telm/StatFirstPassageAnalyzer.cpp
+  reliability/analysis/telm/GeneralRandGenerator.cpp
+  reliability/analysis/telm/OutCrossingResults.cpp
+  reliability/analysis/telm/StaticAnalyzer.cpp
+  reliability/analysis/telm/GFunEachStepEvaluator.cpp
+  reliability/analysis/telm/PerformanceFunctionCoeff.cpp
+  reliability/analysis/telm/StatRandomVibrationSimulation.cpp
+  reliability/analysis/telm/InitialPointBuilder.cpp
+  reliability/analysis/telm/PerformanceFunctionCoefficientIter.cpp
+  reliability/analysis/telm/ThresholdIncInitialPointBuilder.cpp
+  reliability/analysis/telm/InitialStaticAnalysis.cpp
+  reliability/analysis/telm/rancombi.cpp
+  reliability/analysis/telm/TimePoints.cpp
+  reliability/analysis/telm/mersenne.cpp
+  reliability/analysis/telm/RandomProcess.cpp
+  reliability/analysis/telm/UniformGenerator.cpp
+  reliability/analysis/telm/mother.cpp
+  reliability/analysis/telm/RandomVibrationAnalysis.cpp
+  reliability/analysis/telm/NewDiscretizedRandomProcessSeries.cpp
+  reliability/analysis/telm/RandomVibrationSimulation.cpp
+  reliability/analysis/telm/localMath.cpp
+  reliability/domain/components/CorrelationCoefficient.cpp
+  reliability/domain/components/CorrelationCoefficientIter.cpp
+  reliability/domain/components/RandomVariable.cpp
+  reliability/domain/components/RandomVariableIter.cpp
+  reliability/domain/components/ReliabilityDomainComponent.cpp
+  reliability/domain/components/ReliabilityDomain.cpp
+  reliability/domain/components/PrincipalPlane.cpp
+  reliability/domain/components/Cutset.cpp
+  reliability/domain/components/CutsetIter.cpp
+  reliability/domain/distributions/BetaRV.cpp
+  reliability/domain/distributions/GumbelRV.cpp
+  reliability/domain/distributions/ParetoRV.cpp
+  reliability/domain/distributions/Type1LargestValueRV.cpp
+  reliability/domain/distributions/UniformRV.cpp
+  reliability/domain/distributions/ChiSquareRV.cpp
+  reliability/domain/distributions/LaplaceRV.cpp
+  reliability/domain/distributions/RayleighRV.cpp
+  reliability/domain/distributions/Type1SmallestValueRV.cpp
+  reliability/domain/distributions/WeibullRV.cpp
+  reliability/domain/distributions/ExponentialRV.cpp
+  reliability/domain/distributions/LognormalRV.cpp
+  reliability/domain/distributions/ShiftedExponentialRV.cpp
+  reliability/domain/distributions/Type2LargestValueRV.cpp
+  reliability/domain/distributions/GammaRV.cpp
+  reliability/domain/distributions/NormalRV.cpp
+  reliability/domain/distributions/ShiftedRayleighRV.cpp
+  reliability/domain/distributions/Type3SmallestValueRV.cpp
+  reliability/domain/distributions/UserDefinedRV.cpp
+  reliability/domain/functionEvaluator/FunctionEvaluator.cpp
+  reliability/domain/functionEvaluator/TclEvaluator.cpp
+  reliability/domain/performanceFunction/PerformanceFunction.cpp
+  reliability/domain/performanceFunction/PerformanceFunctionIter.cpp
+  reliability/domain/performanceFunction/LimitStateFunction.cpp
+  reliability/domain/performanceFunction/LimitStateFunctionIter.cpp
+  reliability/domain/modulatingFunction/ModulatingFunction.cpp
+  reliability/domain/modulatingFunction/ModulatingFunctionIter.cpp
+  reliability/domain/modulatingFunction/ConstantModulatingFunction.cpp
+  reliability/domain/modulatingFunction/GammaModulatingFunction.cpp
+  reliability/domain/modulatingFunction/TrapezoidalModulatingFunction.cpp
+  reliability/domain/modulatingFunction/KooModulatingFunction.cpp
+  reliability/domain/spectrum/JonswapSpectrum.cpp
+  reliability/domain/spectrum/NarrowBandSpectrum.cpp
+  reliability/domain/spectrum/PointsSpectrum.cpp
+  reliability/domain/spectrum/Spectrum.cpp
+  reliability/domain/spectrum/SpectrumIter.cpp
+  reliability/domain/filter/Filter.cpp
+  reliability/domain/filter/FilterIter.cpp
+  reliability/domain/filter/StandardLinearOscillatorAccelerationFilter.cpp
+  reliability/domain/filter/StandardLinearOscillatorDisplacementFilter.cpp
+  reliability/domain/filter/StandardLinearOscillatorVelocityFilter.cpp
+  reliability/domain/filter/KooFilter.cpp
+  reliability/domain/filter/DeltaFilter.cpp
+  reliability/domain/storage/ReliabilityStorage.cpp
+  reliability/domain/storage/FORMStorage.cpp
+  reliability/FEsensitivity/SensitivityAlgorithm.cpp
+  reliability/tcl/TclReliabilityBuilder.cpp)
+
+set(OPTIMIZATION_LIBS
+  optimization/domain/Optimization.cpp
+  optimization/domain/OptimizationDomain.cpp
+  optimization/domain/OptimizationDomainComponent.cpp
+  optimization/domain/component/ConstraintFunction.cpp
+  optimization/domain/component/DesignVariable.cpp
+  optimization/domain/component/DesignVariableIter.cpp
+  optimization/domain/component/DesignVariablePositioner.cpp
+  optimization/domain/component/DesignVariablePositionerIter.cpp
+  optimization/domain/component/ObjectiveFunction.cpp
+  optimization/tcl/TclOptimizationBuilder.cpp
+  )
+
+
+if(OPS_GRAPHICS STREQUAL "NONE")
+  set(GRAPHIC_LIBS_TCL
+    tcl/TclFeViewer.cpp
+    )
+else()
+  set(GRAPHIC_LIBS_TCL
+    tcl/TclFeViewer.cpp
+    tcl/TclVideoPlayer.cpp
+    )
+endif()
+
+
+set(INTERPRETER_LIBS_TCL
+  tcl/tclMain.cpp
+  tcl/tclAppInit.cpp
+  tcl/commands.cpp
+  modelbuilder/tcl/myCommands.cpp
+  )
+
+set(INTERPRETER_LIBS_MPI
+  tcl/tclMain.cpp
+  tcl/mpiMain.cpp
+  tcl/commands.cpp
+  modelbuilder/tcl/myCommands.cpp
+  actor/channel/MPI_Channel.cpp
+  actor/machineBroker/MPI_MachineBroker.cpp
+  system_of_eqn/linearSOE/diagonal/MPIDiagonalSOE.cpp
+  system_of_eqn/linearSOE/diagonal/MPIDiagonalSolver.cpp
+  )
+
+set(INTERPRETER_LIBS_MPI_PARAMETERS
+  tcl/tclMain.cpp
+  tcl/mpiParameterMain.cpp
+  tcl/commands.cpp
+  modelbuilder/tcl/myCommands.cpp
+  actor/channel/MPI_Channel.cpp
+  actor/machineBroker/MPI_MachineBroker.cpp
+  system_of_eqn/linearSOE/diagonal/MPIDiagonalSOE.cpp
+  system_of_eqn/linearSOE/diagonal/MPIDiagonalSolver.cpp
+  )
+
+set(INTERPRETER_LIBS_TK
+  tcl/tkMain.cpp
+  tcl/tkAppInit.cpp
+  tcl/commands.cpp
+  modelbuilder/tcl/myCommands.cpp
+  )
+
+set(OPS_SRC_LIBS
+  ACTOR_LIBS
+  ANALYSIS_LIBS
+  DATABASE_LIBS
+  DOMAIN_LIBS
+  DRAIN_LIBS
+  ELE_LIBS 
+  ERRORHANDLER_LIBS
+  FEDEAS_LIBS
+  FMK_LIBS
+  GGD_LIBS
+  GLF_LIBS
+  GRAPH_LIBS
+  KJE_LIBS
+  LAW_LIBS
+  MATERIAL_LIBS
+  MATRIX_LIBS
+  MODEL_BUILDER_LIBS
+  PY_SJB_RWB_BJ_LIBS
+  RECORDER_LIBS
+  REMO_LIBS
+  RENDERER_LIBS
+  SECTION_LIBS
+  SNAP_LIBS
+  SysOfEqn_LIBS
+  TAGGED_LIBS
+  UTILITY_LIBS
+  ZHY_LIBS
+  )
+
+if(OPS_RELIABILITY)
+  list(APPEND OPS_SRC_LIBS
+    RELIABILITY_LIBS OPTIMIZATION_LIBS)
+endif()
+
+add_library(libopensees)
+
+set(OPS_INCLUDE_DIRS
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${OPS_EXTERNAL_INCLUDE_DIRS}
+  reliability/domain/components
+  reliability/domain/performanceFunction
+  reliability/domain/modulatingFunction
+  reliability/domain/filter
+  reliability/domain/spectrum
+  optimization/domain/component
+  optimization/domain
+  domain/loadBalancer
+  )
+
+foreach(_lib ${OPS_SRC_LIBS})
+  foreach(_file ${${_lib}})
+    get_filename_component(_dir ${_file} DIRECTORY)
+    list(APPEND OPS_INCLUDE_DIRS ${_dir})
+  endforeach()
+  add_library(${_lib} OBJECT ${${_lib}})
+  set_target_properties(${_lib} PROPERTIES POSITION_INDEPENDENT_CODE TRUE)  
+endforeach()
+
+list(REMOVE_DUPLICATES OPS_INCLUDE_DIRS)
+
+foreach(_lib ${OPS_SRC_LIBS})
+  target_compile_definitions(${_lib} PUBLIC ${OPS_FLAGS})
+  target_include_directories(${_lib} PUBLIC ${OPS_INCLUDE_DIRS})
+endforeach()
+
+target_include_directories(LAW_LIBS PRIVATE
+  analysis/algorithm/eigenAlgo)
+
+target_include_directories(ACTOR_LIBS PRIVATE
+  element/beam2d
+  element/beam3d
+  tcl)
+
+
+target_link_libraries(SysOfEqn_LIBS PUBLIC CSparse SuperLU LAPACK UMFPACK ARPACK ITPACK)
+target_link_libraries(GRAPH_LIBS PUBLIC AMD METIS)
+target_link_libraries(ANALYSIS_LIBS PUBLIC CSparse)
+
+if(OPS_PROGRAMMING_MODE STREQUAL "PARALLEL")
+  target_link_libraries(SysOfEqn_LIBS PUBLIC DistributedSuperLU MUMPS)
+endif()
+
+set_target_properties(libopensees PROPERTIES OUTPUT_NAME OpenSees)
+
+foreach(_lib ${OPS_SRC_LIBS})
+  target_sources(libopensees PUBLIC $<TARGET_OBJECTS:${_lib}>)
+  target_link_libraries(libopensees PUBLIC $<TARGET_PROPERTY:${_lib},LINK_LIBRARIES>)
+endforeach()
+
+add_library(opensees_tcl_commands ${TCL_COMMAND_LIBS})
+target_compile_definitions(opensees_tcl_commands PUBLIC ${OPS_FLAGS})
+target_include_directories(opensees_tcl_commands PUBLIC ${OPS_INCLUDE_DIRS} tcl)
+set_target_properties(libopensees PROPERTIES OUTPUT_NAME OpenSeesTCLCommands)
+
+if(OPS_PROGRAMMING_MODE STREQUAL "PARALLEL")
+  set(OPS_EXECUTABLE "OpenSeesMP")
+elseif(OPS_PROGRAMMING_MODE STREQUAL "PARALLEL_INTERPERTERS")
+  set(OPS_EXECUTABLE "OpenSeesSP")
+else()
+  set(OPS_EXECUTABLE "OpenSees")
+endif()
+
+add_executable(opensees ${GRAPHIC_LIBS_TCL})
+target_link_libraries(opensees
+  PRIVATE opensees_tcl_commands libopensees
+  CSparse SuperLU ${OPS_EXTERNAL_LIBRARIES} dl)
+set_target_properties(opensees PROPERTIES OUTPUT_NAME ${OPS_EXECUTABLE})
+target_include_directories(opensees PRIVATE system_of_eqn/linearSOE/cg)
+
+if(OPS_PROGRAMMING_MODE STREQUAL PARALLEL)
+  target_sources(opensees PRIVATE ${INTERPRETER_LIBS_MPI})
+elseif(OPS_PROGRAMMING_MODE STREQUAL PARALLEL_INTERPERTERS)
+  target_sources(opensees PRIVATE ${INTERPRETER_LIBS_MPI_PARAMETERS})
+else()
+  target_sources(opensees PRIVATE ${INTERPRETER_LIBS_TCL})
+endif()
+
+install_targets(lib libopensees opensees_tcl_commands)
+install_targets(bin opensees)
+
+
+if(TK_FOUND AND NOT OPS_PROGRAMMING_MODE MATCHES "PARALLEL.*")
+  add_executable(openseestk ${INTERPRETER_LIBS_TK} ${GRAPHIC_LIBS_TCL})
+  target_link_libraries(openseestk PRIVATE $<TAGET_PROPERTY:opensees,LINK_LIBRARIES>)
+  target_include_directories(openseestk PRIVATE $<TAGET_PROPERTY:opensees,INCLUDE_DIRECTORIES>)
+  set_target_properties(openseestk PROPERTIES OUTPUT_NAME ${OPS_EXECUTABLE}Tk)
+  install_targets(bin openseestk)
+endif()
