@@ -571,8 +571,8 @@ NoTensionSection3d::setTrialSectionDeformation (const Vector &def)
 						dCorr_de += corr / (muZt(i, 0) - 1.0) / (2.0*muZt(i, 0))* std::pow(muZt(i, 0), -2.0) * dmu0_de;
 						dCorr_de += (corr/ zetaZt(i, 0))  * dzeta0_de;
 
-						Dtrial += (bi + zetaZt(i, 0)*c) % (dCorr_de);
-						Dtrial += corr* (c % dzeta0_de);						
+					//	Dtrial += (bi + zetaZt(i, 0)*c) % (dCorr_de);
+					//	Dtrial += corr* (c % dzeta0_de);						
 					}											
 				}
 				
@@ -592,8 +592,8 @@ NoTensionSection3d::setTrialSectionDeformation (const Vector &def)
 						dCorr_de += corr / (muZt(i, 1) - 1.0) / (2.0*muZt(i, 1))* std::pow(muZt(i, 1), -2.0) * dmu1_de;
 						dCorr_de += corr / zetaZt(i, 1)   * dzeta1_de;
 
-						Dtrial += (bi + zetaZt(i, 1)*c) % (dCorr_de);
-						Dtrial += corr* (c % dzeta1_de);
+					//	Dtrial += (bi + zetaZt(i, 1)*c) % (dCorr_de);
+					//	Dtrial += corr* (c % dzeta1_de);
 					}
 				}
 

@@ -199,7 +199,7 @@ OPS_Macroelement3d()
 		// No tension 3d section model
 		// true for stronger, true for elastic, true for crushing
 		theSectionI = new NoTensionSection3d(0, E_, G, t, b, -1.0, dData2[5], 5, false, false,  true);   	
-		theSectionE = new NoTensionSection3d(0, E_, G, t, b, -1.0, dData2[5], 5, true,   true,  true);
+		theSectionE = new NoTensionSection3d(0, E_, G, t, b, -1.0, dData2[5], 5, true,  false,  true);
 		theSectionJ = new NoTensionSection3d(0, E_, G, t, b, -1.0, dData2[5], 5, false, false,  true);
 
 		// Gambarotta Lagomarsino model for shear
@@ -453,8 +453,8 @@ OPS_Macroelement3d()
         // standard input for spandrels, with my shear model and the middle section linear elastic (end sections slightly stronger)
 		// arguments: h, b, t, E, G, fc, mu, c, Gc, dropDrift, muR  
 
-		double dData2[13];
-	    numData = 13;
+		double dData2[11];
+	    numData = 11;
 		if (OPS_GetDoubleInput(&numData,&dData2[0]) < 0) {
 			opserr << "WARNING Macroelement3d (tag: " << iData[0] << "):'-spandrel' input structure incorrect, invalid double input(s)." << endln;
 			opserr << "Required structure : h, b, t, E, G, fc, mu, c, Gc, dropDrift, muR <-flags>" << endln;
@@ -720,8 +720,8 @@ OPS_Macroelement3d()
 					  // maybe check that they sum to 1
 					  double sum = 0.;
 					  sum = intLength(0) + intLength(1) + intLength(2);
-					  if (std::abs(sum-1.0) < 0.01)
-						  opserr << "WARNING: Macroelement " << iData[0] <<", specified integration weights do not sum exactly to 1.\n";
+					  if (std::abs(sum-1.0) > 0.01)
+						  opserr << "WARNING: Macroelement " << iData[0] <<", specified integration weights do not sum exactly to 1 (sum=" << sum << ").\n";
 				  }
 			  }
 			  alreadReadType = false;
@@ -2110,7 +2110,7 @@ Macroelement3d::getMass()
   if (cMass == 0)  {
     // lumped mass matrix
 	  if (isGable) {
-		double m = rho*2.*L;
+		double m = 0.5*rho*2.*L;
 		K(0,0) = 5./12.*m *massglobalDir(0);
 		K(1,1) = 5./12.*m *massglobalDir(1);
 		K(2,2) = 5./12.*m *massglobalDir(2);
@@ -2150,7 +2150,7 @@ Macroelement3d::getMass()
     // consistent mass matrix	  
 
 	 Matrix massI_over12(3,3);
-	 double m = rho*L / 6.;  // 1/12 mTot
+	 double m = rho*L / 6.;  // 1/12 mTot, 1/6 mTot if gable
 
 	 if (isGable) {  
 		 m /= 4.;     // mTotGable/24
@@ -2443,7 +2443,7 @@ Macroelement3d::addInertiaLoadToUnbalance(const Vector &accel)
   if (cMass == 0)  {
     // take advantage of lumped mass matrix
 	if (isGable) {
-		double m = rho*2.*L;
+		double m = 0.5*rho*2.*L;
 		Q(0)  -= 5./12.*m *Raccel1(0) *massglobalDir(0);
 		Q(1)  -= 5./12.*m *Raccel1(1) *massglobalDir(1);
 		Q(2)  -= 5./12.*m *Raccel1(2) *massglobalDir(2);
@@ -2674,7 +2674,7 @@ Macroelement3d::getResistingForceIncInertia()
   if (cMass == 0)  {
     // take advantage of lumped mass matrix
 	if (isGable) {
-		double m = rho*2.*L;
+		double m = 0.5*rho*2.*L;
 		P(0)  += 5./12.*m* accel1(0) *massglobalDir(0);
 		P(1)  += 5./12.*m *accel1(1) *massglobalDir(1);
 		P(2)  += 5./12.*m *accel1(2) *massglobalDir(2);
@@ -2800,7 +2800,7 @@ Macroelement3d::setResponse(const char **argv, int argc, OPS_Stream &output)
       theResponse = new ElementResponse(this, 1, P);
 
     // basic force - check if correct (allows confusion between basic forces and local forces)
-    }  else if (strcmp(argv[0],"basicForces") == 0 || strcmp(argv[0],"localForces") == 0) {
+    }  else if (strcmp(argv[0],"basicForces") == 0 || strcmp(argv[0],"localForces") == 0 || strcmp(argv[0], "localForce") == 0) {
 
       output.tag("ResponseType","N_1");
       output.tag("ResponseType","Mz_1");
@@ -2900,8 +2900,6 @@ Macroelement3d::getResponse(int responseID, Information &eleInfo)
     return eleInfo.setVector(this->getRayleighDampingForces());
     
   else if (responseID == 2) {
-   // P = Tgl ^ (this->getResistingForce());
-//	return eleInfo.setVector(P);
 
 	this->getResistingForce();
 	for (int i=0; i<12; i++) {
