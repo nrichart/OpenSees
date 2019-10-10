@@ -44,14 +44,14 @@
 #
 # Specify the location and name of the OpenSees interpreter program
 # that will be created (if this all works!)
-
-OpenSees_PROGRAM = $(HOME)/bin/OpenSees
+prefix = /home/richart/dev/eesd/OpenSees
+OpenSees_PROGRAM = $(prefix)/bin/OpenSees
 
 OPERATING_SYSTEM = LINUX
 GRAPHICS = NONE
 GRAPHIC_FLAG = -D_NOGRAPHICS
 PROGRAMMING_MODE = SEQUENTIAL
-DEBUG_MODE = NO_DEBUG
+DEBUG_MODE = DEBUG
 RELIABILITY = NO_RELIABILITY
 
 
@@ -63,43 +63,42 @@ RELIABILITY = NO_RELIABILITY
 # any of the libraries already leave the directory location blank AND
 # remove the directory from DIRS.
 
-BASE		= /usr/local
-FE		= $(HOME)/OpenSees/SRC
+BASE		= $(prefix)
+FE		= $(prefix)/SRC
 
 #PROGRAMMING_MODE = SEQUENTIAL
-#PROGRAMMING_MODE = PARALLEL
-PROGRAMMING_MODE = PARALLEL_INTERPRETERS
+PROGRAMMING_MODE = PARALLEL
+#PROGRAMMING_MODE = PARALLEL_INTERPRETERS
 
-OpenSees_PROGRAM = $(HOME)/bin/OpenSees
+OpenSees_PROGRAM = $(prefix)/bin/OpenSees
 PROGRAMMING_FLAG = 
 
 ifeq ($(PROGRAMMING_MODE), PARALLEL)
-OpenSees_PROGRAM = $(HOME)/bin/OpenSeesSP
+OpenSees_PROGRAM = $(prefix)/bin/OpenSeesSP
 PROGRAMMING_FLAG = -D_PARALLEL_PROCESSING
 endif
 
 ifeq ($(PROGRAMMING_MODE), PARALLEL_INTERPRETERS)
-OpenSees_PROGRAM = $(HOME)/bin/OpenSeesMP
+OpenSees_PROGRAM = $(prefix)/bin/OpenSeesMP
 PROGRAMMING_FLAG = -D_PARALLEL_INTERPRETERS
 endif
 
+PROGRAMMING_FLAG += 
+
+AMDdir       = $(prefix)/OTHER/AMD
+BLASdir      = $(prefix)/OTHER/BLAS
+CBLASdir     = $(prefix)/OTHER/CBLAS
+LAPACKdir    = $(prefix)/OTHER/LAPACK
+SUPERLUdir   = $(prefix)/OTHER/SuperLU_4.1/SRC
+SUPERLU_DISTdir   = $(prefix)/OTHER/SuperLU_DIST_4.3/SRC
+ARPACKdir    = $(prefix)/OTHER/ARPACK
+UMFPACKdir   = $(prefix)/OTHER/UMFPACK
+METISdir     = $(prefix)/OTHER/METIS
+CSPARSEdir   = $(prefix)/OTHER/CSPARSE
+SRCdir       = $(prefix)/SRC
 
 
-AMDdir       = $(HOME)/OpenSees/OTHER/AMD
-BLASdir      = $(HOME)/OpenSees/OTHER/BLAS
-CBLASdir     = $(HOME)/OpenSees/OTHER/CBLAS
-LAPACKdir    = $(HOME)/OpenSees/OTHER/LAPACK
-SUPERLUdir   = $(HOME)/OpenSees/OTHER/SuperLU_4.1/SRC
-SUPERLU_DISTdir   = $(HOME)/OpenSees/OTHER/SuperLU_DIST_2.5/SRC
-ARPACKdir    = $(HOME)/OpenSees/OTHER/ARPACK
-UMFPACKdir   = $(HOME)/OpenSees/OTHER/UMFPACK
-METISdir     = $(HOME)/OpenSees/OTHER/METIS
-CSPARSEdir   = $(HOME)/OpenSees/OTHER/CSPARSE
-SRCdir       = $(HOME)/OpenSees/SRC
-
-
-DIRS        = $(BLASdir) $(CBLASdir) $(LAPACKdir) $(AMDdir) $(CSPARSEdir) \
-	$(SUPERLUdir) $(ARPACKdir) $(UMFPACKdir) $(SRCdir) $(METISdir)
+DIRS        = $(SRCdir) $(prefix)/DEVELOPER  $(prefix)/OTHER/CSPARSE
 
 # %-------------------------------------------------------%
 # | SECTION 3: LIBRARIES                                  |
@@ -116,39 +115,40 @@ DIRS        = $(BLASdir) $(CBLASdir) $(LAPACKdir) $(AMDdir) $(CSPARSEdir) \
 # Note: For libraries that will be created (any in DIRS above)
 # make sure the directory exsists where you want the library to go!
 
-FE_LIBRARY      = $(HOME)/lib/libOpenSees.a
-NDARRAY_LIBRARY = $(HOME)/lib/libndarray.a # BJ_UCD jeremic@ucdavis.edu
-MATMOD_LIBRARY  = $(HOME)/lib/libmatmod.a  # BJ_UCD jeremic@ucdavis.edu
-BJMISC_LIBRARY  = $(HOME)/lib/libBJmisc.a  # BJ_UCD jeremic@ucdavis.edu
-LAPACK_LIBRARY  = $(HOME)/lib/libLapack.a
-BLAS_LIBRARY    = $(HOME)/lib/libBlas.a
-SUPERLU_LIBRARY = $(HOME)/lib/libSuperLU.a
-CBLAS_LIBRARY   = $(HOME)/lib/libCBlas.a
-CSPARSE_LIBRARY   = $(HOME)/lib/libCBlas.a
-ARPACK_LIBRARY  = $(HOME)/lib/libArpack.a
-AMD_LIBRARY  = $(HOME)/lib/libAMD.a
-UMFPACK_LIBRARY = $(HOME)/lib/libUmfpack.a
-METIS_LIBRARY   = $(HOME)/lib/libMetis.a
-TCL_LIBRARY = /usr/lib64/libtcl8.5.so
-BLITZ_LIBRARY = $(HOME)/blitz/lib/libblitz.a
+FE_LIBRARY      = $(prefix)/lib/libOpenSees.a
+NDARRAY_LIBRARY = $(prefix)/lib/libndarray.a # BJ_UCD jeremic@ucdavis.edu
+MATMOD_LIBRARY  = $(prefix)/lib/libmatmod.a  # BJ_UCD jeremic@ucdavis.edu
+BJMISC_LIBRARY  = $(prefix)/lib/libBJmisc.a  # BJ_UCD jeremic@ucdavis.edu
+LAPACK_LIBRARY  = -lopenblas
+BLAS_LIBRARY    = -lopenblas
+SUPERLU_LIBRARY = -lsuperlu
+CBLAS_LIBRARY   = -lopenblas
+CSPARSE_LIBRARY   = $(prefix)/lib/libcsparse.a
+ARPACK_LIBRARY  = -larpack
+AMD_LIBRARY  = -lamd
+UMFPACK_LIBRARY = -lumfpack
+METIS_LIBRARY   = -lmetis
+TCL_LIBRARY = -ltcl8.6
+BLITZ_LIBRARY = -lblitz
 GRAPHIC_LIBRARY     = 
 
 
 ifeq ($(PROGRAMMING_MODE), SEQUENTIAL)
 DISTRIBUTED_SUPERLU_LIBRARY     = 
 else
-DISTRIBUTED_SUPERLU_LIBRARY     = $(HOME)/lib/libDistributedSuperLU.a
+DISTRIBUTED_SUPERLU_LIBRARY     = $(SUPERLU_LIBRARY) -lsuperlu_dist
 endif
 
 # WATCH OUT .. These libraries are removed when 'make wipe' is invoked.
-WIPE_LIBS	= $(FE_LIBRARY) \
-		$(LAPACK_LIBRARY) \
-		$(BLAS_LIBRARY) \
-		$(CBLAS_LIBRARY) \
-		$(SUPERLU_LIBRARY) \
-		$(ARPACK_LIBRARY) \
-		$(UMFPACK_LIBRARY) \
-	        $(METIS_LIBRARY)
+WIPE_LIBS	= $(FE_LIBRARY)
+                #\
+		#$(LAPACK_LIBRARY) \
+		#$(BLAS_LIBRARY) \
+		#$(CBLAS_LIBRARY) \
+		#$(SUPERLU_LIBRARY) \
+		#$(ARPACK_LIBRARY) \
+		#$(UMFPACK_LIBRARY) \
+	        #$(METIS_LIBRARY)
 
 # %---------------------------------------------------------%
 # | SECTION 4: COMPILERS                                    |
@@ -190,16 +190,19 @@ RANLIBFLAGS     =
 #         - the _WIN32 for the Windows95/98 or NT operating system.
 #    C FLAGS used -DUSE_VENDOR_BLAS (needed in SuperLU) if UNIX in C++ FLAGS
 #
-
-C++FLAGS         = -Wall -D_LINUX -D_UNIX  -D_TCL85  \
+OS_FLAG = -D_LINUX
+DEBUG_FLAG = -Wall -Wextra -g3 -ggdb
+#DEBUG_FLAG =
+OPTIM_FLAGS = -O3 -march=native
+C++FLAGS         = -D_LINUX -D_UNIX  -D_TCL85 \
 	$(GRAPHIC_FLAG) $(RELIABILITY_FLAG) $(DEBUG_FLAG) \
-	$(PROGRAMMING_FLAG) $(MUMPS_FLAG) -O3 -ffloat-store 
-CFLAGS          = -Wall -O2
-FFLAGS          = -Wall -O
+	$(PROGRAMMING_FLAG) $(MUMPS_FLAG) $(OPTIM_FLAGS) -ffloat-store 
+CFLAGS          = $(OPTIM_FLAGS) $(DEBUG_FLAG)
+FFLAGS          = $(OPTIM_FLAGS) $(DEBUG_FLAG)
 
 # Linker
 LINKER          = $(CC++)
-LINKFLAGS       = -rdynamic -Wl
+LINKFLAGS       = -rdynamic
 
 
 # Misc
@@ -273,41 +276,27 @@ ifeq ($(HAVEMUMPS), YES)
 MUMPS = YES
 MUMPS_FLAG = -D_MUMPS -D_OPENMPI
 #MUMPS_DIR = /gpfs/fmk/MUMPS_4.6.4
-MUMPS_DIR = $(HOME)/PARALLEL_NUMERICAL_LIBS/MUMPS_4.10.0
+MUMPS_DIR = 
 
-PLAT    = MPICHGM-INTEL80
+PLAT    = OPENMPI-GCC
 
 SCALAP  = $(BLACSlib) $(SCALAPlib) $(BLACSlib)
 
-BLACS_DIR = $(HOME)/PARALLEL_NUMERICAL_LIBS/BLAC
-SCALAPACK_DIR = $(HOME)/PARALLEL_NUMERICAL_LIBS/SCALAPACK
-LAPACK_DIR = $(HOME)/PARALLEL_NUMERICAL_LIBS/LAPACK
+BLACS_DIR = 
+SCALAPACK_DIR = 
+LAPACK_DIR = 
 
-BLACS_LIB = -L$(BLACS_DIR)/LIB -lblacs_MPI-LINUX-0
-SCALAPACK_LIB = -L$(SCALAPACK_DIR) -lscalapack
-BLACS_LIB = -L$(BLACS_DIR)/INCLUDE
-SCALAPACK_LIB = -L$(SCALAPACK_DIR) 
+BLACS_LIB = 
+SCALAPACK_LIB = 
+BLACS_LIB = 
+SCALAPACK_LIB = 
 
 PLAT    = LINUX
 
 SCALAP  = $(BLACS_LIB) $(SCALAPACK_LIB)
 
-MUMPS_LIB = -L$(MUMPS_DIR)/lib \
-	$(FE)/system_of_eqn/linearSOE/mumps/MumpsSOE.o \
-	$(FE)/system_of_eqn/linearSOE/mumps/MumpsSolver.o \
-	$(FE)/system_of_eqn/linearSOE/mumps/MumpsParallelSOE.o \
-	$(FE)/system_of_eqn/linearSOE/mumps/MumpsParallelSolver.o \
-        $(HOME)/lib/libdmumps.a \
-        $(HOME)/lib/libmumps_common.a \
-        $(HOME)/lib/libpord.a \
-        $(HOME)/lib/libscalapack.a \
-	$(HOME)/lib/blacs_MPI-LINUX-0.a \
-	$(HOME)/lib/blacsCinit_MPI-LINUX-0.a \
-	$(HOME)/lib/blacsF77init_MPI-LINUX-0.a \
-	$(HOME)/PARALLEL_NUMERICAL_LIBS/BLACS/SRC/MPI/INTERNAL/bi_f77_get_constants.o \
-        $(HOME)/lib/blas_LINUX.a
-
-MUMPS_INCLUDE = -I$(MUMPS_DIR)/include
+MUMPS_LIB = -ldmumps
+MUMPS_INCLUDE = -I/usr/include
 
 endif
 
@@ -326,25 +315,18 @@ MACHINE_NUMERICAL_LIBS  = -lm \
 
 
 ifeq ($(PROGRAMMING_MODE), SEQUENTIAL)
-
 PARALLEL_LIB = 
-
 endif
 
 ifeq ($(PROGRAMMING_MODE), PARALLEL)
-
-PARALLEL_LIB = $(FE)/system_of_eqn/linearSOE/sparseGEN/DistributedSparseGenColLinSOE.o \
-	$(FE)/system_of_eqn/linearSOE/sparseGEN/SparseGenColLinSolver.o \
-	$(FE)/system_of_eqn/linearSOE/sparseGEN/DistributedSuperLU.o \
-	$(METIS_LIBRARY) $(HOME)/OpenSees/OTHER/METIS/frename.o $(METIS_LIBRARY) $(MUMPS_LIB) -lmpi -lmpi_f77
-
+PARALLEL_LIB = $(METIS_LIBRARY) $(METIS_LIBRARY) $(MUMPS_LIB)
 endif
 
 ifeq ($(PROGRAMMING_MODE), PARALLEL_INTERPRETERS)
 
 PARALLEL_LIB = $(FE)/system_of_eqn/linearSOE/sparseGEN/DistributedSparseGenColLinSOE.o \
 	$(FE)/system_of_eqn/linearSOE/sparseGEN/DistributedSuperLU.o \
-	$(METIS_LIBRARY) $(HOME)/OpenSees/OTHER/METIS/frename.o $(METIS_LIBRARY) $(MUMPS_LIB) -lmpi -lmpi_f77
+	$(METIS_LIBRARY) $(METIS_LIBRARY) $(MUMPS_LIB) -lmpi -lmpi_f77
 
 endif
 
@@ -362,7 +344,8 @@ MACHINE_INCLUDES        = -I/usr/include \
 			  -I$(BASE)/include \
 			  -I/usr/include/cxx \
 			  -I$(SUPERLU_DISTdir) $(MUMPS_INCLUDE) \
-			  -I$(HOME)/include -I$(HOME)/blitz
+			  -I$(HOME)/include -I$(HOME)/blitz \
+			  -I/usr/include/tcl8.6 -I/usr/include/superlu -I/usr/include/superlu-dist
 
 # this file contains all the OpenSees/SRC includes
 include $(FE)/Makefile.incl

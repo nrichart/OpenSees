@@ -1,29 +1,21 @@
 include ../../Makefile.def
 
-ifeq ($(OS_FLAG), -D_LINUX)
+OBJS = ElasticPPcpp.o BeamFricitonSupport.o CompressionDamage1d.o OrthotropicMembraneSection.o TensionDamage1d.o
+LIBRARIES = $(OBJS:%.o=%$(SUFFIX))
 
-LIBRARY 	= ElasticPPcpp.so
+all:   $(LIBRARIES)
 
-OBJS	= ElasticPPcpp.o 
+BeamFricitonSupport.o: BeamFrictionSupport/BeamFrictionSupport/BeamFrictionSupport.cpp
+	$(CC++) -g -Wall $(INCLUDES) -fPIC -c $< -o $@
 
-all:   $(OBJS)
-	$(CC++) -shared -Wl,-soname,$(LIBRARY) -o $(LIBRARY) $(OBJS) -lc
+CompressionDamage1d.o: CompressionDamage1d/CompressionDamage1d/CompressionDamage1d.cpp
+	$(CC++) -g -Wall $(INCLUDES) -fPIC -c $< -o $@
 
-ElasticPPcpp.o: ElasticPPcpp.cpp
-	$(CC++) -fPIC $(INCLUDES) -g -c -Wall ElasticPPcpp.cpp
+OrthotropicMembraneSection.o: OrthotropicMembraneSection/OrthotropicMembraneSection.cpp
+	$(CC++) -g -Wall $(INCLUDES) -fPIC -c $< -o $@
 
-
-
-else
-
-LIBRARY 	= ElasticPPcpp.dylib
-
-
-all: $(OBJS)
-	$(CC++) $(OS_FLAG) -dynamiclib $(INCLUDES) -Wl,-undefined,suppress,-flat_namespace ElasticPPcpp.cpp $(OUTSIDE_OBJS)  -current_version 1.0 -compatibility_version 1.0 -fvisibility=hidden -o $(LIBRARY)
-
-
-endif
+TensionDamage1d.o: TensionDamage1d/TensionDamage1d/TensionDamage1d.cpp
+	$(CC++) -g -Wall $(INCLUDES) -fPIC -c $< -o $@
 
 # Miscellaneous
 tidy:

@@ -114,8 +114,6 @@ extern  void *OPS_PlaneStressRebarMaterial(void);
 extern void *OPS_LinearCap(void);
 extern void *OPS_AcousticMedium(void);
 
-extern  "C" void *OPS_BeamFrictionSupport(void);  // added by Francesco Vanin
-
 extern  void *OPS_ElasticIsotropicMaterialThermal(void);  //L.Jiang [SIF]
 extern  void *OPS_DruckerPragerMaterialThermal(void);//L.Jiang [SIF]
 //extern  void *OPS_PlasticDamageConcretePlaneStressThermal(void);//L.Jiang [SIF]
@@ -518,15 +516,6 @@ TclModelBuilderNDMaterialCommand (ClientData clientData, Tcl_Interp *interp, int
       else
 	return TCL_ERROR;
     }
-
-	else if ((strcmp(argv[1], "BeamFrictionSupport") == 0) || (strcmp(argv[1], "BeamSupport") == 0)) {
-
-		void *theMat = OPS_BeamFrictionSupport();
-		if (theMat != 0)
-			theMaterial = (NDMaterial *)theMat;
-		else
-			return TCL_ERROR;
-	}
 
     else if (strcmp(argv[1],"PressureDependentElastic3D") == 0) {
 	if (argc < 6) {

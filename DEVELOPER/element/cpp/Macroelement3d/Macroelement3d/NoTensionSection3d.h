@@ -88,7 +88,7 @@ class NoTensionSection3d : public SectionForceDeformation
   
   double k, kg, L, t, J, fc;
   
-  int nSections;
+  int nSections{0};
   double  IPfactor;        // factor defining the ratio between in-plane and out-of-plane deformation
   Matrix muZ, muY;         // ductility demands for all section discretisations (converged)
   Matrix zetaZ, zetaY;     // damaged portions for all section discretisations (converged)
@@ -98,7 +98,7 @@ class NoTensionSection3d : public SectionForceDeformation
   Vector pos;              // position of the sections
   Vector weight;           // weight of the sections
   
-  Vector eCommitted, e, sCommitted, s;     // strain and stress vectors (committed and trial) 
+  Vector eCommitted, e, sCommitted, s, s_zero;     // strain and stress vectors (committed and trial) 
   Matrix D, Dcommitted, Dtrial;            // stiffness matrix (elastic, committed, trial)
 
   static ID code;

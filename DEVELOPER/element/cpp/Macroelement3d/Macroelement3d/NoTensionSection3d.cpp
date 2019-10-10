@@ -57,7 +57,7 @@ ID NoTensionSection3d::code(4);
 
 NoTensionSection3d::NoTensionSection3d(void) 
 	:SectionForceDeformation(0, 0), k(0.0), kg(0.0), t(0.0), L(0.0), J(0.0), fc(0.0), e(4), 
-	eCommitted(4), sCommitted(4), s(4), D(4,4), Dtrial(4,4), Dcommitted(4,4), nSections(0), IPfactor(1.0), stronger(false), elastic(false), crushing(true)
+	 eCommitted(4), sCommitted(4), s(4), s_zero(4), D(4,4), Dtrial(4,4), Dcommitted(4,4), nSections(0), IPfactor(1.0), stronger(false), elastic(false), crushing(true)
 {
     if (code(0) != SECTION_RESPONSE_P) {
       code(0) = SECTION_RESPONSE_P;	    // axial force
@@ -65,15 +65,17 @@ NoTensionSection3d::NoTensionSection3d(void)
       code(2) = SECTION_RESPONSE_MY;	// out-of-plane moment 
       code(3) = SECTION_RESPONSE_T;	    // Torsion 
     }
+    s_zero.Zero();
 }
 
 NoTensionSection3d::NoTensionSection3d (int tag, double _k, double _kg, double _t, double _L, double _J, double _fc, int _nSections, bool stronger, bool elastic, bool crushing, bool spandrel)
    :SectionForceDeformation(tag, 0),
-   k(_k), kg(_kg), t(_t), L(_L), J(_J), fc(_fc), e(4), eCommitted(4), s(4), sCommitted(4), D(4,4), Dtrial(4,4), Dcommitted(4,4), nSections(_nSections), IPfactor(0.0),
+   k(_k), kg(_kg), t(_t), L(_L), J(_J), fc(_fc), e(4), eCommitted(4), s(4), s_zero(4), sCommitted(4), D(4,4), Dtrial(4,4), Dcommitted(4,4), nSections(_nSections), IPfactor(0.0),
    muZ(_nSections,2),  muY(_nSections,2),  zetaZ(_nSections,2),  zetaY(_nSections,2), pos(_nSections), weight(_nSections), sliceOutput(0),
    muZt(_nSections,2), muYt(_nSections,2), zetaZt(_nSections,2), zetaYt(_nSections,2), 
    stronger(stronger), elastic(elastic), crushing(crushing), spandrel(spandrel), factorStronger(0.001), torsionalStiffnessFactor(1.0)
-{  
+{
+  s_zero.Zero();
 	// calculate torsional stiffness if a negative stiffness is provided (assume relatively thin rectangular section)
 	if (J<0.0) {
 		if (t>L) {
@@ -892,14 +894,16 @@ NoTensionSection3d::getSectionDeformation (void)
 
 const Vector &
 NoTensionSection3d::getStressResultant (void)
-{	        
-	if (std::abs(s(0))>-DBL_EPSILON && 
+{
+  	if (std::abs(s(0))>-DBL_EPSILON && 
 		std::abs(s(1))>-DBL_EPSILON &&
-		std::abs(s(2))>-DBL_EPSILON )		
-	
+	    std::abs(s(2))>-DBL_EPSILON ) {
 		return s;
-	else
-		return s*0.0;
+	}else {
+	  //return s*0.0; // This return a reference to a temporary (undefined
+	  //behavior)
+	  return s_zero;
+	}
 
   return s;
 }

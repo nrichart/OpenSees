@@ -121,15 +121,15 @@ class Macroelement3d : public Element
     ID connectedExternalNodes;                  // Tags of elements nodes (i,j,e)
     Node *theNodes[3];                          // pointers to element nodes (i,j,e)
 
-    static Matrix K;		                    // stores element stiffness, damping, or mass Matrix.
-	Matrix GammaC;	                            // Compatibility matrix, including or not P-Delta effects
-    static Vector P;		                    // Element resisting force vector
+    static Matrix K;                            // stores element stiffness, damping, or mass Matrix.
+    Matrix GammaC;                              // Compatibility matrix, including or not P-Delta effects
+    static Vector P;                            // Element resisting force vector
     Matrix Tgl, Tgl6;                           // Rotation 3d matrix from global to local coordinates. Full version and 6x6 version to rotate only one node dofs
     double R[3][3];                            
 
     Vector Q;                                   // Applied nodal loadsalphaNC_SD
     Vector q;                                   // Basic force
-	Vector uBasic, uBasicCommitted;             // Basic displcaments
+    Vector uBasic, uBasicCommitted;             // Basic displcaments
 
     double q0[12];                              // Element forces producing a p-delta effect
     double p0[12];                              // Reactions in basic system of distributed loads

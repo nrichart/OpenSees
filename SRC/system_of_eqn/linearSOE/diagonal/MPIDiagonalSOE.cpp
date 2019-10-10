@@ -498,7 +498,7 @@ MPIDiagonalSOE::addB(const Vector &v, const ID &id, double fact)
       for (int i=0; i<id.Size(); i++) {
 	int pos = id(i);
 	if (pos <size && pos >= 0)
-	  B[pos] += v(i) * fact;
+	  B[pos] += v(i) * fact; // never heard of fmas ?
       }
     }
   }  else {

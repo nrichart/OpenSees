@@ -1,38 +1,28 @@
 include ../../Makefile.def
 
-ifeq ($(OS_FLAG), -D_LINUX)
+OBJS = Truss2D.o
+LIBRARIES = $(OBJS:%.o=%$(SUFFIX))
 
-LIBRARY 	= Truss2D.so
-OBJS	= Truss2D.o 
-
-all:   $(OBJS)
-	$(CC++) -shared -Wl,-soname,$(LIBRARY) -o $(LIBRARY) $(OBJS) -lc
-
-
-Truss2D.o: Truss2D.cpp
-	$(CC++) -fPIC $(INCLUDES) -g -c -Wall Truss2D.cpp
-
-else
-
-LIBRARY_CPP 	= Truss2D.dylib
-
-all: $(OBJS)
-	$(CC++) $(OS_FLAG) -dynamiclib $(INCLUDES) -Wl,-undefined,suppress,-flat_namespace Truss2D.cpp $(OUTSIDE_OBJS)  -current_version 1.0 -compatibility_version 1.0 -fvisibility=hidden -o $(LIBRARY_CPP)
-
-endif
+all:   $(LIBRARIES)
+	@$(CD) Macroelement3d/Macroelement3d/; $(MAKE);
 
 # Miscellaneous
 tidy:
 	@$(RM) $(RMFLAGS) Makefile.bak *~ #*# core
+	@$(CD) Macroelement3d/Macroelement3d/; $(MAKE) tidy;
 
 clean:  tidy
 	@$(RM) $(RMFLAGS) $(OBJS) *.o core *.out *.so *.dylib
+	@$(CD) Macroelement3d/Macroelement3d/; $(MAKE) clean;
 
 spotless: clean
 	@$(RM) $(RMFLAGS) $(PROGRAM) fake core
+	@$(CD) Macroelement3d/Macroelement3d/; $(MAKE) spotless;
 
 wipe: spotless
-	@$(RM) $(RMFLAGS) $(PROGRAM) fake core $(LIBRARY)
+	@$(RM) $(RMFLAGS) $(PROGRAM) fake core $(LIBRARIES)
+	@$(CD) Macroelement3d/Macroelement3d/; $(MAKE) wipe;
+
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 

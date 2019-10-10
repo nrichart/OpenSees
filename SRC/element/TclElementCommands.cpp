@@ -50,6 +50,9 @@
 #include <YamamotoBiaxialHDR.h>
 #include<WheelRail.h>
 
+#include <string>
+
+
 extern 
 #ifdef _WIN32
 int __cdecl
@@ -159,8 +162,6 @@ extern  void *OPS_CatenaryCableElement(void);
 extern  void *OPS_ShellANDeS(void);
 extern  void *OPS_FourNodeTetrahedron(void);
 extern  void *OPS_LysmerTriangle(void);
-
-extern "C" void *OPS_Macroelement3d(void); // Added by Francesco Vanin (EPFL, 2019)
 
 extern int TclModelBuilder_addFeapTruss(ClientData clientData, Tcl_Interp *interp,  int argc,
 					TCL_Char **argv, Domain*, TclModelBuilder *, int argStart);
@@ -682,19 +683,6 @@ TclModelBuilderElementCommand(ClientData clientData, Tcl_Interp *interp,
       opserr << "TclElementCommand -- unable to create element of type : " << argv[1] << endln;
       return TCL_ERROR;
     }
-
-  // added by Francesco Vanin
-  }
-  else if (strcmp(argv[1], "Macroelement3d") == 0) {
-
-	  void *theEle = OPS_Macroelement3d();
-	  if (theEle != 0)
-		  theElement = (Element *)theEle;
-	  else {
-		  opserr << "TclElementCommand -- unable to create element of type : " << argv[1] << endln;
-		  return TCL_ERROR;
-    }
-	  //end addition
 
   } else if (strcmp(argv[1],"MVLEM") == 0) {
     
@@ -1504,18 +1492,11 @@ TclModelBuilderElementCommand(ClientData clientData, Tcl_Interp *interp,
     
     void *libHandle;
     void *(*funcPtr)();
-    int eleNameLength = strlen(argv[1]);
-    char *tclFuncName = new char[eleNameLength+5];
-    strcpy(tclFuncName, "OPS_");
-
-    strcpy(&tclFuncName[4], argv[1]);
-    
-    int res = getLibraryFunction(argv[1], tclFuncName, &libHandle, (void **)&funcPtr);
-    
-    delete [] tclFuncName;
+    auto tclFuncName = "OPS_" + std::string(argv[1]);
+    int eleNameLength = strlen(argv[1]);   
+    int res = getLibraryFunction(argv[1], tclFuncName.c_str(), &libHandle, (void **)&funcPtr);
     
     if (res == 0) {
-      
       char *eleName = new char[eleNameLength+1];
       strcpy(eleName, argv[1]);
       ElementPackageCommand *theEleCommand = new ElementPackageCommand;
@@ -1538,9 +1519,7 @@ TclModelBuilderElementCommand(ClientData clientData, Tcl_Interp *interp,
       } else {
 	return TCL_ERROR;
       }
-    }
-
-    
+    }  
   }
 
   // If we get here, the element type is unknown

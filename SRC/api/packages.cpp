@@ -31,6 +31,7 @@
 #include <sys/stat.h>
 #include <SimulationInformation.h>
 
+#include <iostream>
 
 
 extern
@@ -262,61 +263,56 @@ getLibraryFunction(const char *libName, const char *funcName, void **libHandle, 
 
 #else
 
-  int libNameLength = strlen(libName);
-  char *localLibName = new char[libNameLength+10];
-  strcpy(localLibName, libName);
-
 #ifdef _MACOSX
-  strcpy(&localLibName[libNameLength], ".dylib");
+  auto suffix = ".dylib";
 #else
-  strcpy(&localLibName[libNameLength], ".so");
+  auto suffix = ".so";
 #endif
-
+  auto prefix = "./";
+      
+  auto localLibName = prefix + std::string(libName) + suffix;
+  
   // Attempt to get the file attributes
-  intStat = stat(localLibName, &stFileInfo);
-  /* get library
+  intStat = stat(localLibName.c_str(), &stFileInfo);
+  /* get library */
   if(intStat != 0) {
-    opserr << "packages.cpp - NO FILE EXISTS: - trying OpenSees" << localLibName << endln;
-    int res = httpGET_File("opensees.berkeley.edu", localLibName, 80, localLibName);
+    opserr << "packages.cpp - NO FILE EXISTS: - trying OpenSees" << localLibName.c_str() << endln;
+    int res = httpGET_File("opensees.berkeley.edu", localLibName.c_str(), 80, localLibName.c_str());
     if (res != 0) {
-      opserr << "packages.cpp - NO FILE EXISTS: " << localLibName << endln;
+      opserr << "packages.cpp - NO FILE EXISTS: " << localLibName.c_str() << endln;
       return -1;
     }
   } 
-  */
+  /* */
   char *error;
 
-  *libHandle = dlopen (localLibName, RTLD_NOW);
-  
+  *libHandle = dlopen(localLibName.c_str(), RTLD_NOW);
+
+  std::cout << localLibName << " " << std::hex << *libHandle << std::endl;
   if (*libHandle == NULL)  {
-    delete [] localLibName;
+    error = dlerror();
+    std::cout << error << std::endl;
     return -1; // no lib exists
   }
 
-  void *funcPtr = dlsym(*libHandle, funcName);
-  
+  auto funcNameStr = std::string(funcName);
+  void *funcPtr = dlsym(*libHandle, funcNameStr.c_str());
+  std::cout << funcNameStr << " " << std::hex << funcPtr << std::endl;
   error = dlerror();
   
   //
   // look for fortran procedure, trailing underscore
   //
   
-  if (funcPtr == NULL ) {
-    int funcNameLength  =strlen(funcName);
-    char *underscoreFunctionName = new char[funcNameLength+2];
-    strcpy(underscoreFunctionName, funcName);
-    strcpy(&underscoreFunctionName[funcNameLength], "_");   
-    strcpy(&underscoreFunctionName[funcNameLength+1], "");    
-    funcPtr = dlsym(*libHandle, underscoreFunctionName);
-    delete [] underscoreFunctionName;
+  if (funcPtr == NULL) {
+    auto underscoreFunctionName = std::string(funcName) + "_";
+    funcPtr = dlsym(*libHandle, underscoreFunctionName.c_str());
   } 
   
   if (funcPtr == NULL)  {
     dlclose(*libHandle);
-    delete [] localLibName;
     return -1;
   }
-  
   
   *funcHandle = funcPtr;
   
@@ -335,8 +331,6 @@ getLibraryFunction(const char *libName, const char *funcName, void **libHandle, 
     }
   }
   
-  delete [] localLibName;
-
 #endif
 
   return result;

@@ -9,22 +9,37 @@ LINKER          = $(CC++)
 LINKFLAGS       =  -Wl 
 
 CD		= cd
-
-C++FLAGS	= -O3 
-CFLAGS		= -O2
+CP		= cp
+ECHO		= echo
+C++FLAGS	= -O1 -Wall -Wextra -g
+CFLAGS		= -O1 -Wall -Wextra -g
 FFLAGS		= -O 
 
+prefix = ~/dev/eesd/OpenSees
 INCLUDES = -I../core -I../../core
+
+ifeq ($(OS_FLAG), -D_LINUX)
+SUFFIX = .so
+else
+SUFFIX = .dylib
+endif
 
 .cpp.o:
 	@$(ECHO) Making $@ from $<
-	$(CC++) $(C++FLAGS) $(INCLUDES) -c $< -o $@
+	$(CC++) $(C++FLAGS) $(INCLUDES) -fPIC -c $< -o $@
 .C.o:
 	@$(ECHO) Making $@ from $<
-	$(CC++) $(C++FLAGS) $(INCLUDES) -c $< -o $@
+	$(CC++) $(C++FLAGS) $(INCLUDES) -fPIC -c $< -o $@
 .c.o:
 	@$(ECHO) Making $@ from $<
 	$(CC) $(CFLAGS) -c $< -o $@
 .f.o:      
 	@$(ECHO) Making $@ from $<
 	$(FC) $(FFLAGS) -c $< -o $@
+
+%.so: %.o
+	$(CC++) -shared -Wl,-soname,$@ -o $@ $*.o -lc
+	$(CP) $@ $(prefix)/lib
+
+.o.dylib: 
+	$(CC++) $(OS_FLAG) -dynamiclib -Wl,-undefined,suppress,-flat_namespace $<  -current_version 1.0 -compatibility_version 1.0 -fvisibility=hidden -o $@

@@ -38,11 +38,11 @@ class OPS_Stream:  public MovableObject
   virtual ~OPS_Stream();
 
   // output format
-  virtual int setFile(const char *fileName, openMode mode = OVERWRITE, bool echo = false) {return 0;}
-  virtual int setPrecision(int precision) {return 0;}
+  virtual int setFile(const char */*fileName*/, openMode /*mode*/ = OVERWRITE, bool /*echo*/ = false) {return 0;}
+  virtual int setPrecision(int /*precision*/) {return 0;}
   virtual int setFloatField(floatField) {return 0;}
-  virtual int precision(int precision) {return 0;}
-  virtual int width(int width) {return 0;}
+  virtual int precision(int /*precision*/) {return 0;}
+  virtual int width(int /*width*/) {return 0;}
 
   // xml stuff
   virtual int tag(const char *) =0;

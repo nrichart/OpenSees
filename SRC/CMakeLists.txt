@@ -1465,7 +1465,8 @@ endforeach()
 add_library(opensees_tcl_commands ${TCL_COMMAND_LIBS})
 target_compile_definitions(opensees_tcl_commands PUBLIC ${OPS_FLAGS})
 target_include_directories(opensees_tcl_commands PUBLIC ${OPS_INCLUDE_DIRS} tcl)
-set_target_properties(libopensees PROPERTIES OUTPUT_NAME OpenSeesTCLCommands)
+target_link_libraries(libopensees PUBLIC dl)
+#set_target_properties(libopensees PROPERTIES OUTPUT_NAME OpenSeesTCLCommands)
 
 if(OPS_PROGRAMMING_MODE STREQUAL "PARALLEL")
   set(OPS_EXECUTABLE "OpenSeesMP")
@@ -1477,8 +1478,7 @@ endif()
 
 add_executable(opensees ${GRAPHIC_LIBS_TCL})
 target_link_libraries(opensees
-  PRIVATE opensees_tcl_commands libopensees
-  CSparse SuperLU ${OPS_EXTERNAL_LIBRARIES} dl)
+  PRIVATE opensees_tcl_commands libopensees CSparse SuperLU ${OPS_EXTERNAL_LIBRARIES})
 set_target_properties(opensees PROPERTIES OUTPUT_NAME ${OPS_EXECUTABLE})
 target_include_directories(opensees PRIVATE system_of_eqn/linearSOE/cg)
 

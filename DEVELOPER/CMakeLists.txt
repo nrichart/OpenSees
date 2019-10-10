@@ -8,6 +8,8 @@ macro(add_opensees_extension name)
     PRIVATE
     -undefined,suppress
     )
+  target_link_libraries(${name} PRIVATE c)
+  
   if(APPLE)
     target_link_options(${name}
       PRIVATE

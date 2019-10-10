@@ -62,8 +62,8 @@ all:
 	@$(AR) $(ARFLAGS) $(FE_LIBRARY) $(FMK_LIBS)
 	@$(AR) $(ARFLAGS) $(FE_LIBRARY) $(KJE_LIBS)
 	@$(RANLIB) $(RANLIBFLAGS) $(FE_LIBRARY)
-	@$(AR) $(ARFLAGS) $(HOME)/lib/libOpenSeesTclCommands.a $(TCL_COMMAND_LIBS)
-	@$(RANLIB) $(RANLIBFLAGS) $(HOME)/lib/libOpenSeesTclCommands.a 
+	@$(AR) $(ARFLAGS) $(prefix)/lib/libOpenSeesTclCommands.a $(TCL_COMMAND_LIBS)
+	@$(RANLIB) $(RANLIBFLAGS) $(prefix)/lib/libOpenSeesTclCommands.a 
 
 else
 
@@ -120,8 +120,8 @@ all:
 	@$(AR) $(ARFLAGS) $(FE_LIBRARY) $(KJE_LIBS)
 	@$(AR) $(ARFLAGS) $(FE_LIBRARY) $(ACTOR_LIBS)
 	@$(RANLIB) $(RANLIBFLAGS) $(FE_LIBRARY)
-	@$(AR) $(ARFLAGS) $(HOME)/lib/libOpenSeesTclCommands.a $(TCL_COMMAND_LIBS)
-	@$(RANLIB) $(RANLIBFLAGS) $(HOME)/lib/libOpenSeesTclCommands.a 
+	@$(AR) $(ARFLAGS) $(prefix)/lib/libOpenSeesTclCommands.a $(TCL_COMMAND_LIBS)
+	@$(RANLIB) $(RANLIBFLAGS) $(prefix)/lib/libOpenSeesTclCommands.a 
 
 endif
 
@@ -190,7 +190,7 @@ TCL_COMMAND_LIBS = $(FE)/domain/pattern/TclPatternCommand.o \
 
 
 skypack:
-	@$(CD) $(HOME)/lib; rm -f $(HOME)/lib/libskypack.a;
+	@$(CD) $(HOME)/lib; rm -f $(prefix)/lib/libskypack.a;
 	@$(CD) $(FE)/system_of_eqn/linearSOE/profileSPD/skypack; creator;
 
 metis:

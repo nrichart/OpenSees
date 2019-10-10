@@ -50,7 +50,7 @@ class Response
   virtual ~Response();
   
   virtual int getResponse(void) = 0;
-  virtual int getResponseSensitivity(int gradNumber) {return 0;}
+  virtual int getResponseSensitivity(int /*gradNumber*/) {return 0;}
   virtual Information &getInformation(void);
 
   virtual void Print(OPS_Stream &s, int flag = 0);

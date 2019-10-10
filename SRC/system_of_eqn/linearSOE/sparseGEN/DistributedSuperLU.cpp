@@ -244,10 +244,10 @@ DistributedSuperLU::setSize()
   set_default_options_dist(&options);    
   options.PrintStat=NO;
 
+  // 
+ // Initialize the statistics variables. 
   //
-  // Initialize the statistics variables. 
-  //
-  PStatInit(&stat);
+//  PStatInit(&stat);
 
   return 0;
 }
