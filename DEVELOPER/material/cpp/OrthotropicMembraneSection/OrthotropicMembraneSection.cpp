@@ -66,51 +66,64 @@ ID      OrthotropicMembraneSection::array(8) ;
 #define OPS_Export extern "C"
 #endif
 
-static int numOrthotropicMembrane = 0;
+static bool loadedOrthotropicMembrane{false};
 
-OPS_Export void *
-	OPS_OrthotropicMembraneSection()
-{
-	if (numOrthotropicMembrane==0) {
-		numOrthotropicMembrane += 1;
-		opserr<<"Orthotropic Membrane section - Written by Francesco Vanin, EPFL, 2018.\n";
-		opserr << "Poointer : " << OPS_GetNumRemainingInputArgs() << endln;
-		double inputData[5];
-		int numdata = 5;
+OPS_Export void *OPS_OrthotropicMembraneSection() {
+  if (not loadedOrthotropicMembrane) {
+	loadedOrthotropicMembrane = true;
+	opserr<<"Orthotropic Membrane section - Written by Francesco Vanin, EPFL, 2018.\n";
+  }
+  
+  int argc = OPS_GetNumRemainingInputArgs();
+  if (argc < 6) {
+	opserr << "WARNING insufficient arguments " << argc << "\n";
+	opserr << "Want: section OrthotropicMembraneSection tag? E1? E2? ni? G? h? <rho?>\n";
+	return nullptr;
+  }
 
-		while (numdata == 5) {
-		}
-		
-		if (OPS_GetDoubleInput(&numdata, inputData) < 0) {
-			for (int k = 0; k < 5; k++)
-      			opserr << "input data " << k << ": " << inputData[k] << endln;
-			return 0;
-		}
-		
+  int tag;
+  double E1, E2, ni, G, h;
+  double rho = 0.0;
+  int numidata = 1;
+  if (OPS_GetIntInput(&numidata, &tag) != 0) {
+	opserr << "WARNING OrthotropicMembraneSection: invalid tag" << endln;
+	return nullptr;
+  }
+
+  int numddata = 1;
+  if (OPS_GetDoubleInput(&numddata, &E1) != 0) {
+	opserr << "WARNING OrthotropicMembraneSection (tag " << tag << "): invalid stiffness in direction '1' E1\n";
+	return nullptr;
+  }
+
+  if (OPS_GetDoubleInput(&numddata, &E2) != 0) {
+	opserr << "WARNING OrthotropicMembraneSection (tag " << tag << "): invalid stiffness in direction '2' E2\n";
+	return nullptr;
+  }
+
+  if (OPS_GetDoubleInput(&numddata, &ni) != 0) {
+	opserr << "WARNING OrthotropicMembraneSection (tag " << tag << "): invalid Poisson's ratio ni\n";
+	return nullptr;
+  }
+
+  if (OPS_GetDoubleInput(&numddata, &G) != 0) {
+	opserr << "WARNING OrthotropicMembraneSection (tag " << tag << "): invalid shear modulus G\n";
+	return nullptr;
+  }
+
+  if (OPS_GetDoubleInput(&numddata, &h) != 0) {
+	opserr << "WARNING OrthotropicMembraneSection (tag " << tag << "): invalid membrane height h\n";
+	return nullptr;
+  }
+
+  if (argc == 7) {
+	if (OPS_GetDoubleInput(&numddata, &rho) != 0) {
+	  opserr << "WARNING OrthotropicMembraneSection (tag " << tag << "): invalid density rho\n";
+	  return nullptr;
 	}
+  }
 
-    if (OPS_GetNumRemainingInputArgs() < 6) {
-		opserr << "WARNING insufficient arguments\n";
-		opserr << "Want: section OrthotropicMembraneSection tag? E1? E2? ni? G? h? <rho?>\n";
-	return 0;
-    }
-
-    int tag;
-    int numdata = 1;
-    if (OPS_GetIntInput(&numdata, &tag) < 0) {
-	opserr << "WARNING invalid tag\n";
-	return 0;
-    }
-
-    double data[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-    numdata = OPS_GetNumRemainingInputArgs();
-    if (numdata > 6) numdata = 6;   // don't read too many arguments if input is wrong
-    if (OPS_GetDoubleInput(&numdata, data) < 0) {
-	opserr << "WARNING invalid double values\n";
-	return 0;
-    }
-
-    return new OrthotropicMembraneSection(tag, data[0], data[1], data[2], data[3], data[4], data[5]);
+  return new OrthotropicMembraneSection(tag, E1, E2, ni, G, h, rho);
 }
 
 //null constructor

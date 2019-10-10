@@ -98,7 +98,7 @@ class NoTensionSection3d : public SectionForceDeformation
   Vector pos;              // position of the sections
   Vector weight;           // weight of the sections
   
-  Vector eCommitted, e, sCommitted, s;     // strain and stress vectors (committed and trial) 
+  Vector eCommitted, e, sCommitted, s, s_zero;     // strain and stress vectors (committed and trial) 
   Matrix D, Dcommitted, Dtrial;            // stiffness matrix (elastic, committed, trial)
 
   static ID code;

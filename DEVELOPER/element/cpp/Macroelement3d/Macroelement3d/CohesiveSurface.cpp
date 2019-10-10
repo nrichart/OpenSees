@@ -31,19 +31,27 @@ submitted to Earthquake Engineering and Structural Dynamics (2019)
 Last edit: 27 Feb 2019
 */
 
-
+/* -------------------------------------------------------------------------- */
 #include "CohesiveSurface.h"
-#include "OPS_Globals.h"
-#include "OPS_Stream.h"
-
+/* -------------------------------------------------------------------------- */
+#include <OPS_Globals.h>
+#include <OPS_Stream.h>
+#include <TaggedObject.h>
+#include <MapOfTaggedObjects.h>
+/* -------------------------------------------------------------------------- */
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <algorithm>
-#include <string.h>
-#include <TaggedObject.h>
-#include <MapOfTaggedObjects.h>
+//#include <string.h>
+#include <cmath>
+/* -------------------------------------------------------------------------- */
+
+
+#ifndef DBL_EPSILON
+#define DBL_EPSILON (std::numeric_limits<double>::epsilon())
+#endif
 
 CohesiveSurface::CohesiveSurface(void)
 	:Kalg(2, 2), Kpen(2, 2), sigma(2), s_di(2), s_di_nplus1(2) {

@@ -86,17 +86,20 @@
 #include <TubeSectionIntegration.h>
 
 //#include <McftSection2dfiber.h>
-
-// added by Francesco Vanin
-#include <OrthotropicMembraneSection.h>
-#include <NoTensionSection3d.h>
-
 #include <string.h>
 #include <fstream>
 using std::ifstream;
 
 #include <iostream>
 using std::ios;
+
+#include <packages.h>
+#include <elementAPI.h>
+
+
+// added by Francesco Vanin
+extern "C" void *OPS_OrthotropicMembraneSection();
+extern "C" void *OPS_NoTensionSection3d();
 
 int
 TclCommand_addFiberSection (ClientData clientData, Tcl_Interp *interp, int argc,
@@ -1865,124 +1868,39 @@ TclModelBuilderSectionCommand (ClientData clientData, Tcl_Interp *interp, int ar
 	  
 	  theSection = new Isolator2spring(tag, tol, k1, Fy, kb, kvo, hb, Pe, Po);
 	}
-    		
-		// added by Francesco Vanin: elastic orthotropic membrane section for plates and no tension section
 
-		else if ((strcmp(argv[1], "OrthotropicMembraneSection") == 0) || (strcmp(argv[1], "OrthotropicMembrane") == 0)) {
-			if (argc < 8) {
-				opserr << "WARNING insufficient arguments\n";
-				opserr << "Want: section OrthotropicMembraneSection tag? E1? E2? ni? G? h? <rho?>\n";
-				return TCL_ERROR;
-			}
-
-			int tag;
-			double E1, E2, ni, G, h;
-			double rho = 0.0;
-
-			if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-				opserr << "WARNING OrthotropicMembraneSection: invalid tag" << endln;
-				return TCL_ERROR;
-			}
-
-			if (Tcl_GetDouble(interp, argv[3], &E1) != TCL_OK) {
-				opserr << "WARNING OrthotropicMembraneSection (tag " << tag << "): invalid stiffness in direction '1' E1\n";
-				return TCL_ERROR;
-			}
-
-			if (Tcl_GetDouble(interp, argv[4], &E2) != TCL_OK) {
-				opserr << "WARNING OrthotropicMembraneSection (tag " << tag << "): invalid stiffness in direction '2' E2\n";
-				return TCL_ERROR;
-			}
-
-			if (Tcl_GetDouble(interp, argv[5], &ni) != TCL_OK) {
-				opserr << "WARNING OrthotropicMembraneSection (tag " << tag << "): invalid Poisson's ratio ni\n";
-				return TCL_ERROR;
-			}
-
-			if (Tcl_GetDouble(interp, argv[6], &G) != TCL_OK) {
-				opserr << "WARNING OrthotropicMembraneSection (tag " << tag << "): invalid shear modulus G\n";
-				return TCL_ERROR;
-			}
-
-			if (Tcl_GetDouble(interp, argv[7], &h) != TCL_OK) {
-				opserr << "WARNING OrthotropicMembraneSection (tag " << tag << "): invalid membrane height h\n";
-				return TCL_ERROR;
-			}
-
-			if (argc > 8) {
-				if (Tcl_GetDouble(interp, argv[8], &rho) != TCL_OK) {
-					opserr << "WARNING OrthotropicMembraneSection (tag " << tag << "): invalid density rho\n";
-					return TCL_ERROR;
-				}
-			}
-
-			theSection = new OrthotropicMembraneSection(tag, E1, E2, ni, G, h, rho);
-		}
-
-
-		else if ((strcmp(argv[1], "NoTensionSection3d") == 0) || (strcmp(argv[1], "NoTensionSection") == 0)) {
-			if (argc < 9) {
-				opserr << "WARNING insufficient arguments\n";
-				opserr << "Want: section NoTensionSection3d $tag $E $G $L $t $J $fc <$numSlices>\n";
-				return TCL_ERROR;
-			}
-
-			int tag;
-			double E,G,L,t,J,fc;
-			int numSlices = 5;
-
-			if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-				opserr << "WARNING NoTensionSection3d: invalid tag" << endln;
-				return TCL_ERROR;
-			}
-
-			if (Tcl_GetDouble(interp, argv[3], &E) != TCL_OK) {
-				opserr << "WARNING NoTensionSection3d (tag " << tag << "): invalid Young's modulus\n";
-				return TCL_ERROR;
-			}
-
-			if (Tcl_GetDouble(interp, argv[4], &G) != TCL_OK) {
-				opserr << "WARNING NoTensionSection3d (tag " << tag << "): invalid shear modulus\n";
-				return TCL_ERROR;
-			}
-
-			if (Tcl_GetDouble(interp, argv[5], &L) != TCL_OK) {
-				opserr << "WARNING NoTensionSection3d (tag " << tag << "): invalid length (local direction y)\n";
-				return TCL_ERROR;
-			}
-
-			if (Tcl_GetDouble(interp, argv[6], &t) != TCL_OK) {
-				opserr << "WARNING NoTensionSection3d (tag " << tag << "): invalid thickness (local direction z)\n";
-				return TCL_ERROR;
-			}
-
-			if (Tcl_GetDouble(interp, argv[7], &J) != TCL_OK) {
-				opserr << "WARNING OrthotropicMembraneSection (tag " << tag << "): invalid torsional stiffness\n";
-				return TCL_ERROR;
-			}
-
-			if (Tcl_GetDouble(interp, argv[8], &fc) != TCL_OK) {
-				opserr << "WARNING OrthotropicMembraneSection (tag " << tag << "): invalid compressive strength\n";
-				fc = abs(fc);
-				return TCL_ERROR;
-			}
-
-			if (argc > 9) {
-				if (Tcl_GetInt(interp, argv[9], &numSlices) != TCL_OK) {
-					opserr << "WARNING OrthotropicMembraneSection (tag " << tag << "): invalid number of section discretisations\n";
-					return TCL_ERROR;
-				}
-			}
-
-			theSection = new NoTensionSection3d(tag, E, G, t, L, J, fc, numSlices);
-		}
-		// end addition Francesco Vanin
+    // added by Francesco Vanin: elastic orthotropic membrane section for plates and no tension section
+	else if ((strcmp(argv[1], "OrthotropicMembraneSection") == 0) || (strcmp(argv[1], "OrthotropicMembrane") == 0)) {
+	    OPS_ResetCurrentInputArg(2);
+	    theSection = reinterpret_cast<SectionForceDeformation*>(OPS_OrthotropicMembraneSection());
+	}
+	else if ((strcmp(argv[1], "NoTensionSection3d") == 0) || (strcmp(argv[1], "NoTensionSection") == 0)) {
+	    OPS_ResetCurrentInputArg(2);
+	    theSection = reinterpret_cast<SectionForceDeformation*>(OPS_NoTensionSection3d());
+	}
+	// end addition Francesco Vanin
 
     else {
       theSection = TclModelBuilderYS_SectionCommand(clientData, interp, argc, 
 						    argv, theTclBuilder);
     }
-    
+
+    //
+    // maybe section class exists in a package yet to be loaded
+    //
+	if (theSection == nullptr) {
+	    void *libHandle{nullptr};
+        void * (*funcPtr)();
+
+        auto tclFuncName =  "OPS_" + std::string(argv[1]);
+        int res = getLibraryFunction(argv[1], tclFuncName.c_str(),
+									 &libHandle, (void **)&funcPtr);
+		if (res == 0) {
+		    OPS_ResetCurrentInputArg(2);
+		    theSection = reinterpret_cast<SectionForceDeformation*>((*funcPtr)());
+		}
+    }
+
     // Ensure we have created the Material, out of memory if got here and no section
     if (theSection == 0) {
       opserr << "WARNING could not create section " << argv[1] << endln;

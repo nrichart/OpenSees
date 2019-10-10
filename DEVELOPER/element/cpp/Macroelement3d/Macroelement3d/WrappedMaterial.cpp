@@ -305,22 +305,22 @@ WrappedMaterial::setResponse (const char **argv, int argc, OPS_Stream &output) {
   output.attr("matTag",this->getTag());
 
   if (strcmp(argv[0],"stress") == 0 || strcmp(argv[0],"stresses") == 0) {
-    const Vector &res = this->getStress();
-    int size = res.Size();
+    //const Vector &res = this->getStress();
+    //int size = res.Size();
     output.tag("ResponseType","sigma");
 	output.tag("ResponseType","tau");   
     theResponse =  new MaterialResponse(this, 1, this->getStress());
 
   } else if (strcmp(argv[0],"strain") == 0 || strcmp(argv[0],"strains") == 0) {
-    const Vector &res = this->getStrain();
-    int size = res.Size();
+    //const Vector &res = this->getStrain();
+    //int size = res.Size();
 	output.tag("ResponseType","epsilon");
 	output.tag("ResponseType","gamma");
     theResponse =  new MaterialResponse(this, 2, this->getStrain());
 
   } else if (strcmp(argv[0],"tangent") == 0 || strcmp(argv[0],"stiffness") == 0) {
-	const Matrix &res = this->getCommittedTangent();
-    int size = 4;
+	//const Matrix &res = this->getCommittedTangent();
+    //int size = 4;
 	output.tag("ResponseType","K11");
 	output.tag("ResponseType","K12");
 	output.tag("ResponseType","K21");
