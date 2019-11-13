@@ -49,7 +49,7 @@ ID NoTensionSection3d::code(4);
 
 
 NoTensionSection3d::NoTensionSection3d(void) 
-	:SectionForceDeformation(0, 0), k(0.0), kg(0.0), t(0.0), L(0.0), J(0.0), fc(0.0), e(4), 
+	:SectionForceDeformation(0, 0), k(0.0), kg(0.0), t(0.0), L(0.0), J(0.0), fc(0.0), e(4), r(0), muMax(0), triangular(false),
 	eCommitted(4), sCommitted(4), s(4), D(4,4), Dtrial(4,4), Dcommitted(4,4), nSections(0), IPfactor(1.0), stronger(false), elastic(false), crushing(true)
 {
     if (code(0) != SECTION_RESPONSE_P) {
@@ -60,12 +60,12 @@ NoTensionSection3d::NoTensionSection3d(void)
     }
 }
 
-NoTensionSection3d::NoTensionSection3d (int tag, double _k, double _kg, double _t, double _L, double _J, double _fc, int _nSections, bool stronger, bool elastic, bool crushing, bool spandrel)
+NoTensionSection3d::NoTensionSection3d (int tag, double _k, double _kg, double _t, double _L, double _J, double _fc, int _nSections, bool stronger, bool elastic, bool crushing, bool spandrel, double r, double muMax, bool triangular)
    :SectionForceDeformation(tag, 0),
    k(_k), kg(_kg), t(_t), L(_L), J(_J), fc(_fc), e(4), eCommitted(4), s(4), sCommitted(4), D(4,4), Dtrial(4,4), Dcommitted(4,4), nSections(_nSections), IPfactor(0.0),
    muZ(_nSections,2),  muY(_nSections,2),  zetaZ(_nSections,2),  zetaY(_nSections,2), pos(_nSections), weight(_nSections), sliceOutput(0),
-   muZt(_nSections,2), muYt(_nSections,2), zetaZt(_nSections,2), zetaYt(_nSections,2), 
-   stronger(stronger), elastic(elastic), crushing(crushing), spandrel(spandrel), factorStronger(0.001), torsionalStiffnessFactor(1.0)
+   muZt(_nSections,2), muYt(_nSections,2), zetaZt(_nSections,2), zetaYt(_nSections,2), zetaZ2(_nSections, 2), zetaZ2t(_nSections, 2),
+   stronger(stronger), elastic(elastic), crushing(crushing), spandrel(spandrel), factorStronger(0.001), torsionalStiffnessFactor(1.0), r(r), muMax(muMax), triangular(triangular)
 {  
 	// calculate torsional stiffness if a negative stiffness is provided (assume relatively thin rectangular section)
 	if (J<0.0) {
@@ -150,6 +150,7 @@ NoTensionSection3d::commitState(void)
     muZ = muZt;
 	muY = muYt;
 	zetaZ = zetaZt;
+	zetaZ2 = zetaZ2t;
 	zetaY = zetaYt;
 
   return 0;
@@ -165,6 +166,7 @@ NoTensionSection3d::revertToLastCommit(void)
 	muZt = muZ;
 	muYt = muY;
 	zetaZt = zetaZ;
+	zetaZ2t = zetaZ2;
 	zetaYt = zetaY;
 
 
@@ -177,6 +179,7 @@ NoTensionSection3d::revertToStart(void)
 	muZ.Zero();
 	muY.Zero();
 	zetaZ.Zero();
+	zetaZ2.Zero();
 	zetaY.Zero();
 
 	e.Zero();
@@ -398,6 +401,9 @@ NoTensionSection3d::setTrialSectionDeformation (const Vector &def)
 		//---------------------------------------------------------------------------------------------------------//
 		double muNew;
 		double zetaNew;
+		double zeta2New;
+		double f1_p, f2_p, fy_p;
+		double f1_n, f2_n, fy_n;
 		double corr;
 		double OOPfactor;
 
@@ -426,6 +432,7 @@ NoTensionSection3d::setTrialSectionDeformation (const Vector &def)
 			// initialise damage variables
 			muZt = muZ;
 			zetaZt = zetaZ;
+			zetaZ2t = zetaZ2;
 
 			// initialise constant values of vectors b_i and c
 			bi(0) = 1.0;
@@ -454,6 +461,8 @@ NoTensionSection3d::setTrialSectionDeformation (const Vector &def)
 					// trial values for damage variables
 					muNew = -k/fc *(bi^e);
 					zetaNew = (muNew-1.0)*fc/k / (3.0*c^e);
+					zeta2New = (muNew - muMax)*fc / k / (3.0*c^e);
+					
 
 					if (muNew > muZt(i, 0)) {
 						muZt(i, 0) = muNew;
@@ -479,6 +488,53 @@ NoTensionSection3d::setTrialSectionDeformation (const Vector &def)
 						}
 					}
 
+					if (zeta2New > zetaZ2t(i, 0)) {
+						if (zeta2New <= 1.0) {
+							zetaZ2t(i, 0) = zeta2New;
+						}
+
+						else {
+							zetaZ2t(i, 0) = 1.0;
+							zetaZ2t(i, 1) = 1.0;
+						}
+					}
+					fy_n = -k*((bi^e) - (e(1))*zetaZt(i, 0) *L);
+					f1_n = fc *muNew / muZt(i, 0);
+					if (zetaZt(i, 0) > 0.0) {
+						f2_n = fy_n + (f1_n - fy_n)*(zetaZt(i, 0) - zetaZ2t(i, 0)) / zetaZt(i, 0);
+					}
+					else {
+						f2_n = 0;
+					}
+
+					double d_py = e(0) - L*(1./ 2 - zetaZt(i, 1)) * e(1) + t*pos(i)*e(2);
+					double d_p2 = e(0) - L*(1./ 2 - zetaZ2t(i, 1)) * e(1) + t*pos(i)*e(2);
+					double d_p = e(0) - L/2.*e(1) + t*pos(i)*e(2);
+					if ( d_p < 0.0 && muZt(i, 1)>0) {
+						fy_p = -k*(d_py);
+						f1_p = fc*  d_p/(-fc/k) / muZt(i, 1);
+						if (zetaZ2t(i, 1) > 0.0) {
+							f2_p = fy_p + (f1_p - fy_p)*(zetaZt(i, 1) - zetaZ2t(i, 1)) / zetaZt(i, 1);
+							//f2_p = f1_p;
+						}
+						else {
+							f2_p = 0.0;
+							
+						}
+					}
+					else {
+						if (d_p2 < 0 && muZt(i, 1)>0) {
+							f1_p = 0.;
+							f2_p = -k*d_p2*(-d_p2) / (-d_p2 + d_p);
+						}
+						else {
+							f1_p = 0.;
+							f2_p = 0.;
+						}
+					}
+					//f1_p = 0.;
+					//f2_p = 0.;
+
 	
 				} else if (e(1) > DBL_EPSILON) {               // positive side (more) compressed. displ[z_] := wLoc - fiLoc*z; 
 
@@ -493,6 +549,7 @@ NoTensionSection3d::setTrialSectionDeformation (const Vector &def)
 					// trial values for damage variables
 					muNew = -k/fc *bi^e;
 					zetaNew = (muNew - 1.0)*fc / k / (3.0*c^e);
+					zeta2New = (muNew - muMax)*fc / k / (3.0*c^e);
 
 					if (muNew > muZt(i,1))  {
 						muZt(i,1) = muNew;
@@ -518,10 +575,52 @@ NoTensionSection3d::setTrialSectionDeformation (const Vector &def)
 						}
 					}
 
+					if (zeta2New > zetaZ2t(i, 1)) {
+						if (zeta2New <= 1.0) {
+							zetaZ2t(i, 1) = zeta2New;
+						}
+						else {
+							zetaZ2t(i, 0) = 1.0;
+							zetaZ2t(i, 1) = 1.0;
+						}
+					}
+					fy_p = -k*((bi^e) - (-e(1))*zetaZt(i, 1) *L);
+					f1_p = fc*muNew / muZt(i, 1);
+					if (zetaZt(i, 1) > 0.0) {
+						f2_p = fy_p + (f1_p - fy_p)*(zetaZt(i, 1) - zetaZ2t(i, 1)) / zetaZt(i, 1);
+					}
+					else {
+						f2_p = 0;
+					}
+
+					double d_ny = e(0) + L*(1. / 2 - zetaZt(i, 0)) * e(1) + t*pos(i)*e(2);
+					double d_n2 = e(0) + L*(1. / 2 - zetaZ2t(i, 0)) * e(1) + t*pos(i)*e(2);
+					double d_n = e(0) + L / 2.*e(1) + t*pos(i)*e(2);
+					if (d_n < 0.0 && muZt(i, 0)>0) {
+						fy_n = -k*(d_ny);
+						f1_n = fc* d_n / (-fc / k) / muZt(i, 0);
+						if (zetaZ2t(i, 0) > 0.0) {
+							f2_n = fy_n + (f1_n - fy_n)*(zetaZt(i, 0) - zetaZ2t(i, 0)) / zetaZt(i, 0);
+							//f2_n = f1_n;
+						}
+						else {
+							f2_n = f1_n;
+						}
+					} else {
+						if (d_n2 < 0 && muZt(i, 0)>0) {
+							f1_n = 0.;
+							f2_n = -k*d_n2 *(-d_n2)/(-d_n2+d_n);
+						} else {
+							f1_n = 0.;
+							f2_n = 0.;
+						}
+					}
+
 
 				} else {              // the section curvature along axis z is basically null
 					bi(1) = 0;        // any value would be fine
 					bi(2) = t*pos(i);
+					
 
 					muNew = -k / fc *bi^e;
 
@@ -543,6 +642,32 @@ NoTensionSection3d::setTrialSectionDeformation (const Vector &def)
 			        if (zetaZt(i,1) != 1.0 && muNew>1.) {  // was not already all crushed and there is some crushing now
 						zetaZt(i,1) = 1.0;
 					}
+
+					if (zetaZ2t(i, 0) != 1.0 && muNew>muMax) {  // was not already all crushed and there is some crushing now
+						zetaZ2t(i, 0) = 1.0;
+					}
+					if (zetaZ2t(i, 1) != 1.0 && muNew>muMax) {  // was not already all crushed and there is some crushing now
+						zetaZ2t(i, 1) = 1.0;
+					}
+					fy_n = fy_p = -k *bi^e;
+					if (fy_n > fc) { fy_n = fy_p = fc; }
+					f1_n = muNew*fc / muZt(i, 0);
+					f1_p = muNew*fc / muZt(i, 1);
+					if (zetaZt(i, 0) > 0.0) {
+						f2_n = fy_n + (f1_n - fy_n)*(zetaZ(i, 0) - zetaZ2(i, 0)) / zetaZ(i, 0);
+					}
+					else {
+						f2_n = f1_n;
+					}
+					if (zetaZt(i, 1) > 0.0) {
+						f2_p = fy_p + (f1_p - fy_p)*(zetaZ(i, 1) - zetaZ2(i, 1)) / zetaZ(i, 1);
+					}
+					else {
+						f2_p = f1_p;
+					}
+
+
+
 				}
 
 
@@ -565,7 +690,7 @@ NoTensionSection3d::setTrialSectionDeformation (const Vector &def)
 						dCorr_de += (corr/ zetaZt(i, 0))  * dzeta0_de;
 
 					//	Dtrial += (bi + zetaZt(i, 0)*c) % (dCorr_de);
-					//	Dtrial += corr* (c % dzeta0_de);						
+					//	Dtrial += corr* (c % dzeta0_de);	
 					}											
 				}
 				
@@ -589,6 +714,41 @@ NoTensionSection3d::setTrialSectionDeformation (const Vector &def)
 					//	Dtrial += corr* (c % dzeta1_de);
 					}
 				}
+
+				// crushing new correction
+				if (zetaZ2t(i, 0)>0.0) {     // negative side correction term
+
+					bi(1) = L / 2.0 - L*zetaZ2t(i, 0);
+					bi(2) = t*pos(i);
+					c(1) = -L / 3.;
+
+					if ((bi^e) < 0.0) {  // apply correction as long as the crushed zone is compressed
+
+						bi(1) = L / 2.;
+						corr = 0.5*zetaZ2t(i, 0)*L*t*weight(i)*(1. - r)*(f1_n);
+						s += (bi + zetaZ2t(i, 0)*c)*corr;
+						c(1) = -2.*L / 3.;
+						corr = 0.5*zetaZ2t(i, 0)*L*t*weight(i)*(1. - r)*(f2_n);
+						s += (bi + zetaZ2t(i, 0)*c)*corr;
+					}
+				}
+
+				if (zetaZ2t(i, 1)>0.0) {     // positive side correction term
+
+					bi(1) = -L / 2.0 + L*zetaZ2t(i, 1);
+					bi(2) = t*pos(i);
+					c(1) = L / 3.;
+
+					if ((bi^e) < 0.0) {  // apply correction as long as the the edge is compressed
+						bi(1) = -L / 2.0;
+						corr = 0.5*zetaZ2t(i, 1)*L*t*weight(i)*(1. - r)*(f1_p);
+						s += (bi + zetaZ2t(i, 1)*c)*corr;
+						c(1) = 2.*L / 3.;
+						corr = 0.5*zetaZ2t(i, 1)*L*t*weight(i)*(1. - r)*(f2_p);
+						s += (bi + zetaZ2t(i, 1)*c)*corr;
+					}
+				}
+
 
 			}  // end for sections
 	} // end if crushing and no all tension
@@ -929,7 +1089,7 @@ SectionForceDeformation*
 NoTensionSection3d::getCopy ()
 {
     // Make a copy of the hinge
-    NoTensionSection3d *theCopy = new NoTensionSection3d (this->getTag(), k, kg, t, L, J, fc, nSections, stronger, elastic, crushing, spandrel);
+    NoTensionSection3d *theCopy = new NoTensionSection3d (this->getTag(), k, kg, t, L, J, fc, nSections, stronger, elastic, crushing, spandrel, r, muMax,triangular);
     theCopy->parameterID = parameterID;
 
     return theCopy;

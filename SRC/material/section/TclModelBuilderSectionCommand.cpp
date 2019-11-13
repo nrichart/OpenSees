@@ -1930,6 +1930,9 @@ TclModelBuilderSectionCommand (ClientData clientData, Tcl_Interp *interp, int ar
 			int tag;
 			double E,G,L,t,J,fc;
 			int numSlices = 5;
+			double r = 1.0;
+			double muMax = 1e6;
+			bool triangular = false;
 
 			if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
 				opserr << "WARNING NoTensionSection3d: invalid tag" << endln;
@@ -1974,7 +1977,33 @@ TclModelBuilderSectionCommand (ClientData clientData, Tcl_Interp *interp, int ar
 				}
 			}
 
-			theSection = new NoTensionSection3d(tag, E, G, t, L, J, fc, numSlices);
+			if (argc > 10) {
+				if (Tcl_GetDouble(interp, argv[10], &r) != TCL_OK) {
+					opserr << "WARNING OrthotropicMembraneSection (tag " << tag << "): invalid number of section discretisations\n";
+					return TCL_ERROR;
+				}
+			}
+
+			if (argc > 11) {
+				if (Tcl_GetDouble(interp, argv[11], &muMax) != TCL_OK) {
+					opserr << "WARNING OrthotropicMembraneSection (tag " << tag << "): invalid number of section discretisations\n";
+					return TCL_ERROR;
+				}
+			}
+
+			if (argc > 12) {
+				if (strcmp(argv[12], "-triangular") == 0) {
+					triangular = true;
+				}
+			}
+
+
+
+			bool stronger = false;
+			bool elastic = false;
+			bool crushing = true;
+			bool spandrel = false;
+			theSection = new NoTensionSection3d(tag, E, G, t, L, J, fc, numSlices, stronger, elastic, crushing, spandrel, r,muMax,triangular);
 		}
 		// end addition Francesco Vanin
 

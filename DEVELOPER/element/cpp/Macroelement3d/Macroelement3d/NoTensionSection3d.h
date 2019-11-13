@@ -47,7 +47,7 @@ class NoTensionSection3d : public SectionForceDeformation
 {
  public:
   NoTensionSection3d(int tag, double _k, double _kg, double _t, double _L, double _J, double _fc, int _nSections, 
-	                  bool stronger=false, bool elastic=false, bool crushing=true, bool spandrel=false);
+	                  bool stronger=false, bool elastic=false, bool crushing=true, bool spandrel=false, double r=1.0, double muMax=1e6, bool triangular=false);
   NoTensionSection3d(void);
   ~NoTensionSection3d(void);
   
@@ -94,6 +94,9 @@ class NoTensionSection3d : public SectionForceDeformation
   Matrix zetaZ, zetaY;     // damaged portions for all section discretisations (converged)
   Matrix muZt, muYt;       // ductility demands for all section discretisations (trial)
   Matrix zetaZt, zetaYt;   // damaged portions for all section discretisations  (trial)
+  Matrix zetaZ2, zetaZ2t;  // crushed portions for all section discretisations  (converged, trial)
+  double r, muMax;         // residual strength attained at max ductility
+  bool triangular;         // flag for triangular softening response
 
   Vector pos;              // position of the sections
   Vector weight;           // weight of the sections
