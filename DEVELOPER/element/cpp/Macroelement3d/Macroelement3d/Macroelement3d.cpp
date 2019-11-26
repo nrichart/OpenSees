@@ -1020,6 +1020,7 @@ Macroelement3d::Macroelement3d(int tag, int nd1, int nd2, int ndE,
     
 	this->intLength *= 2*L;
 	this->intLengthMasses *= 2*L;
+
     
 }
 
@@ -1226,7 +1227,6 @@ Macroelement3d::setDomain(Domain *theDomain) {
     this->DomainComponent::setDomain(theDomain);
 	this->getIncrementalCompatibilityMatrix(false);
 	this->update();
-
 	
 }
 
@@ -1348,7 +1348,7 @@ Macroelement3d::update(void)
 		}
 	}
 
-	// aplly to the first section 
+	// apply to the first section 
 	for (int i = 0; i<3; i++)
 		if ( ordering[i]>=0)
 			e( ordering[i] ) = uBasic(i) / intLength(0);
@@ -1357,7 +1357,7 @@ Macroelement3d::update(void)
 		e( ordering[3] ) = uBasic(3) / (2.*L);
 
 	err += theSections[0]->setTrialSectionDeformation(e);
-	
+
 	M1 = (theSections[0]->getStressResultant())(ordering[1]);
 
 
@@ -1941,8 +1941,6 @@ const Matrix&
 Macroelement3d::getInitialBasicStiff()
 {
 
-	//opserr << "El. " << this->getTag() << ": called get K0 basic\n";
-  //  opserr << "called initial basic stiffness\n";
   static Matrix kb(12,12);  
   kb.Zero();
   
@@ -1965,9 +1963,9 @@ Macroelement3d::getInitialBasicStiff()
 	  default: break;
 	  }
   }
-
+  
   const Matrix &ks0 = theSections[0]->getInitialTangent();
-
+  
   // i index: line;  j index: column
   for (int i = 0; i<4; i++) {
 	  if (ordering[i] >= 0) {
@@ -2513,14 +2511,16 @@ Macroelement3d::getResistingForce()
 	  case SECTION_RESPONSE_P:     ordering[0] = j;	break;
 	  case SECTION_RESPONSE_MZ:    ordering[1] = j; break;
 	  case SECTION_RESPONSE_MY:    ordering[2] = j;	break;
+	  case SECTION_RESPONSE_T:     ordering[3] = j;	break;
 	  default: break;
 	  }
   }
-   
-  for (int i=0; i<order; i++) {
-	  q(i) = s0(ordering[i]);
-  }
 
+  for (int i=0; i<order; i++) {
+	  if (ordering[i] >= 0) {
+		  q(i) = s0(ordering[i]);
+	  }
+  }
   
   // second interface
   order = theSections[1]->getOrder();
@@ -2540,7 +2540,9 @@ Macroelement3d::getResistingForce()
 
   const Vector &s1 = theSections[1]->getStressResultant();
   for (int i = 0; i<3; i++) {
-	  q(4+i) = s1(ordering[i]);
+	  if (ordering[i] >= 0) {
+		  q(4 + i) = s1(ordering[i]);
+	  }
   }
 
 
@@ -2562,7 +2564,9 @@ Macroelement3d::getResistingForce()
 
   const Vector &s2 = theSections[2]->getStressResultant();
   for (int i = 0; i<3; i++) {
-	  q(7 + i) = s2(ordering[i]);
+	  if (ordering[i] >= 0) {
+		  q(7 + i) = s2(ordering[i]);
+	  }
   }
 
 
