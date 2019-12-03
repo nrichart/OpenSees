@@ -1871,13 +1871,14 @@ TclModelBuilderSectionCommand (ClientData clientData, Tcl_Interp *interp, int ar
 		else if ((strcmp(argv[1], "OrthotropicMembraneSection") == 0) || (strcmp(argv[1], "OrthotropicMembrane") == 0)) {
 			if (argc < 8) {
 				opserr << "WARNING insufficient arguments\n";
-				opserr << "Want: section OrthotropicMembraneSection tag? E1? E2? ni? G? h? <rho?>\n";
+				opserr << "Want: section OrthotropicMembraneSection tag? E1? E2? ni? G? h? <rho?> <angle>\n";
 				return TCL_ERROR;
 			}
 
 			int tag;
 			double E1, E2, ni, G, h;
 			double rho = 0.0;
+			double angle = 0.0;
 
 			if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
 				opserr << "WARNING OrthotropicMembraneSection: invalid tag" << endln;
@@ -1916,7 +1917,14 @@ TclModelBuilderSectionCommand (ClientData clientData, Tcl_Interp *interp, int ar
 				}
 			}
 
-			theSection = new OrthotropicMembraneSection(tag, E1, E2, ni, G, h, rho);
+			if (argc > 9) {
+				if (Tcl_GetDouble(interp, argv[9], &angle) != TCL_OK) {
+					opserr << "WARNING OrthotropicMembraneSection (tag " << tag << "): invalid material axis angle\n";
+					return TCL_ERROR;
+				}
+			}
+
+			theSection = new OrthotropicMembraneSection(tag, E1, E2, ni, G, h, rho, angle);
 		}
 
 
