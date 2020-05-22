@@ -752,13 +752,14 @@ OPS_Macroelement3d()
 			
 			while (goOn && i<otherInputs) {
 				stringRead = OPS_GetString();
-				if (strstr(stringRead,"-") ) { // means there is a flag
-					goOn = false;					
-				} else {
+				
+				char *err;
+				double dnotUsed = strtod(stringRead, &err);
+				if (*err == 0) { 
 					singleInput = strtod(stringRead, &pEnd);
 					parsed.push_back(singleInput);
 					i += 1;
-				}
+				} else if (!isspace((unsigned char)*err)) { goOn = false; }
 
 			}
 
@@ -819,14 +820,15 @@ OPS_Macroelement3d()
 			
 			while (goOn && i<otherInputs) {
 				stringRead = OPS_GetString();
-				if (strstr(stringRead,"-") ) { // means there is a flag
-					goOn = false;
-				} else {
+
+				char *err;
+				double dnotUsed = strtod(stringRead, &err);
+				if (*err == 0) {
 					singleInput = strtod(stringRead, &pEnd);
 					parsedS.push_back(singleInput);
 					i += 1;
 				}
-
+				else if (!isspace((unsigned char)*err)) { goOn = false; }
 			}
 
 			if (read_Ltfc) {
@@ -3067,4 +3069,383 @@ Macroelement3d::trasformMatrixToGlobal(Matrix& A) {
 
 	return 0;
 };
+
+
+
+
+
+
+
+
+
+// damping methods. 
+int
+Macroelement3d::setRayleighDampingFactors(double alpham, double betak, double betak0, double betakc)
+{
+	alphaM = alpham;
+	betaK = betak;
+	betaK0 = betak0;
+	betaKc = betakc;
+
+	// check that memory has been allocated to store compute/return
+	// damping matrix & residual force calculations
+	if (index == -1) {
+		int numDOF = this->getNumDOF();
+
+		for (int i = 0; i<numMatrices; i++) {
+			Matrix *aMatrix = theMatrices[i];
+			if (aMatrix->noRows() == numDOF) {
+				index = i;
+				i = numMatrices;
+			}
+		}
+		if (index == -1) {
+			Matrix **nextMatrices = new Matrix *[numMatrices + 1];
+			if (nextMatrices == 0) {
+				opserr << "Element::getTheMatrix - out of memory\n";
+			}
+			int j;
+			for (j = 0; j<numMatrices; j++)
+				nextMatrices[j] = theMatrices[j];
+			Matrix *theMatrix = new Matrix(numDOF, numDOF);
+			if (theMatrix == 0) {
+				opserr << "Element::getTheMatrix - out of memory\n";
+				exit(-1);
+			}
+			nextMatrices[numMatrices] = theMatrix;
+
+			Vector **nextVectors1 = new Vector *[numMatrices + 1];
+			Vector **nextVectors2 = new Vector *[numMatrices + 1];
+			if (nextVectors1 == 0 || nextVectors2 == 0) {
+				opserr << "Element::getTheVector - out of memory\n";
+				exit(-1);
+			}
+
+			for (j = 0; j<numMatrices; j++) {
+				nextVectors1[j] = theVectors1[j];
+				nextVectors2[j] = theVectors2[j];
+			}
+
+			Vector *theVector1 = new Vector(numDOF);
+			Vector *theVector2 = new Vector(numDOF);
+			if (theVector1 == 0 || theVector2 == 0) {
+				opserr << "Element::getTheVector - out of memory\n";
+				exit(-1);
+			}
+
+			nextVectors1[numMatrices] = theVector1;
+			nextVectors2[numMatrices] = theVector2;
+
+			if (numMatrices != 0) {
+				delete[] theMatrices;
+				delete[] theVectors1;
+				delete[] theVectors2;
+			}
+			index = numMatrices;
+			numMatrices++;
+			theMatrices = nextMatrices;
+			theVectors1 = nextVectors1;
+			theVectors2 = nextVectors2;
+		}
+	}
+
+	// if need storage for Kc go get it
+	if (betaKc != 0.0) {
+		if (Kc == 0)
+			Kc = new Matrix(this->getTangentStiff());
+		if (Kc == 0) {
+			opserr << "WARNING - ELEMENT::setRayleighDampingFactors - out of memory\n";
+			betaKc = 0.0;
+		}
+
+		// if don't need storage for Kc & have allocated some for it, free the memory
+	}
+	else if (Kc != 0) {
+		delete Kc;
+		Kc = 0;
+	}
+
+	return 0;
+}
+
+
+
+const Matrix &
+Macroelement3d::getDamp(void)
+{
+	if (index == -1) {
+		this->setRayleighDampingFactors(alphaM, betaK, betaK0, betaKc);
+	}
+
+	// now compute the damping matrix
+	Matrix *theMatrix = theMatrices[index];
+	theMatrix->Zero();
+	if (alphaM != 0.0)
+		theMatrix->addMatrix(0.0, this->getMass(), alphaM);
+	if (betaK != 0.0)
+		theMatrix->addMatrix(1.0, this->getTangentStiff(), betaK);
+	if (betaK0 != 0.0)
+		theMatrix->addMatrix(1.0, this->getInitialStiff(), betaK0);
+	if (betaKc != 0.0)
+		theMatrix->addMatrix(1.0, this->getSecantStiff(), betaKc);
+
+	// return the computed matrix
+	return *theMatrix;
+}
+
+
+const Vector &
+Macroelement3d::getRayleighDampingForces(void)
+{
+
+	if (index == -1) {
+		this->setRayleighDampingFactors(alphaM, betaK, betaK0, betaKc);
+	}
+
+	Matrix *theMatrix = theMatrices[index];
+	Vector *theVector = theVectors2[index];
+	Vector *theVector2 = theVectors1[index];
+
+	//
+	// perform: R = (alphaM * M + betaK0 * K0 + betaK * K) * v
+	//            = D * v
+	//
+
+	// determine the vel vector from ele nodes
+	Node **theNodes = this->getNodePtrs();
+	int numNodes = this->getNumExternalNodes();
+	int loc = 0;
+	for (int i = 0; i<numNodes; i++) {
+		const Vector &vel = theNodes[i]->getTrialVel();
+		for (int i = 0; i<vel.Size(); i++) {
+			(*theVector2)(loc++) = vel[i];
+		}
+	}
+
+	// now compute the damping matrix
+	theMatrix->Zero();
+	if (alphaM != 0.0)
+		theMatrix->addMatrix(0.0, this->getMass(), alphaM);
+	if (betaK != 0.0)
+		theMatrix->addMatrix(1.0, this->getTangentStiff(), betaK);
+	if (betaK0 != 0.0)
+		theMatrix->addMatrix(1.0, this->getInitialStiff(), betaK0);
+	if (betaKc != 0.0)
+		theMatrix->addMatrix(1.0, this->getSecantStiff(), betaKc);
+
+	// finally the D * v
+	theVector->addMatrixVector(0.0, *theMatrix, *theVector2, 1.0);
+
+	return *theVector;
+}
+
+
+
+const Matrix&
+Macroelement3d::getSecantStiff()
+{
+	static Matrix kb(12, 12);
+
+	kb.Zero();
+	q.Zero();
+
+	double oneOverL = 1.0 / L;
+
+	// first interface
+	int order = theSections[0]->getOrder();
+	const ID &code0 = theSections[0]->getType();
+
+	int ordering[4];
+	for (int j = 0; j < 4; j++)
+		ordering[j] = -1;
+
+	for (int j = 0; j < order; j++) {
+		switch (code0(j)) {
+		case SECTION_RESPONSE_P:     ordering[0] = j;	break;
+		case SECTION_RESPONSE_MZ:    ordering[1] = j;   break;
+		case SECTION_RESPONSE_MY:    ordering[2] = j;	break;
+		case SECTION_RESPONSE_T:     ordering[3] = j;	break;
+		default: break;
+		}
+	}
+
+	const Vector &s0 = theSections[0]->getStressResultant();
+	const Matrix &ks0 = theSections[0]->getSectionTangent();
+
+	// i index: line;  j index: column
+	for (int i = 0; i<4; i++) {
+		if (ordering[i] >= 0) {
+			q(i) = s0(ordering[i]);
+			for (int j = 0; j < 4; j++)
+				if (i < 3)
+					kb(i, j) = ks0(ordering[i], ordering[j]) / intLength(0);
+				else
+					kb(i, j) = ks0(ordering[i], ordering[j]) / (2.*L);
+		}
+	}
+
+	// second interface
+	order = theSections[1]->getOrder();
+	const ID &code1 = theSections[1]->getType();
+
+	for (int j = 0; j < 4; j++)
+		ordering[j] = -1;
+
+	for (int j = 0; j < order; j++) {
+		switch (code1(j)) {
+		case SECTION_RESPONSE_P:     ordering[0] = j;	break;
+		case SECTION_RESPONSE_MZ:    ordering[1] = j; break;
+		case SECTION_RESPONSE_MY:    ordering[2] = j;	break;
+		default: break;
+		}
+	}
+
+	const Vector &s1 = theSections[1]->getStressResultant();
+	const Matrix &ks1 = theSections[1]->getSectionTangent();
+
+	// i index: line;  j index: column
+	for (int i = 0; i<3; i++) {
+		if (ordering[i] >= 0) {
+			q(4 + i) = s1(ordering[i]);
+			for (int j = 0; j < 3; j++)
+				kb(4 + i, 4 + j) = ks1(ordering[i], ordering[j]) / intLength(1);
+		}
+	}
+
+
+	// third interface
+	order = theSections[2]->getOrder();
+	const ID &code2 = theSections[2]->getType();
+
+	for (int j = 0; j < 4; j++)
+		ordering[j] = -1;
+
+	for (int j = 0; j < order; j++) {
+		switch (code2(j)) {
+		case SECTION_RESPONSE_P:     ordering[0] = j;	break;
+		case SECTION_RESPONSE_MZ:    ordering[1] = j; break;
+		case SECTION_RESPONSE_MY:    ordering[2] = j;	break;
+		default: break;
+		}
+	}
+
+	const Vector &s2 = theSections[2]->getStressResultant();
+	const Matrix &ks2 = theSections[2]->getSectionTangent();
+
+	// i index: line;  j index: column
+	for (int i = 0; i<3; i++) {
+		if (ordering[i] >= 0) {
+			q(7 + i) = s2(ordering[i]);
+			for (int j = 0; j < 3; j++)
+				kb(7 + i, 7 + j) = ks2(ordering[i], ordering[j]) / intLength(2);
+		}
+	}
+
+	// shear interface 1 and 2
+	for (int sect = 0; sect<2; sect++) {
+
+		Matrix EshearModel = theShearModel[sect]->getInitialTangent();
+		double N = q(4);
+		double Esm = EshearModel(0, 0);
+
+		const Matrix &ks = theShearModel[sect]->getTangent();
+		const Vector &s = theShearModel[sect]->getStress();
+
+		kb(10 + sect, 10 + sect) = ks(1, 1);
+		q(10 + sect) = s(1);
+
+		// update non-diagonal terms of the stiffness matrix (dependency on N2)
+		for (int j = 0; j<3; j++)
+			kb(10 + sect, 4 + j) += ks(1, 0) / Esm * kb(4, 4 + j);
+
+	}
+
+	// kill lateral capacity if failed
+	if (collapsedS || collapsedF) {
+		double failureFactor;
+		if (collapsedS)
+			failureFactor = failureFactorS;
+		else
+			failureFactor = failureFactorF;
+
+		// dofs to kill: all
+		int dofsToKill[12] = { 0,1,2,3,4,5,6,7,8,9,10,11 };
+		int dof;
+
+		for (int kDof = 0; kDof<12; kDof++) {
+			dof = dofsToKill[kDof];
+			q(dof) *= failureFactor;
+			for (int j = 0; j<kb.noCols(); j++)
+				kb(dof, j) *= failureFactor;
+		}
+	}
+	else if (failedS || failedF) {
+
+		double failureFactor;
+		if (failedS)
+			failureFactor = failureFactorS;
+		else
+			failureFactor = failureFactorF;
+
+		// dofs to kill: 1,2, 5,6, 8,9,  10,11  (moments of every section, shear of every section)
+		int dofsToKill[8] = { 1,2, 5,6, 8,9,  10,11 };
+		int dof;
+
+		for (int kDof = 0; kDof<8; kDof++) {
+			dof = dofsToKill[kDof];
+			q(dof) *= failureFactor;
+			for (int j = 0; j<kb.noCols(); j++)
+				kb(dof, j) *= failureFactor;
+		}
+	}
+
+
+	// Transform to local stiffness matrix
+
+	Matrix Klocal(18, 18);
+	//if (PDelta==1)   getIncrementalCompatibilityMatrix(true);
+	Klocal.addMatrixTripleProduct(0.0, GammaC, kb, 1.0);
+
+	//opserr << "local stiffness = " << Klocal;
+
+	// add geometric local stiffness matrix  
+	if (PDelta == 1) {
+		Matrix kgeom(18, 18);
+
+		// add fixed end forces. Update
+		for (int i = 0; i<12; i++) {
+			q(i) += q0[i];
+		}
+
+		double qq0 = q(0);
+		double qq7 = q(7);
+		double qq4 = q(4);
+
+		kgeom(1, 1) = qq0*oneOverL;
+		kgeom(1, 13) = -(qq0*oneOverL);
+		kgeom(2, 2) = qq0*oneOverL;
+		kgeom(2, 14) = -(qq0*oneOverL);
+		kgeom(7, 7) = qq7*oneOverL;
+		kgeom(7, 16) = -(qq7*oneOverL);
+		kgeom(8, 8) = qq7*oneOverL;
+		kgeom(8, 17) = -(qq7*oneOverL);
+		kgeom(13, 1) = -(qq0*oneOverL);
+		kgeom(13, 13) = qq0*oneOverL;
+		kgeom(14, 2) = -(qq0*oneOverL);
+		kgeom(14, 14) = qq0*oneOverL;
+		kgeom(16, 7) = -(qq7*oneOverL);
+		kgeom(16, 16) = qq7*oneOverL;
+		kgeom(17, 8) = -(qq7*oneOverL);
+		kgeom(17, 17) = qq7*oneOverL;
+
+		Klocal += kgeom;
+	}
+
+
+	// Transform to global stiffness matrix   Kglobal = Tgl' * Klocal * Tgl
+	// done now otherwise the secant stiffness matrix would be rrturned
+	trasformMatrixToGlobal(Klocal);
+
+	return K;
+}
 
