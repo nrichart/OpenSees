@@ -111,6 +111,7 @@
     <ClCompile Include="..\..\..\DEVELOPER\element\cpp\Macroelement3d\Macroelement3d\CohesiveSurface.cpp" />
     <ClCompile Include="..\..\..\DEVELOPER\element\cpp\Macroelement3d\Macroelement3d\DamageShearInterface.cpp" />
     <ClCompile Include="..\..\..\DEVELOPER\element\cpp\Macroelement3d\Macroelement3d\GambarottaLagomarsinoModel.cpp" />
+    <ClCompile Include="..\..\..\DEVELOPER\element\cpp\Macroelement3d\Macroelement3d\GenericDamagePlasticityShear.cpp" />
     <ClCompile Include="..\..\..\DEVELOPER\element\cpp\Macroelement3d\Macroelement3d\Macroelement3d.cpp" />
     <ClCompile Include="..\..\..\DEVELOPER\element\cpp\Macroelement3d\Macroelement3d\NoTensionSection3d.cpp" />
     <ClCompile Include="..\..\..\DEVELOPER\element\cpp\Macroelement3d\Macroelement3d\WrappedMaterial.cpp" />
@@ -377,6 +378,7 @@
     <ClInclude Include="..\..\..\DEVELOPER\element\cpp\Macroelement3d\Macroelement3d\CohesiveSurface.h" />
     <ClInclude Include="..\..\..\DEVELOPER\element\cpp\Macroelement3d\Macroelement3d\DamageShearInterface.h" />
     <ClInclude Include="..\..\..\DEVELOPER\element\cpp\Macroelement3d\Macroelement3d\GambarottaLagomarsinoModel.h" />
+    <ClInclude Include="..\..\..\DEVELOPER\element\cpp\Macroelement3d\Macroelement3d\GenericDamagePlasticityShear.h" />
     <ClInclude Include="..\..\..\DEVELOPER\element\cpp\Macroelement3d\Macroelement3d\Macroelement3d.h" />
     <ClInclude Include="..\..\..\DEVELOPER\element\cpp\Macroelement3d\Macroelement3d\NoTensionSection3d.h" />
     <ClInclude Include="..\..\..\DEVELOPER\element\cpp\Macroelement3d\Macroelement3d\WrappedMaterial.h" />

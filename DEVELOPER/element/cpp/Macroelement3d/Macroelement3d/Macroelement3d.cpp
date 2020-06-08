@@ -36,6 +36,7 @@ Last edit: 27 Feb 2019
 #include "NoTensionSection3d.h"
 #include "DamageShearInterface.h"
 #include "GambarottaLagomarsinoModel.h"
+#include "GenericDamagePlasticityShear.h"
 #include "WrappedMaterial.h"
 
 #include <Node.h>
@@ -58,6 +59,8 @@ Last edit: 27 Feb 2019
 #include <string>
 #include <TransientIntegrator.h>
 #include <CompositeResponse.h>
+#include <typeinfo>
+#include <string>
 
 
 Matrix Macroelement3d::K(18,18);
@@ -442,6 +445,107 @@ OPS_Macroelement3d()
 	
 
 
+	else if (strcmp(inputStructure, "-pierGeneric") == 0) {
+		// input for piers, with generic shear model to include in the end. Needs to substitute in the long term the -pier definition
+		// left for back compatibility
+		// arguments: h, b, t, E, G, fc "shearModel" <variable shear model parameters>
+
+		double dData2[6];
+		numData = 6;
+		if (OPS_GetDoubleInput(&numData, &dData2[0]) < 0) {
+			opserr << "WARNING Macroelement3d (tag: " << iData[0] << "):'-pierGeneric' input structure incorrect, invalid double input(s)." << endln;
+			opserr << "Required structure : h, b, t, E, G, fc shearModel <variable shear model parameters> <-flags>" << endln;
+			return 0;
+		}
+
+		intLength(0) = 1. / 6.;
+		intLength(1) = 2. / 3.;
+		intLength(2) = 1. / 6.;
+
+		h = dData2[0];
+
+		b = dData2[1];
+		t = dData2[2];
+		E_ = dData2[3];
+		double G = dData2[4];
+		double fc = dData2[5];
+
+		Ltfc = abs(fc*b*t);
+
+		// true for stronger, true for elastic, true for crushing
+		theSectionI = new NoTensionSection3d(0, E_, G, t, b, -1.0, fc, 11, false, false, true);
+		theSectionE = new NoTensionSection3d(0, E_, G, t, b, -1.0, fc, 11, false, false, true);
+		theSectionJ = new NoTensionSection3d(0, E_, G, t, b, -1.0, fc, 11, false, false, true);
+
+		const char* type = NULL;
+        type = OPS_GetString();
+
+		if (strcmp(type, "-MohrCoulomb") == 0) {
+			double dataShear[5];
+			numData = 5;
+
+			if (OPS_GetDoubleInput(&numData, &dataShear[0]) < 0) {
+				opserr << "WARNING Macroelement3d (tag: " << iData[0] << "):unable to read shear model input(s)." << endln;
+				opserr << "Required structure: -MohrCoulomb mu c Gc dropDrift alpha <-flags>" << endln;
+				return 0;
+			}
+
+			Vector props(4);
+			props(0) = b;
+			props(1) = t;
+			props(2) = dataShear[1];
+			props(3) = dataShear[0];
+
+			theShearModel = new GenericDamagePlasticityShear(0, G/(h)*5./6.*b*t, 1, props, dataShear[2], dataShear[3] *h, dataShear[4], false, 0.0);
+			theShearModelOOP = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 1, props, dataShear[2], dataShear[3] * h, dataShear[4], true, 0.0);
+		}
+		else if (strcmp(type, "-TurnsekCacovic")==0) {
+			double dataShear[5];
+			numData = 5;
+
+			if (OPS_GetDoubleInput(&numData, &dataShear[0]) < 0) {
+				opserr << "WARNING Macroelement3d (tag: " << iData[0] << "):unable to read shear model input(s)." << endln;
+				opserr << "Required structure: -MohrCoulomb ft b Gc dropDrift alpha <-flags>" << endln;
+				return 0;
+			}
+
+			Vector props(4);
+			props(0) = b;
+			props(1) = t;
+			props(2) = dataShear[1];
+			props(3) = dataShear[0];
+
+			theShearModel = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 2, props, dataShear[2], dataShear[3] * h, dataShear[4], false, 0.0);
+			theShearModelOOP = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 2, props, dataShear[2], dataShear[3] * h, dataShear[4], true, 0.0);
+
+		}
+		else if ((strcmp(type, "-MohrCoulombCompressed") == 0) || (strcmp(type, "-Eurocode") == 0)) {
+			// [L, t, c, mu, 0.065fm]
+			double dataShear[6];
+			numData = 6;
+
+			if (OPS_GetDoubleInput(&numData, &dataShear[0]) < 0) {
+				opserr << "WARNING Macroelement3d (tag: " << iData[0] << "):unable to read shear model input(s)." << endln;
+				opserr << "Required structure: -MohrCoulomb mu c 0.065fm Gc dropDrift alpha <-flags>" << endln;
+				return 0;
+			}
+
+			Vector props(5);
+			props(0) = b;
+			props(1) = t;
+			props(2) = dataShear[1];
+			props(3) = dataShear[0];
+			props(4) = dataShear[2];
+
+			theShearModel = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 3, props, dataShear[3], dataShear[4] * h, dataShear[5], false, 0.0);
+			theShearModelOOP = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 3, props, dataShear[3], dataShear[4] * h, dataShear[5], true, 0.0);
+
+		}
+
+	}
+
+
+
 	
 	else if (strcmp(inputStructure,"-spandrel") == 0) {
         // standard input for spandrels, with my shear model and the middle section linear elastic (end sections slightly stronger)
@@ -482,6 +586,87 @@ OPS_Macroelement3d()
 		theShearModelOOP = new DamageShearInterface(0, E_*b*t, G/(h)*5./6.*b*t, tau0*b*t, mu, muR, Gc, dropDrift*h, true);
 		theShearModel    = new DamageShearInterface(0, E_*b*t, G/(h)*5./6.*b*t, tau0*b*t, mu, muR, Gc, dropDrift*h, false);									
      } 
+
+
+
+	else if (strcmp(inputStructure, "-spandrelGeneric") == 0) {
+		// input for piers, with generic shear model to include in the end. Needs to substitute in the long term the -pier definition
+		// left for back compatibility
+		// arguments: h, b, t, E, G, fc "shearModel" <variable shear model parameters>
+
+		double dData2[6];
+		numData = 6;
+		if (OPS_GetDoubleInput(&numData, &dData2[0]) < 0) {
+			opserr << "WARNING Macroelement3d (tag: " << iData[0] << "):'-pierGeneric' input structure incorrect, invalid double input(s)." << endln;
+			opserr << "Required structure : h, b, t, E, G, fc shearModel <variable shear model parameters> <-flags>" << endln;
+			return 0;
+		}
+
+		intLength(0) = 1. / 6.;
+		intLength(1) = 2. / 3.;
+		intLength(2) = 1. / 6.;
+
+		h = dData2[0];
+
+		b = dData2[1];
+		t = dData2[2];
+		E_ = dData2[3];
+		double G = dData2[4];
+		double fc = dData2[5];
+
+		Ltfc = abs(fc*b*t);
+
+		// true for stronger, true for elastic, true for crushing
+		theSectionI = new NoTensionSection3d(0, E_, G, t, b, -1.0, fc, 5, true, false, false);
+		theSectionE = new NoTensionSection3d(0, E_, G, t, b, -1.0, fc, 5, false, true, false);
+		theSectionJ = new NoTensionSection3d(0, E_, G, t, b, -1.0, fc, 5, true, false, false);
+
+		const char* type = NULL;
+		type = OPS_GetString();
+
+		if (strcmp(type, "-MohrCoulomb") == 0) {
+			double dataShear[5];
+			numData = 5;
+
+			if (OPS_GetDoubleInput(&numData, &dataShear[0]) < 0) {
+				opserr << "WARNING Macroelement3d (tag: " << iData[0] << "):unable to read shear model input(s)." << endln;
+				opserr << "Required structure: -MohrCoulomb mu c Gc dropDrift alpha <-flags>" << endln;
+				return 0;
+			}
+
+			Vector props(4);
+			props(0) = b;
+			props(1) = t;
+			props(2) = dataShear[1];
+			props(3) = dataShear[0];
+
+			theShearModel = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 1, props, dataShear[2], dataShear[3] * h, dataShear[4], false, 0.0);
+			theShearModelOOP = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 1, props, dataShear[2], dataShear[3] * h, dataShear[4], false, 0.0);
+		}
+		else if (strcmp(type, "-TurnsekCacovic") == 0) {
+			double dataShear[5];
+			numData = 5;
+
+			if (OPS_GetDoubleInput(&numData, &dataShear[0]) < 0) {
+				opserr << "WARNING Macroelement3d (tag: " << iData[0] << "):unable to read shear model input(s)." << endln;
+				opserr << "Required structure: -MohrCoulomb ft b Gc dropDrift alpha <-flags>" << endln;
+				return 0;
+			}
+
+			Vector props(4);
+			props(0) = b;
+			props(1) = t;
+			props(2) = dataShear[1];
+			props(3) = dataShear[0];
+
+			theShearModel = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 2, props, dataShear[2], dataShear[3] * h, dataShear[4], false, 0.0);
+			theShearModelOOP = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 2, props, dataShear[2], dataShear[3] * h, dataShear[4], false, 0.0);
+
+		}
+
+	}
+
+
 
 
 	
@@ -1385,24 +1570,6 @@ Macroelement3d::update(void)
 			e( ordering[i] ) = uBasic(i+4)   / intLength(1);
     err += theSections[1]->setTrialSectionDeformation(e);
 
-	Vector N(4);
-	N = theSections[1]->getStressResultant();
-
-	Matrix EshearModel = theShearModel[0]->getInitialTangent();
-	e(0) = N(ordering[0]) / EshearModel(0,0);
-
-	Vector s(2);
-    s(0) = e(0);   
-    s(1) = uBasic(10);
-	err += theShearModel[0]->setTrialStrain(s);
-
-	EshearModel = theShearModel[1]->getInitialTangent();
-	e(0) = N(ordering[0]) / EshearModel(0,0);
-
-    s(0) = e(0);   
-    s(1) = uBasic(11);
-    err += theShearModel[1]->setTrialStrain(s);
-
 	//third section
 	order = theSections[2]->getOrder();
 	const ID &code2 = theSections[2]->getType();
@@ -1427,7 +1594,10 @@ Macroelement3d::update(void)
 	
 	M3 = (theSections[2]->getStressResultant())(ordering[1]);
    
-		
+	Vector N(4);
+	N = theSections[1]->getStressResultant();
+
+
 	// check for in-plane drift failure
 	driftS = abs(-uBasic(10)) /2.0 *oneOverL;
 #ifdef _WINDOWS_
@@ -1441,7 +1611,7 @@ Macroelement3d::update(void)
 
 	double axialLoadRatio;
 	if (Ltfc>0.0)
-		axialLoadRatio = -N(0)/Ltfc;
+		axialLoadRatio = -N(ordering[0])/Ltfc;
 	else
 	    axialLoadRatio = 0.0;
 
@@ -1463,8 +1633,45 @@ Macroelement3d::update(void)
 			shearSpanRatio = 10.;
 	}
 
-	this->driftModel(driftF, driftS, axialLoadRatio, shearSpanRatio);
+
+
+	Matrix EshearModel = theShearModel[0]->getInitialTangent();
+	e(0) = N(ordering[0]) / EshearModel(0, 0);
+
+	Vector s(2);
+	s(0) = e(0);
+	s(1) = uBasic(10);
+
+	GenericDamagePlasticityShear* genericShearType = dynamic_cast<GenericDamagePlasticityShear*>(theShearModel[0]);
+	if (genericShearType != NULL) {
+		Vector params(2);
+		params(0) = shearSpanRatio*2.*L;
+		params(1) = axialLoadRatio;
+		err += genericShearType->setTrialStrainExtraParams(s, params);
+	}
+	else {
+		err += theShearModel[0]->setTrialStrain(s);
+	}
+
+	EshearModel = theShearModel[1]->getInitialTangent();
+	e(0) = N(ordering[0]) / EshearModel(0, 0);
+
+	s(0) = e(0);
+	s(1) = uBasic(11);
 	
+	GenericDamagePlasticityShear* genericShearTypeOOP = dynamic_cast<GenericDamagePlasticityShear*>(theShearModel[1]);
+	if (genericShearTypeOOP != NULL) {
+		Vector params(2);
+		params(0) = 2.*L;
+		params(1) = axialLoadRatio;
+		err += genericShearTypeOOP->setTrialStrainExtraParams(s, params);
+	}
+	else {
+		err += theShearModel[1]->setTrialStrain(s);
+	}
+
+	
+	this->driftModel(driftF, driftS, axialLoadRatio, shearSpanRatio);
 
     if (err != 0) {
         opserr << "Macroelement3d::update() - failed setTrialSectionDeformations()\n";

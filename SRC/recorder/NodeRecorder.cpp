@@ -1249,7 +1249,8 @@ NodeRecorder::initialize(void)
     }
 
     for (int k=0; k<theDofs->Size(); k++) {
-      sprintf(outputData, "%s%d", dataType, k+1);
+      sprintf(outputData, "%s%d", dataType, (*theDofs)[k]+1);
+      //sprintf(outputData, "%s%d", dataType, k+1);
       theOutputHandler->tag("ResponseType",outputData);
     }
 
