@@ -31,12 +31,12 @@ submitted to Earthquake Engineering and Structural Dynamics (2019)
 Last edit: 27 Feb 2019
 */
 
-
-#pragma once
+#ifndef GenericDamagePlasticityShear_h
+#define GenericDamagePlasticityShear_h
 
 #include <NDMaterial.h>
-#include "Vector.h"
-#include "Matrix.h"
+#include <Matrix.h>
+#include <Vector.h>
 #include <string>
 
 
@@ -113,3 +113,4 @@ protected:
 	bool elasticSolution;        // option: define a linear elastic response
 };
 
+#endif

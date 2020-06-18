@@ -31,8 +31,9 @@ submitted to Earthquake Engineering and Structural Dynamics (2019)
 Last edit: 27 Feb 2019
 */
 
-
+#include <elementAPI.h>
 #include "GenericDamagePlasticityShear.h"
+
 #include "OPS_Globals.h"
 #include "OPS_Stream.h"
 
@@ -44,6 +45,135 @@ Last edit: 27 Feb 2019
 #include <string.h>
 #include <TaggedObject.h>
 #include <MapOfTaggedObjects.h>
+
+
+
+
+#ifdef _USRDLL
+#define OPS_Export extern "C" _declspec(dllexport)
+#elif _MACOSX
+#define OPS_Export extern "C" __attribute__((visibility("default")))
+#else
+#define OPS_Export extern "C"
+#endif
+
+static int numGenericDamagePlasticityShear = 0;
+static double tol = 1e-7;
+static int maxIter = 100;
+
+
+OPS_Export void *
+OPS_GenericDamagePlasticityShear()
+{
+	// print out some KUDO's
+	if (numGenericDamagePlasticityShear == 0) {
+		opserr << "GenericDamagePlasticityShear loaded from external library. Written by Francesco Vanin - EPFL - 2020.\n";
+		numGenericDamagePlasticityShear = 1;
+	}
+
+	// Pointer to a uniaxial material that will be returned
+	NDMaterial *theMaterial = 0;
+
+	//
+	// parse the input line for the material parameters
+	//
+
+	int    iData[1];
+	double dData[7];
+	int numData;
+	numData = 1;
+	if (OPS_GetIntInput(&numData, iData) != 0) {
+		opserr << "WARNING invalid tag" << endln;
+		return 0;
+	}
+
+	numData = 7;
+	if (OPS_GetDoubleInput(&numData, dData) != 0) {
+		opserr << "WARNING invalid input parameters. Required: ndMaterial GenericDamagePlasticityShear $tag $h $L $t $G $Gc $dropDrift $alpha <-type>" << endln;
+		return 0;
+	}
+
+
+	bool _elastic = false;
+	int modelType = 0;
+	Vector props;
+	while (OPS_GetNumRemainingInputArgs() > 0) {
+		const char* type = OPS_GetString();
+
+		if (strcmp(type, "-TurnsekCacovic") == 0) {
+			modelType = 2;
+			double dData2[2];
+			numData = 2;
+			if (OPS_GetDoubleInput(&numData, dData2) != 0) {
+				opserr << "WARNING invalid input parameters. Required: ndMaterial GenericDamagePlasticityShear $tag $h $L $t $G $Gc $dropDrift $alpha -TurnsekCacovic $ft $b" << endln;
+				return 0;
+			}
+			props.resize(4);
+			props(0) = dData[1];
+			props(1) = dData[2];
+			props(2) = dData2[1];
+			props(3) = dData2[0];
+		}
+
+		if (strcmp(type, "-MohrCoulomb") == 0) {
+			modelType = 1;
+			double dData2[2];
+			numData = 2;
+			if (OPS_GetDoubleInput(&numData, dData2) != 0) {
+				opserr << "WARNING invalid input parameters. Required: ndMaterial GenericDamagePlasticityShear $tag $h $L $t $G $Gc $dropDrift $alpha -MohrCoulomb $mu $c" << endln;
+				return 0;
+			}
+			props.resize(4);
+			props(0) = dData[1];
+			props(1) = dData[2];
+			props(2) = dData2[1];
+			props(3) = dData2[0];
+		}
+
+		if (strcmp(type, "-MohrCoulombCompressed") == 0) {
+			modelType = 3;
+			double dData2[2];
+			numData = 2;
+			if (OPS_GetDoubleInput(&numData, dData2) != 0) {
+				opserr << "WARNING invalid input parameters.Required: ndMaterial GenericDamagePlasticityShear $tag $h $L $t $G $Gc $dropDrift $alpha -MohrCoulombCompressed $mu $c $ftb" << endln;
+				return 0;
+			}
+			props.resize(5);
+			props(0) = dData[1];
+			props(1) = dData[2];
+			props(2) = dData2[1];
+			props(3) = dData2[0];
+			props(4) = dData2[2];
+		}
+
+
+		if (strcmp(type, "-elastic") == 0 || strcmp(type, "-Elastic") == 0) {
+			_elastic = true;
+		}
+	}
+
+	double h = dData[0];
+	double b = dData[1];
+	double t = dData[2];
+	double G = dData[3];
+	double Gc = dData[4];
+	double dropDrift = dData[5];
+	double alpha = dData[6];
+
+
+	theMaterial = new GenericDamagePlasticityShear(iData[0], G / (h)*5. / 6.*b*t, modelType, props, 1.0 + Gc, dropDrift * h, alpha, _elastic, 0.0);
+
+
+	if ((theMaterial == 0) || (props.Size()==0)) {
+		opserr << "WARNING could not create NDMaterial of type GenericDamagePlasticityShear\n";
+		return 0;
+	}
+
+	// return the material
+	return theMaterial;
+}
+
+
 
 GenericDamagePlasticityShear::GenericDamagePlasticityShear(void)
 	:Kalg(2, 2), Kpen(2, 2), sigma(2), s_di(2), s_di_nplus1(2), eps(2) {

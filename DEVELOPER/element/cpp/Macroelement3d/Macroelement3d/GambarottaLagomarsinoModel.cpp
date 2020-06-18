@@ -96,8 +96,17 @@ OPS_GambarottaLagomarsinoModel()
 	  }
   }
   
-  // create a new material
-  theMaterial = new GambarottaLagomarsinoModel(iData[0], dData[0], dData[1], dData[2], dData[3], dData[4], dData[5], dData[6],dData[7],dData[8], _elastic);
+  double h = dData[0];
+  double b = dData[1];
+  double t = dData[2];
+  double E_ = dData[3];
+  double G = dData[4];
+  double c = dData[5];
+  double mu = dData[6];
+  double Gc = 1.0 + dData[7];
+  double beta = dData[8];
+
+  theMaterial = new GambarottaLagomarsinoModel(0, E_, G, c, mu, Gc / G, beta, b, t, h, _elastic);
 
   if (theMaterial == 0) {
     opserr << "WARNING could not create NDMaterial of type GambarottaLagomarsinoModel\n";

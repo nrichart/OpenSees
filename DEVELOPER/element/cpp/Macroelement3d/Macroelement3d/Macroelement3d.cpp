@@ -82,9 +82,9 @@ OPS_Export 	void *
 OPS_Macroelement3d()
 {
 	Vector intLength(3);
-	intLength(0) = 1.0;
-	intLength(1) = 1.0;
-	intLength(2) = 1.0;
+	intLength(0) = 1.0/6;
+	intLength(1) = 2.0/3;
+	intLength(2) = 1.0/6;
 
 	Vector intLengthMasses(3);
 	/*
@@ -301,9 +301,6 @@ OPS_Macroelement3d()
 			return 0;
 		}
 
-		intLength(0) = 0.495;
-		intLength(1) = 0.010;
-		intLength(2) = 0.495;
 
 		h = dData2[0];
 		b = dData2[1];
@@ -496,8 +493,8 @@ OPS_Macroelement3d()
 			props(2) = dataShear[1];
 			props(3) = dataShear[0];
 
-			theShearModel = new GenericDamagePlasticityShear(0, G/(h)*5./6.*b*t, 1, props, dataShear[2], dataShear[3] *h, dataShear[4], false, 0.0);
-			theShearModelOOP = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 1, props, dataShear[2], dataShear[3] * h, dataShear[4], true, 0.0);
+			theShearModel = new GenericDamagePlasticityShear(0, G/(h)*5./6.*b*t, 1, props, 1.0 + dataShear[2], dataShear[3] *h, dataShear[4], false, 0.0);
+			theShearModelOOP = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 1, props, 1.0 + dataShear[2], dataShear[3] * h, dataShear[4], true, 0.0);
 		}
 		else if (strcmp(type, "-TurnsekCacovic")==0) {
 			double dataShear[5];
@@ -515,8 +512,8 @@ OPS_Macroelement3d()
 			props(2) = dataShear[1];
 			props(3) = dataShear[0];
 
-			theShearModel = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 2, props, dataShear[2], dataShear[3] * h, dataShear[4], false, 0.0);
-			theShearModelOOP = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 2, props, dataShear[2], dataShear[3] * h, dataShear[4], true, 0.0);
+			theShearModel = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 2, props, 1.0+dataShear[2], dataShear[3] * h, dataShear[4], false, 0.0);
+			theShearModelOOP = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 2, props, 1.0+dataShear[2], dataShear[3] * h, dataShear[4], true, 0.0);
 
 		}
 		else if ((strcmp(type, "-MohrCoulombCompressed") == 0) || (strcmp(type, "-Eurocode") == 0)) {
@@ -537,8 +534,8 @@ OPS_Macroelement3d()
 			props(3) = dataShear[0];
 			props(4) = dataShear[2];
 
-			theShearModel = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 3, props, dataShear[3], dataShear[4] * h, dataShear[5], false, 0.0);
-			theShearModelOOP = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 3, props, dataShear[3], dataShear[4] * h, dataShear[5], true, 0.0);
+			theShearModel = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 3, props, 1.0 + dataShear[3], dataShear[4] * h, dataShear[5], false, 0.0);
+			theShearModelOOP = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 3, props, 1.0 + dataShear[3], dataShear[4] * h, dataShear[5], true, 0.0);
 
 		}
 
@@ -640,8 +637,8 @@ OPS_Macroelement3d()
 			props(2) = dataShear[1];
 			props(3) = dataShear[0];
 
-			theShearModel = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 1, props, dataShear[2], dataShear[3] * h, dataShear[4], false, 0.0);
-			theShearModelOOP = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 1, props, dataShear[2], dataShear[3] * h, dataShear[4], false, 0.0);
+			theShearModel = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 1, props, 1.0 + dataShear[2], dataShear[3] * h, dataShear[4], false, 0.0);
+			theShearModelOOP = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 1, props, 1.0 + dataShear[2], dataShear[3] * h, dataShear[4], true, 0.0);
 		}
 		else if (strcmp(type, "-TurnsekCacovic") == 0) {
 			double dataShear[5];
@@ -659,8 +656,30 @@ OPS_Macroelement3d()
 			props(2) = dataShear[1];
 			props(3) = dataShear[0];
 
-			theShearModel = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 2, props, dataShear[2], dataShear[3] * h, dataShear[4], false, 0.0);
-			theShearModelOOP = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 2, props, dataShear[2], dataShear[3] * h, dataShear[4], false, 0.0);
+			theShearModel = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 2, props, 1.0 + dataShear[2], dataShear[3] * h, dataShear[4], false, 0.0);
+			theShearModelOOP = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 2, props, 1.0 + dataShear[2], dataShear[3] * h, dataShear[4], true, 0.0);
+
+		}
+		else if ((strcmp(type, "-MohrCoulombCompressed") == 0) || (strcmp(type, "-Eurocode") == 0)) {
+			// [L, t, c, mu, 0.065fm]
+			double dataShear[6];
+			numData = 6;
+
+			if (OPS_GetDoubleInput(&numData, &dataShear[0]) < 0) {
+				opserr << "WARNING Macroelement3d (tag: " << iData[0] << "):unable to read shear model input(s)." << endln;
+				opserr << "Required structure: -MohrCoulomb mu c 0.065fm Gc dropDrift alpha <-flags>" << endln;
+				return 0;
+			}
+
+			Vector props(5);
+			props(0) = b;
+			props(1) = t;
+			props(2) = dataShear[1];
+			props(3) = dataShear[0];
+			props(4) = dataShear[2];
+
+			theShearModel = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 3, props, 1.0 + dataShear[3], dataShear[4] * h, dataShear[5], false, 0.0);
+			theShearModelOOP = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 3, props, 1.0 + dataShear[3], dataShear[4] * h, dataShear[5], true, 0.0);
 
 		}
 
@@ -704,13 +723,112 @@ OPS_Macroelement3d()
 		Ltfc = abs(fc*0.5*b*t);
 
 		// true for stronger, true for elastic, true for crushing
-		theSectionI = new NoTensionSection3d(0, E_, 0.5*G, t,     b, -1.0, fc, 5, false, false, true);   
-		theSectionE = new NoTensionSection3d(0, E_,     G, t, 0.5*b, -1.0, fc, 5, false, false, true);
-		theSectionJ = new NoTensionSection3d(0, E_,     G, t, 0.1*b, -1.0, fc, 5, false, false, true);
+		theSectionI = new NoTensionSection3d(0, E_, 0.5*G, t,     b, -1.0, fc, 11, false, false, true);   
+		theSectionE = new NoTensionSection3d(0, E_,     G, t, 0.5*b, -1.0, fc, 11, false, false, true);
+		theSectionJ = new NoTensionSection3d(0, E_,     G, t, 0.1*b, -1.0, fc, 11, false, false, true);
 
 		theShearModelOOP = new DamageShearInterface(0, E_*0.5*b*t, G/(h)*5./6.*0.5*b*t, tau0*0.5*b*t, mu, muR, Gc, dropDrift*h, true);
 		theShearModel    = new DamageShearInterface(0, E_*0.5*b*t, G/(h)*5./6.*0.5*b*t, tau0*0.5*b*t, mu, muR, Gc, dropDrift*h, true);	
      }
+
+	else if (strcmp(inputStructure, "-gableGeneric") == 0) {
+
+		// standard input for gables, with my shear model
+		// arguments: h, b, t, E, G, fc, mu, c, Gc, dropDrift, muR 
+		gable = true;
+
+		double dData2[6];
+		numData = 6;
+		if (OPS_GetDoubleInput(&numData, &dData2[0]) < 0) {
+			opserr << "WARNING Macroelement3d (tag: " << iData[0] << "):'-gable' input structure incorrect, invalid double input(s)." << endln;
+			opserr << "Required structure : h, b, t, E, G, fc, mu, c, Gc, dropDrift, muR <-flags>" << endln;
+			return 0;
+		}
+
+		intLength(0) = 1. / 6.;
+		intLength(1) = 2. / 3.;
+		intLength(2) = 1. / 6.;
+
+		h = dData2[0];
+
+		b = dData2[1];
+		t = dData2[2];
+		E_ = dData2[3];
+		double G = dData2[4];
+		double fc = dData2[5];
+
+		Ltfc = abs(fc*b*t);
+
+		// true for stronger, true for elastic, true for crushing
+		theSectionI = new NoTensionSection3d(0, E_, G, t, b,     -1.0, fc, 11, false, false, true);
+		theSectionE = new NoTensionSection3d(0, E_, G, t, 0.5*b, -1.0, fc, 11, false, false, true);
+		theSectionJ = new NoTensionSection3d(0, E_, G, t, 0.1*b, -1.0, fc, 11, false, false, true);
+
+		const char* type = NULL;
+		type = OPS_GetString();
+
+		if (strcmp(type, "-MohrCoulomb") == 0) {
+			double dataShear[5];
+			numData = 5;
+
+			if (OPS_GetDoubleInput(&numData, &dataShear[0]) < 0) {
+				opserr << "WARNING Macroelement3d (tag: " << iData[0] << "):unable to read shear model input(s)." << endln;
+				opserr << "Required structure: -MohrCoulomb mu c Gc dropDrift alpha <-flags>" << endln;
+				return 0;
+			}
+
+			Vector props(4);
+			props(0) = b;
+			props(1) = t;
+			props(2) = dataShear[1];
+			props(3) = dataShear[0];
+
+			theShearModel = new GenericDamagePlasticityShear(0,    G / (h)*5. / 6.*b*t*0.5, 1, props, 1.0 + dataShear[2], dataShear[3] * h, dataShear[4], false, 0.0);
+			theShearModelOOP = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t*0.5, 1, props, 1.0 + dataShear[2], dataShear[3] * h, dataShear[4], true, 0.0);
+		}
+		else if (strcmp(type, "-TurnsekCacovic") == 0) {
+			double dataShear[5];
+			numData = 5;
+
+			if (OPS_GetDoubleInput(&numData, &dataShear[0]) < 0) {
+				opserr << "WARNING Macroelement3d (tag: " << iData[0] << "):unable to read shear model input(s)." << endln;
+				opserr << "Required structure: -MohrCoulomb ft b Gc dropDrift alpha <-flags>" << endln;
+				return 0;
+			}
+
+			Vector props(4);
+			props(0) = b;
+			props(1) = t;
+			props(2) = dataShear[1];
+			props(3) = dataShear[0];
+
+			theShearModel = new GenericDamagePlasticityShear(0,    G / (h)*5. / 6.*b*t*0.5, 2, props, 1.0 + dataShear[2], dataShear[3] * h, dataShear[4], false, 0.0);
+			theShearModelOOP = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t*0.5, 2, props, 1.0 + dataShear[2], dataShear[3] * h, dataShear[4], true, 0.0);
+
+		}
+		else if ((strcmp(type, "-MohrCoulombCompressed") == 0) || (strcmp(type, "-Eurocode") == 0)) {
+			// [L, t, c, mu, 0.065fm]
+			double dataShear[6];
+			numData = 6;
+
+			if (OPS_GetDoubleInput(&numData, &dataShear[0]) < 0) {
+				opserr << "WARNING Macroelement3d (tag: " << iData[0] << "):unable to read shear model input(s)." << endln;
+				opserr << "Required structure: -MohrCoulomb mu c 0.065fm Gc dropDrift alpha <-flags>" << endln;
+				return 0;
+			}
+
+			Vector props(5);
+			props(0) = b;
+			props(1) = t;
+			props(2) = dataShear[1];
+			props(3) = dataShear[0];
+			props(4) = dataShear[2];
+
+			theShearModel = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t*0.5, 3, props, 1.0 + dataShear[3], dataShear[4] * h, dataShear[5], false, 0.0);
+			theShearModelOOP = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t*0.5, 3, props, 1.0 + dataShear[3], dataShear[4] * h, dataShear[5], true, 0.0);
+
+		}
+	}
 	
 
 	
@@ -718,6 +836,11 @@ OPS_Macroelement3d()
 		// standard input, opensees like. Custom sectional models have to be created before, and their tags are passed to the macrolement.
 		// arguments: sectionTag, sectionTagE, shearModelTag, h, E 
 		// inputs: 
+
+		intLength(0) = 1. / 6.;
+		intLength(1) = 2. / 3.;
+		intLength(2) = 1. / 6.;
+
 		int iData2[5];
 		int numData = 5;
 		if (OPS_GetIntInput(&numData,&iData2[0]) < 0) {
