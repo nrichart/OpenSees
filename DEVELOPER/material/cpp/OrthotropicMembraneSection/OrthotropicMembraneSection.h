@@ -51,7 +51,7 @@ class OrthotropicMembraneSection : public SectionForceDeformation{
     OrthotropicMembraneSection() ;
 
     //full constructor
-    OrthotropicMembraneSection(int tag, double E, double E2, double v, double G, double h = 1.0, double rho = 0.0) ;
+    OrthotropicMembraneSection(int tag, double E, double E2, double v, double G, double h = 1.0, double rho = 0.0, double angle=0.0) ;
 
 	//destructor
     ~OrthotropicMembraneSection() ;
@@ -104,12 +104,16 @@ class OrthotropicMembraneSection : public SectionForceDeformation{
 
   private :
 
-    double E1 ;   // elastic modulus, dir 1
-	double E2 ;   // elastic modulus, dir 2
+    double E1 ;   // elastic modulus, material axis 1
+	double E2 ;   // elastic modulus, material axis 2
 	double v ;    // poisson ratio
     double G;     // shear ratio
     double h;     // MembranePlate thickness
     double rhoH ; // mass per unit 2D area
+	double angle; // sine and cosine of the angle between material axes and local axes of the element 
+
+	Matrix toMaterial, toLocal; // rotationMatrices from local to material axis (for strains) and from material to local (for stresses)
+	// check the 1/2 factor on the strain transformation -> otherwise one is the transpoose of the other
 
     static const double five6 ; // =5/6 = shear correction factor
 

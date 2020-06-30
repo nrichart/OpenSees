@@ -67,59 +67,25 @@ ID      OrthotropicMembraneSection::array(8) ;
 #endif
 
 static bool loadedOrthotropicMembrane{false};
+OPS_Export void *
+	OPS_OrthotropicMembraneSection()
+{
+	if (numOrthotropicMembrane==0) {
+		numOrthotropicMembrane += 1;
+		opserr<<"Orthotropic Membrane section - Written by Francesco Vanin, EPFL, 2018.\n";
+		//opserr << "Pointer : " << OPS_GetNumRemainingInputArgs() << endln;
+		double inputData[5];
+		int numdata = 5;
 
-OPS_Export void *OPS_OrthotropicMembraneSection() {
-  if (not loadedOrthotropicMembrane) {
-	loadedOrthotropicMembrane = true;
-	opserr<<"Orthotropic Membrane section - Written by Francesco Vanin, EPFL, 2018.\n";
-  }
-  
-  int argc = OPS_GetNumRemainingInputArgs();
-  if (argc < 6) {
-	opserr << "WARNING insufficient arguments " << argc << "\n";
-	opserr << "Want: section OrthotropicMembraneSection tag? E1? E2? ni? G? h? <rho?>\n";
-	return nullptr;
-  }
-
-  int tag;
-  double E1, E2, ni, G, h;
-  double rho = 0.0;
-  int numidata = 1;
-  if (OPS_GetIntInput(&numidata, &tag) != 0) {
-	opserr << "WARNING OrthotropicMembraneSection: invalid tag" << endln;
-	return nullptr;
-  }
-
-  int numddata = 1;
-  if (OPS_GetDoubleInput(&numddata, &E1) != 0) {
-	opserr << "WARNING OrthotropicMembraneSection (tag " << tag << "): invalid stiffness in direction '1' E1\n";
-	return nullptr;
-  }
-
-  if (OPS_GetDoubleInput(&numddata, &E2) != 0) {
-	opserr << "WARNING OrthotropicMembraneSection (tag " << tag << "): invalid stiffness in direction '2' E2\n";
-	return nullptr;
-  }
-
-  if (OPS_GetDoubleInput(&numddata, &ni) != 0) {
-	opserr << "WARNING OrthotropicMembraneSection (tag " << tag << "): invalid Poisson's ratio ni\n";
-	return nullptr;
-  }
-
-  if (OPS_GetDoubleInput(&numddata, &G) != 0) {
-	opserr << "WARNING OrthotropicMembraneSection (tag " << tag << "): invalid shear modulus G\n";
-	return nullptr;
-  }
-
-  if (OPS_GetDoubleInput(&numddata, &h) != 0) {
-	opserr << "WARNING OrthotropicMembraneSection (tag " << tag << "): invalid membrane height h\n";
-	return nullptr;
-  }
-
-  if (argc == 7) {
-	if (OPS_GetDoubleInput(&numddata, &rho) != 0) {
-	  opserr << "WARNING OrthotropicMembraneSection (tag " << tag << "): invalid density rho\n";
-	  return nullptr;
+		while (numdata == 5) {
+		}
+		
+		if (OPS_GetDoubleInput(&numdata, inputData) < 0) {
+			for (int k = 0; k < 5; k++)
+      			opserr << "input data " << k << ": " << inputData[k] << endln;
+			return 0;
+		}
+		
 	}
   }
 
@@ -131,8 +97,8 @@ OrthotropicMembraneSection::OrthotropicMembraneSection( ) : SectionForceDeformat
 }
 
 //full constructor
-OrthotropicMembraneSection::OrthotropicMembraneSection(int tag, double _E1,double _E2, double _v, double _G, double _thickness, double _r):
-	SectionForceDeformation(tag, 0), strain(8) 
+OrthotropicMembraneSection::OrthotropicMembraneSection(int tag, double _E1,double _E2, double _v, double _G, double _thickness, double _r, double _angle):
+	SectionForceDeformation(tag, 0), strain(8), toLocal(3,3), toMaterial(3,3)
 {
   this->E1   = _E1;
   this->E2   = _E2;
@@ -140,6 +106,38 @@ OrthotropicMembraneSection::OrthotropicMembraneSection(int tag, double _E1,doubl
   this->G    = _G;
   this->h    = _thickness;
   this->rhoH = _r*_thickness;
+  this->angle = _angle; // in degrees
+
+  double c = cos(_angle/180.* 3.14159);
+  double s = sin(_angle / 180.* 3.14159);
+
+  toMaterial(0, 0) = c*c;
+  toMaterial(0, 1) = s*s;
+  toMaterial(0, 2) = s*c;
+
+  toMaterial(1, 0) = s*s;
+  toMaterial(1, 1) = c*c;
+  toMaterial(1, 2) = -s*c;
+
+  toMaterial(2, 0) = -2.0*s*c;
+  toMaterial(2, 1) = 2.0*s*c;
+  toMaterial(2, 2) = c*c-s*s;
+
+
+  c = cos(-_angle / 180.* 3.14159);
+  s = sin(-_angle / 180.* 3.14159);
+
+  toLocal(0, 0) = c*c;
+  toLocal(0, 1) = s*s;
+  toLocal(0, 2) = 2.0*s*c;
+
+  toLocal(1, 0) = s*s;
+  toLocal(1, 1) = c*c;
+  toLocal(1, 2) = -2.0*s*c;
+
+  toLocal(2, 0) = -s*c;
+  toLocal(2, 1) = s*c;
+  toLocal(2, 2) = c*c - s*s;
 
 }
 
@@ -152,7 +150,7 @@ SectionForceDeformation*  OrthotropicMembraneSection::getCopy( )
 {
   OrthotropicMembraneSection *clone ;   
 
-  clone = new OrthotropicMembraneSection(this->getTag(), E1, E2, v, G, h, rhoH/h) ; //new instance of this class
+  clone = new OrthotropicMembraneSection(this->getTag(), E1, E2, v, G, h, rhoH/h, angle) ; //new instance of this class
 
   clone->rhoH = this->rhoH ;
   clone->strain = this->strain;
@@ -210,19 +208,26 @@ OrthotropicMembraneSection::getStressResultant() {
   // membrane formulation from: "TREMURI program: An equivalent frame model for the nonlinear seismic analysis of masonry buildings",
   // Sergio Lagomarsino, Andrea Penna, Alessandro Galasco, Serena Cattari, Engineering Structures 56, 2013
 
-  // the stiffness matrix is Dhat, not D, as in general the local orientation of the element is not available when the strain update is called. 
-  // to be used correctly the orientation of the material and the local axes of the element have to coincide. 
-  // For shell 3d elements, the first axis has the direction of the mean of the orientation of the side 1-2 and 4-3 (defined counterclockwise).
+  // For shell 3d elements, the first material axis has the direction of the mean of the orientation of the side 1-2 and 4-3 (defined counterclockwise).
+  // The strains in local coordinates are transformed in material coordinates and the brought back to the local system
 
-//	opserr << "strainUpdate = " << strain;
+  Vector strainMat(3);
+  Vector stressMat(3);
+  Vector temp(3);
+
+  for (int i = 0; i < 3; i++) {
+	  temp(i) = strain(i);
+  }
+
+  strainMat = toMaterial*temp;
 
   double e = E2/E1;
   double stiffness1 = E1 / (1.0 - e*v*v) *h;
 
   //membrane resultants
-  stress(0) =     stiffness1 * strain(0)   + v*e*stiffness1* strain(1);
-  stress(1) = v*e*stiffness1 * strain(0)   +   e*stiffness1* strain(1);
-  stress(2) =  G*h*strain(2) ;
+  stressMat(0) =     stiffness1 * strainMat(0)   + v*e*stiffness1* strainMat(1);
+  stressMat(1) = v*e*stiffness1 * strainMat(0)   +   e*stiffness1* strainMat(1);
+  stressMat(2) =  G*h*strainMat(2) ;
 
   double GG = h*G*five6 ;
   double D  =  E1 * (h*h*h) / 12.0 / ( 1.0 - v*v ) ;  //bending modulus
@@ -240,7 +245,12 @@ OrthotropicMembraneSection::getStressResultant() {
 	  stress(i) *= 0.0;
   }
   
- // opserr << "stressUpdate = " << stress;
+  temp = toLocal*stressMat;
+  for (int i = 0; i < 3; i++) {
+	  stress(i) = temp(i);
+  }
+
+   //opserr << "stressUpdate = " << stress;
  
   return this->stress ;
 }
@@ -253,15 +263,18 @@ OrthotropicMembraneSection::getSectionTangent() {
   double e = E2/E1;
   double stiffness1 = E1 / (1.0 - e*v*v) *h;
 
+  Matrix tangentMat(3, 3);
+  Matrix tangentLoc(3, 3);
+
   tangent.Zero() ;
 
   //membrane tangent terms
-  tangent(0,0) = stiffness1;
-  tangent(0,1) = v*e*stiffness1;
-  tangent(1,0) = tangent(0,1);
-  tangent(1,1) = e*stiffness1;
+  tangentMat(0,0) = stiffness1;
+  tangentMat(0,1) = v*e*stiffness1;
+  tangentMat(1,0) = tangentMat(0,1);
+  tangentMat(1,1) = e*stiffness1;
   
-  tangent(2,2) = G*h ;
+  tangentMat(2,2) = G*h ;
   
   double GG = h*G*five6 ;
   double D  =  E1 * (h*h*h) / 12.0 / ( 1.0 - v*v ) ;  //bending modulus
@@ -286,6 +299,12 @@ OrthotropicMembraneSection::getSectionTangent() {
 	  tangent(i,i) = 0.0;
   }
   
+  tangentLoc = toLocal*tangentMat*toMaterial;
+  for (int i = 0; i<3; i++) {
+	  for (int j = 0; j < 3; j++) {
+		  tangent(i, j) = tangentLoc(i,j);
+	  }
+  }
 
   return this->tangent ;
 }

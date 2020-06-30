@@ -39,8 +39,6 @@ Last edit: 27 Feb 2019
 #include <math.h>
 #include <float.h>
 #include <Information.h>
-#include <Channel.h>
-#include <Message.h>
 #include <NDMaterial.h>
 #include <MaterialResponse.h>
 
@@ -68,7 +66,7 @@ OPS_DamageShearInterface()
   NDMaterial *theMaterial = 0;
 
   int    iData[1];
-  double dData[13];
+  double dData[10];
   int numData;
   numData = 1;
   if (OPS_GetIntInput(&numData, iData) != 0) {
@@ -76,33 +74,36 @@ OPS_DamageShearInterface()
     return 0;
   }
 
-  numData = 13;
+  numData = 10;
   if (OPS_GetDoubleInput(&numData, dData) != 0) {
     opserr << "WARNING invalid input parameters" << endln;
     return 0;	
   }
 
-  // check for additional input parameters
-  numData = OPS_GetNumRemainingInputArgs();
-  double optData[2];
-  if (numData>2) numData = 2;
-  optData[0] = 0.50;
-  optData[1] = 0.80;
-  if (numData==2) {
-	  OPS_GetDoubleInput(&numData, optData);
-  }
+  double h = dData[0];
+  double b = dData[1];
+  double t = dData[2];
+  double E_ = dData[3];
+  double G = dData[4];
+  double c = dData[5];
+  double mu = dData[6];
+  double muR = dData[7];
+  double Gc = 1.0+dData[8];
+  double dropDrift = dData[9];
 
-  bool linearUnloading = false;
+  bool _elastic = false;
   while (OPS_GetNumRemainingInputArgs() > 0) {
 	  const char* type = OPS_GetString();
-	  if (strcmp(type, "-linearUnloading") == 0 || strcmp(type, "-linearUnloading") == 0) {
-		  linearUnloading = true;
+	  if (strcmp(type, "-elastic") == 0 || strcmp(type, "-Elastic") == 0) {
+		  _elastic = true;
 	  }
   }
-    
+  
+  theMaterial = new DamageShearInterface(iData[0], E_*b*t, G / (h)*5. / 6.*b*t, c*b*t, mu, muR, Gc, dropDrift*h, _elastic);
+
   if (theMaterial == 0) {
-    opserr << "WARNING could not create NDMaterial of type DamageShearInterface\n";
-    return 0;
+	  opserr << "WARNING could not create NDMaterial of type DamageShearInterface\n";
+	  return 0;
   }
 
   // return the material

@@ -30,7 +30,7 @@
 class CompressionDamage1d : public UniaxialMaterial
 {
   public:
-    CompressionDamage1d(int _tag, double _E, double _fc);    
+    CompressionDamage1d(int _tag, double _E, double _fc, double _maxDuctility=-1.0, double r=1, bool triangular=false);    
     CompressionDamage1d();    
 
     ~CompressionDamage1d();
@@ -58,6 +58,9 @@ class CompressionDamage1d : public UniaxialMaterial
   private:
     double fc;      // compressive strength
     double E;		// elastic modulus
+	double maxDuctility; // max ductlity 
+	double r;       // residual strength ratio
+	bool triangular;// flag for triangular postpeak response 
 	double ey;      // strain at compressive strength
     double D;		// damage variable
 	double Dcommit; // committed damage variable

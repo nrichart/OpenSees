@@ -98,8 +98,13 @@ class Macroelement3d : public Element
 	//drift model
 	void driftModel(double currentDriftF, double currentDriftS, double axialLoadRatio, double H0overL=1.0);
 
+	// damping methods
+	int setRayleighDampingFactors(double alphaM, double betaK, double betaK0, double betaKc);
+	const Matrix &getDamp(void);
+	const Matrix &getSecantStiff(void);
 
   protected:
+	  const Vector &getRayleighDampingForces(void);
     
   private:
     // builds initial basic stiffness. Zero stiffness if the element failed for excessive drift demand 

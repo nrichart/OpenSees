@@ -908,6 +908,9 @@
     <ClCompile Include="..\..\..\DEVELOPER\element\cpp\Macroelement3d\Macroelement3d\WrappedMaterial.cpp">
       <Filter>macroelement3d</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\DEVELOPER\element\cpp\Macroelement3d\Macroelement3d\GenericDamagePlasticityShear.cpp">
+      <Filter>macroelement3d</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\SRC\element\Element.h">
@@ -1586,6 +1589,9 @@
       <Filter>macroelement3d</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\DEVELOPER\element\cpp\Macroelement3d\Macroelement3d\WrappedMaterial.h">
+      <Filter>macroelement3d</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\DEVELOPER\element\cpp\Macroelement3d\Macroelement3d\GenericDamagePlasticityShear.h">
       <Filter>macroelement3d</Filter>
     </ClInclude>
   </ItemGroup>

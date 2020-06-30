@@ -56,7 +56,7 @@ OPS_BeamFrictionSupport()
 {
   // print out some KUDO's
   if (numBeamFrictionSupport == 0) {
-    opserr << "BeamFrictionSupport, NdMaterial - Written by Francesco Vanin - EPFL, 2018 \n";
+    opserr << "BeamFrictionSupport, NdMaterial - Written by Francesco Vanin - EPFL, 2018 - v 1.1 \n";
     numBeamFrictionSupport =1;
   }
 
@@ -138,7 +138,7 @@ slidingTrial(3), sliding(3), e(3), eTrial(3), s(3), sTrial(3), D(3,3), Dtrial(3,
    Dtrial = D;
    Dcommitted = D;
 
-   fakeStiffnessFactor =  0.0; 
+   fakeStiffnessFactor =  1.0e-6; 
 }
 
 // null constructor
@@ -198,6 +198,75 @@ BeamFrictionSupport::setTrialStrain(const Vector& strain)
 	
 	// vertical stress
 	sTrial(0) = D(0,0)*eTrial(0);
+
+	// separate simple 2d case from 3d
+	if (gapY == 0.0 && gapX == 0.0) {
+		
+		sTrial(2) = D(2, 2)*eTrial(2);
+		Dtrial(2, 2) = D(2, 2);
+
+		//elastic in y direction , possible sliding only in positive x direction
+		if (sTrial(0)>DBL_EPSILON) {
+			sTrial.Zero();
+			Dtrial = fakeStiffnessFactor*D;
+
+			sTrial(2) = D(2, 2)*eTrial(2);
+		    Dtrial(2, 2) = D(2, 2);
+
+			if (eTrial(1)<0.0) { 
+				sTrial(1) = D(1, 1)*eTrial(1);
+				Dtrial(1, 1) = D(1, 1);
+			}
+			else {
+				slidingTrial(1) += increment(1);
+				//slidingTrial(1) = eTrial(1);
+			}
+			return 0;
+		}
+
+		// else in compression: check sliding condition
+		double tauTrial = D(1, 1)* (eTrial(1) - slidingTrial(1));
+		double f2 = mu*sTrial(0) + abs(tauTrial);
+		bool correctedForNegative = false;
+		
+
+		double signTau = 1.0;
+		if (tauTrial < 0.0) { signTau = -1.0; }
+		
+		double deltaLambda = 0.;
+
+		if (f2 <= DBL_EPSILON) {
+			// no sliding occurs
+			sTrial = D*(eTrial - sliding);
+			Dtrial = D;
+
+		}
+		else {
+			
+			deltaLambda = f2 / D(1, 1);
+			slidingTrial(1) += deltaLambda * signTau;
+
+			if (slidingTrial(1)<0.0) {
+				slidingTrial(1) = 0.0;
+				correctedForNegative = true;
+			}
+
+			sTrial = D*(eTrial - slidingTrial);
+			
+			Dtrial.Zero();
+			Dtrial(0, 0) = D(0, 0);
+			Dtrial(1, 0) = -D(0, 0)*mu*signTau;
+			Dtrial(1, 1) = D(1, 1)*fakeStiffnessFactor;
+			Dtrial(2, 2) = D(2, 2);
+
+			if (correctedForNegative) {
+				Dtrial(1, 0) = 0.0;
+				Dtrial(1, 1) = D(1, 1);
+			}
+		}
+
+		return 0;
+	}
 
 	if (sTrial(0)>DBL_EPSILON) {
 		sTrial.Zero();

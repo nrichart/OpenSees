@@ -79,11 +79,39 @@ OPS_CompressionDamage1d()
     return 0;	
   }
 
+  
+  double maxDuctility = -1.0;
+  double r = 1;
+  bool triangular = false;
+  const char* type;
+  
+  while (OPS_GetNumRemainingInputArgs() > 0) {
+	  type = OPS_GetString();
+
+	  if (strcmp(type, "-maxDuctility") == 0) {
+		  numData = 2;
+		  double dData2[2];
+		  if (OPS_GetDoubleInput(&numData, dData2) < 0) {
+			  opserr << "WARNING invalid maxDuctility (" << maxDuctility << ", input ignored \n";
+			  maxDuctility = -1;
+			  r = 1;
+		  }
+		  else {
+			  maxDuctility = dData2[1];
+			  r = dData2[0];
+		  }
+	  }
+	  if (strcmp(type, "-triangular") == 0) {
+		  triangular = true;
+	  }
+  }
+
   // 
   // create a new material
   //
 
-	theMaterial = new CompressionDamage1d(iData[0], dData[0], dData[1]);       
+
+  theMaterial = new CompressionDamage1d(iData[0], dData[0], dData[1], maxDuctility, r, triangular);       
 
   if (theMaterial == 0) {
     opserr << "WARNING could not create uniaxialMaterial of type CompressionDamage1d\n";
@@ -97,9 +125,9 @@ OPS_CompressionDamage1d()
 
 
 
-CompressionDamage1d::CompressionDamage1d(int _tag, double _E, double _fc)
+CompressionDamage1d::CompressionDamage1d(int _tag, double _E, double _fc, double _maxDuctility, double r, bool triangular)
 :UniaxialMaterial(_tag, 0),
- E(_E), fc(_fc), D(0.0), Dcommit(0.0),
+E(_E), fc(_fc), D(0.0), Dcommit(0.0), maxDuctility(_maxDuctility), r(r), triangular(triangular),
  trialStrain(0.0), trialStress(0.0), trialTangent(_E),
  commitStrain(0.0), commitStress(0.0), commitTangent(_E)
 { ey = fc/E;
@@ -107,7 +135,7 @@ CompressionDamage1d::CompressionDamage1d(int _tag, double _E, double _fc)
 
 CompressionDamage1d::CompressionDamage1d()
 :UniaxialMaterial(0, 0),
- E(0.0), fc(0.0), ey(0.0), D(0.0), Dcommit(0.0),
+E(0.0), fc(0.0), ey(0.0), D(0.0), Dcommit(0.0), maxDuctility(0.0), r(0.0), triangular(false),
  trialStrain(0.0), trialStress(0.0), trialTangent(0.0),
  commitStrain(0.0), commitStress(0.0), commitTangent(0.0)
 { }
@@ -140,7 +168,18 @@ CompressionDamage1d::setTrialStrain(double strain, double strainRate)
 		if (mu<1.0) {
 			D = Dcommit;
 		} else {
-			D = 1.- 1./mu;
+			if (mu>maxDuctility && maxDuctility>1) {
+				//D = 1 - r*(1 - D);
+				D = 1 - r / mu;
+
+			} else {
+				if (triangular && maxDuctility>1) {
+					D = ((mu-1)*(maxDuctility -r))/(mu*(maxDuctility-1));
+				}
+				else {
+					D = 1. - 1. / mu;
+				}
+			}
 		}
 		
 		if (D<Dcommit)  D=Dcommit;
@@ -223,7 +262,7 @@ CompressionDamage1d::revertToStart(void)
 UniaxialMaterial *
 CompressionDamage1d::getCopy(void)
 {
-  CompressionDamage1d* theCopy = new CompressionDamage1d(this->getTag(),E,fc);
+  CompressionDamage1d* theCopy = new CompressionDamage1d(this->getTag(),E,fc,maxDuctility,r,triangular);
   theCopy->Dcommit = this->Dcommit;
   
   return theCopy;

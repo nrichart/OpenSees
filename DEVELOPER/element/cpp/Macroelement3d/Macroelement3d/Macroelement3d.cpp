@@ -36,6 +36,7 @@ Last edit: 27 Feb 2019
 #include "DamageShearInterface.h"
 #include "GambarottaLagomarsinoModel.h"
 #include "NoTensionSection3d.h"
+#include "GenericDamagePlasticityShear.h"
 #include "WrappedMaterial.h"
 /* -------------------------------------------------------------------------- */
 #include <Channel.h>
@@ -58,12 +59,17 @@ Last edit: 27 Feb 2019
 #include <algorithm>
 #include <limits>
 #include <string>
+
 #include <cmath>
 /* -------------------------------------------------------------------------- */
-
 #ifndef DBL_EPSILON
 #define DBL_EPSILON (std::numeric_limits<double>::epsilon())
 #endif
+#include <TransientIntegrator.h>
+#include <CompositeResponse.h>
+#include <typeinfo>
+#include <string>
+
 
 
 Matrix Macroelement3d::K(18,18);
@@ -85,9 +91,9 @@ OPS_Export 	void *
 OPS_Macroelement3d()
 {
 	Vector intLength(3);
-	intLength(0) = 1.0;
-	intLength(1) = 1.0;
-	intLength(2) = 1.0;
+	intLength(0) = 1.0/6;
+	intLength(1) = 2.0/3;
+	intLength(2) = 1.0/6;
 
 	Vector intLengthMasses(3);
 	/*
@@ -304,9 +310,6 @@ OPS_Macroelement3d()
 			return 0;
 		}
 
-		intLength(0) = 0.495;
-		intLength(1) = 0.010;
-		intLength(2) = 0.495;
 
 		h = dData2[0];
 		b = dData2[1];
@@ -448,6 +451,107 @@ OPS_Macroelement3d()
 	
 
 
+	else if (strcmp(inputStructure, "-pierGeneric") == 0) {
+		// input for piers, with generic shear model to include in the end. Needs to substitute in the long term the -pier definition
+		// left for back compatibility
+		// arguments: h, b, t, E, G, fc "shearModel" <variable shear model parameters>
+
+		double dData2[6];
+		numData = 6;
+		if (OPS_GetDoubleInput(&numData, &dData2[0]) < 0) {
+			opserr << "WARNING Macroelement3d (tag: " << iData[0] << "):'-pierGeneric' input structure incorrect, invalid double input(s)." << endln;
+			opserr << "Required structure : h, b, t, E, G, fc shearModel <variable shear model parameters> <-flags>" << endln;
+			return 0;
+		}
+
+		intLength(0) = 1. / 6.;
+		intLength(1) = 2. / 3.;
+		intLength(2) = 1. / 6.;
+
+		h = dData2[0];
+
+		b = dData2[1];
+		t = dData2[2];
+		E_ = dData2[3];
+		double G = dData2[4];
+		double fc = dData2[5];
+
+		Ltfc = abs(fc*b*t);
+
+		// true for stronger, true for elastic, true for crushing
+		theSectionI = new NoTensionSection3d(0, E_, G, t, b, -1.0, fc, 11, false, false, true);
+		theSectionE = new NoTensionSection3d(0, E_, G, t, b, -1.0, fc, 11, false, false, true);
+		theSectionJ = new NoTensionSection3d(0, E_, G, t, b, -1.0, fc, 11, false, false, true);
+
+		const char* type = NULL;
+        type = OPS_GetString();
+
+		if (strcmp(type, "-MohrCoulomb") == 0) {
+			double dataShear[5];
+			numData = 5;
+
+			if (OPS_GetDoubleInput(&numData, &dataShear[0]) < 0) {
+				opserr << "WARNING Macroelement3d (tag: " << iData[0] << "):unable to read shear model input(s)." << endln;
+				opserr << "Required structure: -MohrCoulomb mu c Gc dropDrift alpha <-flags>" << endln;
+				return 0;
+			}
+
+			Vector props(4);
+			props(0) = b;
+			props(1) = t;
+			props(2) = dataShear[1];
+			props(3) = dataShear[0];
+
+			theShearModel = new GenericDamagePlasticityShear(0, G/(h)*5./6.*b*t, 1, props, 1.0 + dataShear[2], dataShear[3] *h, dataShear[4], false, 0.0);
+			theShearModelOOP = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 1, props, 1.0 + dataShear[2], dataShear[3] * h, dataShear[4], true, 0.0);
+		}
+		else if (strcmp(type, "-TurnsekCacovic")==0) {
+			double dataShear[5];
+			numData = 5;
+
+			if (OPS_GetDoubleInput(&numData, &dataShear[0]) < 0) {
+				opserr << "WARNING Macroelement3d (tag: " << iData[0] << "):unable to read shear model input(s)." << endln;
+				opserr << "Required structure: -MohrCoulomb ft b Gc dropDrift alpha <-flags>" << endln;
+				return 0;
+			}
+
+			Vector props(4);
+			props(0) = b;
+			props(1) = t;
+			props(2) = dataShear[1];
+			props(3) = dataShear[0];
+
+			theShearModel = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 2, props, 1.0+dataShear[2], dataShear[3] * h, dataShear[4], false, 0.0);
+			theShearModelOOP = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 2, props, 1.0+dataShear[2], dataShear[3] * h, dataShear[4], true, 0.0);
+
+		}
+		else if ((strcmp(type, "-MohrCoulombCompressed") == 0) || (strcmp(type, "-Eurocode") == 0)) {
+			// [L, t, c, mu, 0.065fm]
+			double dataShear[6];
+			numData = 6;
+
+			if (OPS_GetDoubleInput(&numData, &dataShear[0]) < 0) {
+				opserr << "WARNING Macroelement3d (tag: " << iData[0] << "):unable to read shear model input(s)." << endln;
+				opserr << "Required structure: -MohrCoulomb mu c 0.065fm Gc dropDrift alpha <-flags>" << endln;
+				return 0;
+			}
+
+			Vector props(5);
+			props(0) = b;
+			props(1) = t;
+			props(2) = dataShear[1];
+			props(3) = dataShear[0];
+			props(4) = dataShear[2];
+
+			theShearModel = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 3, props, 1.0 + dataShear[3], dataShear[4] * h, dataShear[5], false, 0.0);
+			theShearModelOOP = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 3, props, 1.0 + dataShear[3], dataShear[4] * h, dataShear[5], true, 0.0);
+
+		}
+
+	}
+
+
+
 	
 	else if (strcmp(inputStructure,"-spandrel") == 0) {
         // standard input for spandrels, with my shear model and the middle section linear elastic (end sections slightly stronger)
@@ -490,6 +594,109 @@ OPS_Macroelement3d()
      } 
 
 
+
+	else if (strcmp(inputStructure, "-spandrelGeneric") == 0) {
+		// input for piers, with generic shear model to include in the end. Needs to substitute in the long term the -pier definition
+		// left for back compatibility
+		// arguments: h, b, t, E, G, fc "shearModel" <variable shear model parameters>
+
+		double dData2[6];
+		numData = 6;
+		if (OPS_GetDoubleInput(&numData, &dData2[0]) < 0) {
+			opserr << "WARNING Macroelement3d (tag: " << iData[0] << "):'-pierGeneric' input structure incorrect, invalid double input(s)." << endln;
+			opserr << "Required structure : h, b, t, E, G, fc shearModel <variable shear model parameters> <-flags>" << endln;
+			return 0;
+		}
+
+		intLength(0) = 1. / 6.;
+		intLength(1) = 2. / 3.;
+		intLength(2) = 1. / 6.;
+
+		h = dData2[0];
+
+		b = dData2[1];
+		t = dData2[2];
+		E_ = dData2[3];
+		double G = dData2[4];
+		double fc = dData2[5];
+
+		Ltfc = abs(fc*b*t);
+
+		// true for stronger, true for elastic, true for crushing
+		theSectionI = new NoTensionSection3d(0, E_, G, t, b, -1.0, fc, 5, true, false, false);
+		theSectionE = new NoTensionSection3d(0, E_, G, t, b, -1.0, fc, 5, false, true, false);
+		theSectionJ = new NoTensionSection3d(0, E_, G, t, b, -1.0, fc, 5, true, false, false);
+
+		const char* type = NULL;
+		type = OPS_GetString();
+
+		if (strcmp(type, "-MohrCoulomb") == 0) {
+			double dataShear[5];
+			numData = 5;
+
+			if (OPS_GetDoubleInput(&numData, &dataShear[0]) < 0) {
+				opserr << "WARNING Macroelement3d (tag: " << iData[0] << "):unable to read shear model input(s)." << endln;
+				opserr << "Required structure: -MohrCoulomb mu c Gc dropDrift alpha <-flags>" << endln;
+				return 0;
+			}
+
+			Vector props(4);
+			props(0) = b;
+			props(1) = t;
+			props(2) = dataShear[1];
+			props(3) = dataShear[0];
+
+			theShearModel = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 1, props, 1.0 + dataShear[2], dataShear[3] * h, dataShear[4], false, 0.0);
+			theShearModelOOP = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 1, props, 1.0 + dataShear[2], dataShear[3] * h, dataShear[4], true, 0.0);
+		}
+		else if (strcmp(type, "-TurnsekCacovic") == 0) {
+			double dataShear[5];
+			numData = 5;
+
+			if (OPS_GetDoubleInput(&numData, &dataShear[0]) < 0) {
+				opserr << "WARNING Macroelement3d (tag: " << iData[0] << "):unable to read shear model input(s)." << endln;
+				opserr << "Required structure: -MohrCoulomb ft b Gc dropDrift alpha <-flags>" << endln;
+				return 0;
+			}
+
+			Vector props(4);
+			props(0) = b;
+			props(1) = t;
+			props(2) = dataShear[1];
+			props(3) = dataShear[0];
+
+			theShearModel = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 2, props, 1.0 + dataShear[2], dataShear[3] * h, dataShear[4], false, 0.0);
+			theShearModelOOP = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 2, props, 1.0 + dataShear[2], dataShear[3] * h, dataShear[4], true, 0.0);
+
+		}
+		else if ((strcmp(type, "-MohrCoulombCompressed") == 0) || (strcmp(type, "-Eurocode") == 0)) {
+			// [L, t, c, mu, 0.065fm]
+			double dataShear[6];
+			numData = 6;
+
+			if (OPS_GetDoubleInput(&numData, &dataShear[0]) < 0) {
+				opserr << "WARNING Macroelement3d (tag: " << iData[0] << "):unable to read shear model input(s)." << endln;
+				opserr << "Required structure: -MohrCoulomb mu c 0.065fm Gc dropDrift alpha <-flags>" << endln;
+				return 0;
+			}
+
+			Vector props(5);
+			props(0) = b;
+			props(1) = t;
+			props(2) = dataShear[1];
+			props(3) = dataShear[0];
+			props(4) = dataShear[2];
+
+			theShearModel = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 3, props, 1.0 + dataShear[3], dataShear[4] * h, dataShear[5], false, 0.0);
+			theShearModelOOP = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t, 3, props, 1.0 + dataShear[3], dataShear[4] * h, dataShear[5], true, 0.0);
+
+		}
+
+	}
+
+
+
+
 	
 	else if (strcmp(inputStructure,"-gable") == 0)  {
 
@@ -525,13 +732,112 @@ OPS_Macroelement3d()
 		Ltfc = std::abs(fc*0.5*b*t);
 
 		// true for stronger, true for elastic, true for crushing
-		theSectionI = new NoTensionSection3d(0, E_, 0.5*G, t,     b, -1.0, fc, 5, false, false, true);   
-		theSectionE = new NoTensionSection3d(0, E_,     G, t, 0.5*b, -1.0, fc, 5, false, false, true);
-		theSectionJ = new NoTensionSection3d(0, E_,     G, t, 0.1*b, -1.0, fc, 5, false, false, true);
+		theSectionI = new NoTensionSection3d(0, E_, 0.5*G, t,     b, -1.0, fc, 11, false, false, true);   
+		theSectionE = new NoTensionSection3d(0, E_,     G, t, 0.5*b, -1.0, fc, 11, false, false, true);
+		theSectionJ = new NoTensionSection3d(0, E_,     G, t, 0.1*b, -1.0, fc, 11, false, false, true);
 
 		theShearModelOOP = new DamageShearInterface(0, E_*0.5*b*t, G/(h)*5./6.*0.5*b*t, tau0*0.5*b*t, mu, muR, Gc, dropDrift*h, true);
 		theShearModel    = new DamageShearInterface(0, E_*0.5*b*t, G/(h)*5./6.*0.5*b*t, tau0*0.5*b*t, mu, muR, Gc, dropDrift*h, true);	
      }
+
+	else if (strcmp(inputStructure, "-gableGeneric") == 0) {
+
+		// standard input for gables, with my shear model
+		// arguments: h, b, t, E, G, fc, mu, c, Gc, dropDrift, muR 
+		gable = true;
+
+		double dData2[6];
+		numData = 6;
+		if (OPS_GetDoubleInput(&numData, &dData2[0]) < 0) {
+			opserr << "WARNING Macroelement3d (tag: " << iData[0] << "):'-gable' input structure incorrect, invalid double input(s)." << endln;
+			opserr << "Required structure : h, b, t, E, G, fc, mu, c, Gc, dropDrift, muR <-flags>" << endln;
+			return 0;
+		}
+
+		intLength(0) = 1. / 6.;
+		intLength(1) = 2. / 3.;
+		intLength(2) = 1. / 6.;
+
+		h = dData2[0];
+
+		b = dData2[1];
+		t = dData2[2];
+		E_ = dData2[3];
+		double G = dData2[4];
+		double fc = dData2[5];
+
+		Ltfc = abs(fc*b*t);
+
+		// true for stronger, true for elastic, true for crushing
+		theSectionI = new NoTensionSection3d(0, E_, G, t, b,     -1.0, fc, 11, false, false, true);
+		theSectionE = new NoTensionSection3d(0, E_, G, t, 0.5*b, -1.0, fc, 11, false, false, true);
+		theSectionJ = new NoTensionSection3d(0, E_, G, t, 0.1*b, -1.0, fc, 11, false, false, true);
+
+		const char* type = NULL;
+		type = OPS_GetString();
+
+		if (strcmp(type, "-MohrCoulomb") == 0) {
+			double dataShear[5];
+			numData = 5;
+
+			if (OPS_GetDoubleInput(&numData, &dataShear[0]) < 0) {
+				opserr << "WARNING Macroelement3d (tag: " << iData[0] << "):unable to read shear model input(s)." << endln;
+				opserr << "Required structure: -MohrCoulomb mu c Gc dropDrift alpha <-flags>" << endln;
+				return 0;
+			}
+
+			Vector props(4);
+			props(0) = b;
+			props(1) = t;
+			props(2) = dataShear[1];
+			props(3) = dataShear[0];
+
+			theShearModel = new GenericDamagePlasticityShear(0,    G / (h)*5. / 6.*b*t*0.5, 1, props, 1.0 + dataShear[2], dataShear[3] * h, dataShear[4], false, 0.0);
+			theShearModelOOP = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t*0.5, 1, props, 1.0 + dataShear[2], dataShear[3] * h, dataShear[4], true, 0.0);
+		}
+		else if (strcmp(type, "-TurnsekCacovic") == 0) {
+			double dataShear[5];
+			numData = 5;
+
+			if (OPS_GetDoubleInput(&numData, &dataShear[0]) < 0) {
+				opserr << "WARNING Macroelement3d (tag: " << iData[0] << "):unable to read shear model input(s)." << endln;
+				opserr << "Required structure: -MohrCoulomb ft b Gc dropDrift alpha <-flags>" << endln;
+				return 0;
+			}
+
+			Vector props(4);
+			props(0) = b;
+			props(1) = t;
+			props(2) = dataShear[1];
+			props(3) = dataShear[0];
+
+			theShearModel = new GenericDamagePlasticityShear(0,    G / (h)*5. / 6.*b*t*0.5, 2, props, 1.0 + dataShear[2], dataShear[3] * h, dataShear[4], false, 0.0);
+			theShearModelOOP = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t*0.5, 2, props, 1.0 + dataShear[2], dataShear[3] * h, dataShear[4], true, 0.0);
+
+		}
+		else if ((strcmp(type, "-MohrCoulombCompressed") == 0) || (strcmp(type, "-Eurocode") == 0)) {
+			// [L, t, c, mu, 0.065fm]
+			double dataShear[6];
+			numData = 6;
+
+			if (OPS_GetDoubleInput(&numData, &dataShear[0]) < 0) {
+				opserr << "WARNING Macroelement3d (tag: " << iData[0] << "):unable to read shear model input(s)." << endln;
+				opserr << "Required structure: -MohrCoulomb mu c 0.065fm Gc dropDrift alpha <-flags>" << endln;
+				return 0;
+			}
+
+			Vector props(5);
+			props(0) = b;
+			props(1) = t;
+			props(2) = dataShear[1];
+			props(3) = dataShear[0];
+			props(4) = dataShear[2];
+
+			theShearModel = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t*0.5, 3, props, 1.0 + dataShear[3], dataShear[4] * h, dataShear[5], false, 0.0);
+			theShearModelOOP = new GenericDamagePlasticityShear(0, G / (h)*5. / 6.*b*t*0.5, 3, props, 1.0 + dataShear[3], dataShear[4] * h, dataShear[5], true, 0.0);
+
+		}
+	}
 	
 
 	
@@ -539,6 +845,11 @@ OPS_Macroelement3d()
 		// standard input, opensees like. Custom sectional models have to be created before, and their tags are passed to the macrolement.
 		// arguments: sectionTag, sectionTagE, shearModelTag, h, E 
 		// inputs: 
+
+		intLength(0) = 1. / 6.;
+		intLength(1) = 2. / 3.;
+		intLength(2) = 1. / 6.;
+
 		int iData2[5];
 		int numData = 5;
 		if (OPS_GetIntInput(&numData,&iData2[0]) < 0) {
@@ -758,13 +1069,14 @@ OPS_Macroelement3d()
 			
 			while (goOn && i<otherInputs) {
 				stringRead = OPS_GetString();
-				if (strstr(stringRead,"-") ) { // means there is a flag
-					goOn = false;					
-				} else {
+				
+				char *err;
+				double dnotUsed = strtod(stringRead, &err);
+				if (*err == 0) { 
 					singleInput = strtod(stringRead, &pEnd);
 					parsed.push_back(singleInput);
 					i += 1;
-				}
+				} else if (!isspace((unsigned char)*err)) { goOn = false; }
 
 			}
 
@@ -825,14 +1137,15 @@ OPS_Macroelement3d()
 			
 			while (goOn && i<otherInputs) {
 				stringRead = OPS_GetString();
-				if (strstr(stringRead,"-") ) { // means there is a flag
-					goOn = false;
-				} else {
+
+				char *err;
+				double dnotUsed = strtod(stringRead, &err);
+				if (*err == 0) {
 					singleInput = strtod(stringRead, &pEnd);
 					parsedS.push_back(singleInput);
 					i += 1;
 				}
-
+				else if (!isspace((unsigned char)*err)) { goOn = false; }
 			}
 
 			if (read_Ltfc) {
@@ -1035,6 +1348,7 @@ Macroelement3d::Macroelement3d(
     
 	this->intLength *= 2*L;
 	this->intLengthMasses *= 2*L;
+
 }
 
 Macroelement3d::Macroelement3d()
@@ -1245,7 +1559,6 @@ Macroelement3d::setDomain(Domain *theDomain) {
     this->DomainComponent::setDomain(theDomain);
 	this->getIncrementalCompatibilityMatrix(false);
 	this->update();
-
 	
 }
 
@@ -1367,7 +1680,7 @@ Macroelement3d::update(void)
 		}
 	}
 
-	// aplly to the first section 
+	// apply to the first section 
 	for (int i = 0; i<3; i++)
 		if ( ordering[i]>=0)
 			e( ordering[i] ) = uBasic(i) / intLength(0);
@@ -1376,7 +1689,7 @@ Macroelement3d::update(void)
 		e( ordering[3] ) = uBasic(3) / (2.*L);
 
 	err += theSections[0]->setTrialSectionDeformation(e);
-	
+
 	M1 = (theSections[0]->getStressResultant())(ordering[1]);
 
 
@@ -1402,24 +1715,6 @@ Macroelement3d::update(void)
 			e( ordering[i] ) = uBasic(i+4)   / intLength(1);
     err += theSections[1]->setTrialSectionDeformation(e);
 
-	Vector N(4);
-	N = theSections[1]->getStressResultant();
-
-	Matrix EshearModel = theShearModel[0]->getInitialTangent();
-	e(0) = N(ordering[0]) / EshearModel(0,0);
-
-	Vector s(2);
-    s(0) = e(0);   
-    s(1) = uBasic(10);
-	err += theShearModel[0]->setTrialStrain(s);
-
-	EshearModel = theShearModel[1]->getInitialTangent();
-	e(0) = N(ordering[0]) / EshearModel(0,0);
-
-    s(0) = e(0);   
-    s(1) = uBasic(11);
-    err += theShearModel[1]->setTrialStrain(s);
-
 	//third section
 	order = theSections[2]->getOrder();
 	const ID &code2 = theSections[2]->getType();
@@ -1444,7 +1739,10 @@ Macroelement3d::update(void)
 	
 	M3 = (theSections[2]->getStressResultant())(ordering[1]);
    
-		
+	Vector N(4);
+	N = theSections[1]->getStressResultant();
+
+
 	// check for in-plane drift failure
 	driftS = std::abs(-uBasic(10)) /2.0 *oneOverL;
 // #ifdef _WINDOWS_
@@ -1458,7 +1756,7 @@ Macroelement3d::update(void)
 
 	double axialLoadRatio;
 	if (Ltfc>0.0)
-		axialLoadRatio = -N(0)/Ltfc;
+		axialLoadRatio = -N(ordering[0])/Ltfc;
 	else
 	    axialLoadRatio = 0.0;
 
@@ -1480,8 +1778,45 @@ Macroelement3d::update(void)
 			shearSpanRatio = 10.;
 	}
 
-	this->driftModel(driftF, driftS, axialLoadRatio, shearSpanRatio);
+
+
+	Matrix EshearModel = theShearModel[0]->getInitialTangent();
+	e(0) = N(ordering[0]) / EshearModel(0, 0);
+
+	Vector s(2);
+	s(0) = e(0);
+	s(1) = uBasic(10);
+
+	GenericDamagePlasticityShear* genericShearType = dynamic_cast<GenericDamagePlasticityShear*>(theShearModel[0]);
+	if (genericShearType != NULL) {
+		Vector params(2);
+		params(0) = shearSpanRatio*2.*L;
+		params(1) = axialLoadRatio;
+		err += genericShearType->setTrialStrainExtraParams(s, params);
+	}
+	else {
+		err += theShearModel[0]->setTrialStrain(s);
+	}
+
+	EshearModel = theShearModel[1]->getInitialTangent();
+	e(0) = N(ordering[0]) / EshearModel(0, 0);
+
+	s(0) = e(0);
+	s(1) = uBasic(11);
 	
+	GenericDamagePlasticityShear* genericShearTypeOOP = dynamic_cast<GenericDamagePlasticityShear*>(theShearModel[1]);
+	if (genericShearTypeOOP != NULL) {
+		Vector params(2);
+		params(0) = 2.*L;
+		params(1) = axialLoadRatio;
+		err += genericShearTypeOOP->setTrialStrainExtraParams(s, params);
+	}
+	else {
+		err += theShearModel[1]->setTrialStrain(s);
+	}
+
+	
+	this->driftModel(driftF, driftS, axialLoadRatio, shearSpanRatio);
 
     if (err != 0) {
         opserr << "Macroelement3d::update() - failed setTrialSectionDeformations()\n";
@@ -1960,8 +2295,6 @@ const Matrix&
 Macroelement3d::getInitialBasicStiff()
 {
 
-	//opserr << "El. " << this->getTag() << ": called get K0 basic\n";
-  //  opserr << "called initial basic stiffness\n";
   static Matrix kb(12,12);  
   kb.Zero();
   
@@ -1984,9 +2317,9 @@ Macroelement3d::getInitialBasicStiff()
 	  default: break;
 	  }
   }
-
+  
   const Matrix &ks0 = theSections[0]->getInitialTangent();
-
+  
   // i index: line;  j index: column
   for (int i = 0; i<4; i++) {
 	  if (ordering[i] >= 0) {
@@ -2532,14 +2865,16 @@ Macroelement3d::getResistingForce()
 	  case SECTION_RESPONSE_P:     ordering[0] = j;	break;
 	  case SECTION_RESPONSE_MZ:    ordering[1] = j; break;
 	  case SECTION_RESPONSE_MY:    ordering[2] = j;	break;
+	  case SECTION_RESPONSE_T:     ordering[3] = j;	break;
 	  default: break;
 	  }
   }
 
   for (int i=0; i<order; i++) {
-	  q(i) = s0(ordering[i]);
+	  if (ordering[i] >= 0) {
+		  q(i) = s0(ordering[i]);
+	  }
   }
-
   
   // second interface
   order = theSections[1]->getOrder();
@@ -2559,7 +2894,9 @@ Macroelement3d::getResistingForce()
 
   const Vector &s1 = theSections[1]->getStressResultant();
   for (int i = 0; i<3; i++) {
-	  q(4+i) = s1(ordering[i]);
+	  if (ordering[i] >= 0) {
+		  q(4 + i) = s1(ordering[i]);
+	  }
   }
 
 
@@ -2581,7 +2918,9 @@ Macroelement3d::getResistingForce()
 
   const Vector &s2 = theSections[2]->getStressResultant();
   for (int i = 0; i<3; i++) {
-	  q(7 + i) = s2(ordering[i]);
+	  if (ordering[i] >= 0) {
+		  q(7 + i) = s2(ordering[i]);
+	  }
   }
 
 
@@ -3082,4 +3421,383 @@ Macroelement3d::trasformMatrixToGlobal(Matrix& A) {
 
 	return 0;
 };
+
+
+
+
+
+
+
+
+
+// damping methods. 
+int
+Macroelement3d::setRayleighDampingFactors(double alpham, double betak, double betak0, double betakc)
+{
+	alphaM = alpham;
+	betaK = betak;
+	betaK0 = betak0;
+	betaKc = betakc;
+
+	// check that memory has been allocated to store compute/return
+	// damping matrix & residual force calculations
+	if (index == -1) {
+		int numDOF = this->getNumDOF();
+
+		for (int i = 0; i<numMatrices; i++) {
+			Matrix *aMatrix = theMatrices[i];
+			if (aMatrix->noRows() == numDOF) {
+				index = i;
+				i = numMatrices;
+			}
+		}
+		if (index == -1) {
+			Matrix **nextMatrices = new Matrix *[numMatrices + 1];
+			if (nextMatrices == 0) {
+				opserr << "Element::getTheMatrix - out of memory\n";
+			}
+			int j;
+			for (j = 0; j<numMatrices; j++)
+				nextMatrices[j] = theMatrices[j];
+			Matrix *theMatrix = new Matrix(numDOF, numDOF);
+			if (theMatrix == 0) {
+				opserr << "Element::getTheMatrix - out of memory\n";
+				exit(-1);
+			}
+			nextMatrices[numMatrices] = theMatrix;
+
+			Vector **nextVectors1 = new Vector *[numMatrices + 1];
+			Vector **nextVectors2 = new Vector *[numMatrices + 1];
+			if (nextVectors1 == 0 || nextVectors2 == 0) {
+				opserr << "Element::getTheVector - out of memory\n";
+				exit(-1);
+			}
+
+			for (j = 0; j<numMatrices; j++) {
+				nextVectors1[j] = theVectors1[j];
+				nextVectors2[j] = theVectors2[j];
+			}
+
+			Vector *theVector1 = new Vector(numDOF);
+			Vector *theVector2 = new Vector(numDOF);
+			if (theVector1 == 0 || theVector2 == 0) {
+				opserr << "Element::getTheVector - out of memory\n";
+				exit(-1);
+			}
+
+			nextVectors1[numMatrices] = theVector1;
+			nextVectors2[numMatrices] = theVector2;
+
+			if (numMatrices != 0) {
+				delete[] theMatrices;
+				delete[] theVectors1;
+				delete[] theVectors2;
+			}
+			index = numMatrices;
+			numMatrices++;
+			theMatrices = nextMatrices;
+			theVectors1 = nextVectors1;
+			theVectors2 = nextVectors2;
+		}
+	}
+
+	// if need storage for Kc go get it
+	if (betaKc != 0.0) {
+		if (Kc == 0)
+			Kc = new Matrix(this->getTangentStiff());
+		if (Kc == 0) {
+			opserr << "WARNING - ELEMENT::setRayleighDampingFactors - out of memory\n";
+			betaKc = 0.0;
+		}
+
+		// if don't need storage for Kc & have allocated some for it, free the memory
+	}
+	else if (Kc != 0) {
+		delete Kc;
+		Kc = 0;
+	}
+
+	return 0;
+}
+
+
+
+const Matrix &
+Macroelement3d::getDamp(void)
+{
+	if (index == -1) {
+		this->setRayleighDampingFactors(alphaM, betaK, betaK0, betaKc);
+	}
+
+	// now compute the damping matrix
+	Matrix *theMatrix = theMatrices[index];
+	theMatrix->Zero();
+	if (alphaM != 0.0)
+		theMatrix->addMatrix(0.0, this->getMass(), alphaM);
+	if (betaK != 0.0)
+		theMatrix->addMatrix(1.0, this->getTangentStiff(), betaK);
+	if (betaK0 != 0.0)
+		theMatrix->addMatrix(1.0, this->getInitialStiff(), betaK0);
+	if (betaKc != 0.0)
+		theMatrix->addMatrix(1.0, this->getSecantStiff(), betaKc);
+
+	// return the computed matrix
+	return *theMatrix;
+}
+
+
+const Vector &
+Macroelement3d::getRayleighDampingForces(void)
+{
+
+	if (index == -1) {
+		this->setRayleighDampingFactors(alphaM, betaK, betaK0, betaKc);
+	}
+
+	Matrix *theMatrix = theMatrices[index];
+	Vector *theVector = theVectors2[index];
+	Vector *theVector2 = theVectors1[index];
+
+	//
+	// perform: R = (alphaM * M + betaK0 * K0 + betaK * K) * v
+	//            = D * v
+	//
+
+	// determine the vel vector from ele nodes
+	Node **theNodes = this->getNodePtrs();
+	int numNodes = this->getNumExternalNodes();
+	int loc = 0;
+	for (int i = 0; i<numNodes; i++) {
+		const Vector &vel = theNodes[i]->getTrialVel();
+		for (int i = 0; i<vel.Size(); i++) {
+			(*theVector2)(loc++) = vel[i];
+		}
+	}
+
+	// now compute the damping matrix
+	theMatrix->Zero();
+	if (alphaM != 0.0)
+		theMatrix->addMatrix(0.0, this->getMass(), alphaM);
+	if (betaK != 0.0)
+		theMatrix->addMatrix(1.0, this->getTangentStiff(), betaK);
+	if (betaK0 != 0.0)
+		theMatrix->addMatrix(1.0, this->getInitialStiff(), betaK0);
+	if (betaKc != 0.0)
+		theMatrix->addMatrix(1.0, this->getSecantStiff(), betaKc);
+
+	// finally the D * v
+	theVector->addMatrixVector(0.0, *theMatrix, *theVector2, 1.0);
+
+	return *theVector;
+}
+
+
+
+const Matrix&
+Macroelement3d::getSecantStiff()
+{
+	static Matrix kb(12, 12);
+
+	kb.Zero();
+	q.Zero();
+
+	double oneOverL = 1.0 / L;
+
+	// first interface
+	int order = theSections[0]->getOrder();
+	const ID &code0 = theSections[0]->getType();
+
+	int ordering[4];
+	for (int j = 0; j < 4; j++)
+		ordering[j] = -1;
+
+	for (int j = 0; j < order; j++) {
+		switch (code0(j)) {
+		case SECTION_RESPONSE_P:     ordering[0] = j;	break;
+		case SECTION_RESPONSE_MZ:    ordering[1] = j;   break;
+		case SECTION_RESPONSE_MY:    ordering[2] = j;	break;
+		case SECTION_RESPONSE_T:     ordering[3] = j;	break;
+		default: break;
+		}
+	}
+
+	const Vector &s0 = theSections[0]->getStressResultant();
+	const Matrix &ks0 = theSections[0]->getSectionTangent();
+
+	// i index: line;  j index: column
+	for (int i = 0; i<4; i++) {
+		if (ordering[i] >= 0) {
+			q(i) = s0(ordering[i]);
+			for (int j = 0; j < 4; j++)
+				if (i < 3)
+					kb(i, j) = ks0(ordering[i], ordering[j]) / intLength(0);
+				else
+					kb(i, j) = ks0(ordering[i], ordering[j]) / (2.*L);
+		}
+	}
+
+	// second interface
+	order = theSections[1]->getOrder();
+	const ID &code1 = theSections[1]->getType();
+
+	for (int j = 0; j < 4; j++)
+		ordering[j] = -1;
+
+	for (int j = 0; j < order; j++) {
+		switch (code1(j)) {
+		case SECTION_RESPONSE_P:     ordering[0] = j;	break;
+		case SECTION_RESPONSE_MZ:    ordering[1] = j; break;
+		case SECTION_RESPONSE_MY:    ordering[2] = j;	break;
+		default: break;
+		}
+	}
+
+	const Vector &s1 = theSections[1]->getStressResultant();
+	const Matrix &ks1 = theSections[1]->getSectionTangent();
+
+	// i index: line;  j index: column
+	for (int i = 0; i<3; i++) {
+		if (ordering[i] >= 0) {
+			q(4 + i) = s1(ordering[i]);
+			for (int j = 0; j < 3; j++)
+				kb(4 + i, 4 + j) = ks1(ordering[i], ordering[j]) / intLength(1);
+		}
+	}
+
+
+	// third interface
+	order = theSections[2]->getOrder();
+	const ID &code2 = theSections[2]->getType();
+
+	for (int j = 0; j < 4; j++)
+		ordering[j] = -1;
+
+	for (int j = 0; j < order; j++) {
+		switch (code2(j)) {
+		case SECTION_RESPONSE_P:     ordering[0] = j;	break;
+		case SECTION_RESPONSE_MZ:    ordering[1] = j; break;
+		case SECTION_RESPONSE_MY:    ordering[2] = j;	break;
+		default: break;
+		}
+	}
+
+	const Vector &s2 = theSections[2]->getStressResultant();
+	const Matrix &ks2 = theSections[2]->getSectionTangent();
+
+	// i index: line;  j index: column
+	for (int i = 0; i<3; i++) {
+		if (ordering[i] >= 0) {
+			q(7 + i) = s2(ordering[i]);
+			for (int j = 0; j < 3; j++)
+				kb(7 + i, 7 + j) = ks2(ordering[i], ordering[j]) / intLength(2);
+		}
+	}
+
+	// shear interface 1 and 2
+	for (int sect = 0; sect<2; sect++) {
+
+		Matrix EshearModel = theShearModel[sect]->getInitialTangent();
+		double N = q(4);
+		double Esm = EshearModel(0, 0);
+
+		const Matrix &ks = theShearModel[sect]->getTangent();
+		const Vector &s = theShearModel[sect]->getStress();
+
+		kb(10 + sect, 10 + sect) = ks(1, 1);
+		q(10 + sect) = s(1);
+
+		// update non-diagonal terms of the stiffness matrix (dependency on N2)
+		for (int j = 0; j<3; j++)
+			kb(10 + sect, 4 + j) += ks(1, 0) / Esm * kb(4, 4 + j);
+
+	}
+
+	// kill lateral capacity if failed
+	if (collapsedS || collapsedF) {
+		double failureFactor;
+		if (collapsedS)
+			failureFactor = failureFactorS;
+		else
+			failureFactor = failureFactorF;
+
+		// dofs to kill: all
+		int dofsToKill[12] = { 0,1,2,3,4,5,6,7,8,9,10,11 };
+		int dof;
+
+		for (int kDof = 0; kDof<12; kDof++) {
+			dof = dofsToKill[kDof];
+			q(dof) *= failureFactor;
+			for (int j = 0; j<kb.noCols(); j++)
+				kb(dof, j) *= failureFactor;
+		}
+	}
+	else if (failedS || failedF) {
+
+		double failureFactor;
+		if (failedS)
+			failureFactor = failureFactorS;
+		else
+			failureFactor = failureFactorF;
+
+		// dofs to kill: 1,2, 5,6, 8,9,  10,11  (moments of every section, shear of every section)
+		int dofsToKill[8] = { 1,2, 5,6, 8,9,  10,11 };
+		int dof;
+
+		for (int kDof = 0; kDof<8; kDof++) {
+			dof = dofsToKill[kDof];
+			q(dof) *= failureFactor;
+			for (int j = 0; j<kb.noCols(); j++)
+				kb(dof, j) *= failureFactor;
+		}
+	}
+
+
+	// Transform to local stiffness matrix
+
+	Matrix Klocal(18, 18);
+	//if (PDelta==1)   getIncrementalCompatibilityMatrix(true);
+	Klocal.addMatrixTripleProduct(0.0, GammaC, kb, 1.0);
+
+	//opserr << "local stiffness = " << Klocal;
+
+	// add geometric local stiffness matrix  
+	if (PDelta == 1) {
+		Matrix kgeom(18, 18);
+
+		// add fixed end forces. Update
+		for (int i = 0; i<12; i++) {
+			q(i) += q0[i];
+		}
+
+		double qq0 = q(0);
+		double qq7 = q(7);
+		double qq4 = q(4);
+
+		kgeom(1, 1) = qq0*oneOverL;
+		kgeom(1, 13) = -(qq0*oneOverL);
+		kgeom(2, 2) = qq0*oneOverL;
+		kgeom(2, 14) = -(qq0*oneOverL);
+		kgeom(7, 7) = qq7*oneOverL;
+		kgeom(7, 16) = -(qq7*oneOverL);
+		kgeom(8, 8) = qq7*oneOverL;
+		kgeom(8, 17) = -(qq7*oneOverL);
+		kgeom(13, 1) = -(qq0*oneOverL);
+		kgeom(13, 13) = qq0*oneOverL;
+		kgeom(14, 2) = -(qq0*oneOverL);
+		kgeom(14, 14) = qq0*oneOverL;
+		kgeom(16, 7) = -(qq7*oneOverL);
+		kgeom(16, 16) = qq7*oneOverL;
+		kgeom(17, 8) = -(qq7*oneOverL);
+		kgeom(17, 17) = qq7*oneOverL;
+
+		Klocal += kgeom;
+	}
+
+
+	// Transform to global stiffness matrix   Kglobal = Tgl' * Klocal * Tgl
+	// done now otherwise the secant stiffness matrix would be rrturned
+	trasformMatrixToGlobal(Klocal);
+
+	return K;
+}
 

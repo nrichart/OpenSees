@@ -115,6 +115,10 @@ extern void *OPS_LinearCap(void);
 extern void *OPS_AcousticMedium(void);
 
 extern  "C" void *OPS_BeamFrictionSupport(void);  // added by Francesco Vanin
+extern  "C" void *OPS_DamageShearInterface(void);  // added by Francesco Vanin
+extern  "C" void *OPS_GambarottaLagomarsinoModel(void);  // added by Francesco Vanin
+extern  "C" void *OPS_GenericDamagePlasticityShear(void);  // added by Francesco Vanin
+
 
 extern  void *OPS_ElasticIsotropicMaterialThermal(void);  //L.Jiang [SIF]
 extern  void *OPS_DruckerPragerMaterialThermal(void);//L.Jiang [SIF]
@@ -519,7 +523,7 @@ TclModelBuilderNDMaterialCommand (ClientData clientData, Tcl_Interp *interp, int
 	return TCL_ERROR;
     }
 
-	else if ((strcmp(argv[1], "BeamFrictionSupport") == 0) || (strcmp(argv[1], "BeamSupport") == 0)) {
+	else if ((strcmp(argv[1], "BeamFrictionSupport") == 0) || (strcmp(argv[1], "BeamSupport") == 0)) {  // added by Francesco Vanin
 
 		void *theMat = OPS_BeamFrictionSupport();
 		if (theMat != 0)
@@ -527,6 +531,35 @@ TclModelBuilderNDMaterialCommand (ClientData clientData, Tcl_Interp *interp, int
 		else
 			return TCL_ERROR;
 	}
+
+
+	else if (strcmp(argv[1], "DamageShearInterface") == 0) {  // added by Francesco Vanin
+
+		void *theMat = OPS_DamageShearInterface();
+		if (theMat != 0)
+			theMaterial = (NDMaterial *)theMat;
+		else
+			return TCL_ERROR;
+	}
+
+	else if (strcmp(argv[1], "GambarottaLagomarsinoModel") == 0) {  // added by Francesco Vanin
+
+		void *theMat = OPS_GambarottaLagomarsinoModel();
+		if (theMat != 0)
+			theMaterial = (NDMaterial *)theMat;
+		else
+			return TCL_ERROR;
+	}
+
+	else if (strcmp(argv[1], "GenericDamagePlasticityShear") == 0) {  // added by Francesco Vanin
+
+		void *theMat = OPS_GenericDamagePlasticityShear();
+		if (theMat != 0)
+			theMaterial = (NDMaterial *)theMat;
+		else
+			return TCL_ERROR;
+	}
+
 
     else if (strcmp(argv[1],"PressureDependentElastic3D") == 0) {
 	if (argc < 6) {
